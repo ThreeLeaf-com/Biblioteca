@@ -1,0 +1,31 @@
+{
+    "name": "threeleaf/biblioteca",
+    "description": "A Laravel Eloquent Model set representing Books or a series of Books.",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ThreeLeaf\\Biblioteca\\": "src/",
+            "Database\\Factories\\ThreeLeaf\\Biblioteca\\Models\\": "database/factories/"
+        }
+    },
+    "authors": [
+        {
+            "name": "John A. Marsh",
+            "email": "programmer@threeleaf.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "illuminate/database": "^10.0",
+        "ext-pdo": "*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ThreeLeaf\\Biblioteca\\Providers\\BibliotecaServiceProvider"
+            ]
+        }
+    }
+}

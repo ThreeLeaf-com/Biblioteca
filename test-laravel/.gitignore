@@ -1,0 +1,16 @@
+.env
+.env.backup
+.env.production
+.env.staging
+.phpunit.result.cache
+/.fleet
+/.phpunit.cache
+/.vscode
+/vendor
+Homestead.json
+Homestead.yaml
+auth.json
+build/
+hot
+node_modules/
+storage/
