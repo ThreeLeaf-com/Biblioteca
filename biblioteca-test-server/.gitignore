@@ -6,11 +6,10 @@
 /.fleet
 /.phpunit.cache
 /.vscode
-/vendor
-Homestead.json
-Homestead.yaml
-auth.json
-build/
+/composer.lock
+/package-lock.json
 hot
+/vendor
+build/
 node_modules/
 storage/
