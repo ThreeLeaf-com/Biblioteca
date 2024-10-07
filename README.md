@@ -135,11 +135,11 @@ php artisan migrate
 
 ## License
 
-This package is open-source software licensed under the [MIT license](LICENSE).
+This package is open-source software licensed under the [GNU license](LICENSE).
 
 ## Contributing
 
-Feel free to contribute by submitting issues or pull requests to the [GitHub repository](https://github.com/threeleaf/biblioteca-model).
+Feel free to contribute by submitting issues or pull requests to the [GitHub repository](https://github.com/ThreeLeaf-com/Biblioteca).
 
 ### Key Sections:
 
