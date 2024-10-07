@@ -39,9 +39,7 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
-                    base_path('vendor/threeleaf/biblioteca/src/Enums'),
-                    base_path('vendor/threeleaf/biblioteca/src/Models'),
-                    base_path('vendor/threeleaf/biblioteca/src/Http/Controllers'),
+                    base_path('vendor/threeleaf/biblioteca/src'),
                     base_path('app'),
                 ],
             ],

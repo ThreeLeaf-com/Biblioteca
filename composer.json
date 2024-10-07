@@ -3,7 +3,7 @@
     "description": "A Laravel Eloquent Model set for representing Books.",
     "version": "1.0.0",
     "type": "library",
-    "license": "MIT",
+    "license": "GNU",
     "autoload": {
         "psr-4": {
             "ThreeLeaf\\Biblioteca\\": "src/",

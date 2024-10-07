@@ -5,7 +5,7 @@ namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\AuthorRequest;
-use ThreeLeaf\Biblioteca\Http\Resource\AuthorResource;
+use ThreeLeaf\Biblioteca\Http\Resources\AuthorResource;
 use ThreeLeaf\Biblioteca\Models\Author;
 
 /**
