@@ -12,11 +12,11 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * A publisher associated with multiple books.
  *
- * @property string      $publisher_id  Primary key of the publisher in UUID format.
- * @property string      $name          Name of the publisher.
- * @property string      $address       Address of the publisher.
- * @property string      $website       Website of the publisher.
- * @property-read Book[] $books         The books associated with the publisher.
+ * @property string             $publisher_id  Primary key of the publisher in UUID format.
+ * @property string             $name          Name of the publisher.
+ * @property string             $address       Address of the publisher.
+ * @property string             $website       Website of the publisher.
+ * @property-read HasMany<Book> $books         The books associated with the publisher.
  *
  * @mixin Builder
  *

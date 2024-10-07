@@ -7,15 +7,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 
 /**
  * A genre that can be associated with multiple books.
  *
- * @property string      $genre_id     Primary key of the genre in UUID format.
- * @property string      $name         Name of the genre.
- * @property string      $description  Description of the genre.
- * @property-read Book[] $books        The books associated with this genre.
+ * @property string             $genre_id     Primary key of the genre in UUID format.
+ * @property string             $name         Name of the genre.
+ * @property string             $description  Description of the genre.
+ * @property-read HasMany<Book> $books        The books associated with this genre.
  *
  * @mixin Builder
  *

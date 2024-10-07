@@ -2,12 +2,15 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
+use ThreeLeaf\Biblioteca\Http\Requests\AuthorRequest;
+use ThreeLeaf\Biblioteca\Http\Resource\AuthorResource;
 use ThreeLeaf\Biblioteca\Models\Author;
 
 /**
  * Controller for {@link Author}.
+ *
  * @OA\Tag(name="Authors", description="Operations related to authors")
  */
 class AuthorController extends Controller
@@ -22,14 +25,18 @@ class AuthorController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Author"))
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/AuthorResource")
+     *         )
      *     )
      * )
      */
     public function index()
     {
         $authors = Author::all();
-        return response()->json($authors);
+
+        return AuthorResource::collection($authors);
     }
 
     /**
@@ -41,26 +48,23 @@ class AuthorController extends Controller
      *     tags={"Authors"},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/Author")
+     *         @OA\JsonContent(ref="#/components/schemas/AuthorRequest")
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Author created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Author")
+     *         @OA\JsonContent(ref="#/components/schemas/AuthorResource")
      *     )
      * )
      */
-    public function store(Request $request)
+    public function store(AuthorRequest $request)
     {
-        $validatedData = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'biography' => 'nullable|string',
-            'author_image_url' => 'nullable|string|url',
-        ]);
-
+        $validatedData = $request->validated();
         $author = Author::create($validatedData);
-        return response()->json($author, 201);
+
+        return (new AuthorResource($author))
+            ->response()
+            ->setStatusCode(HttpCodes::HTTP_CREATED);
     }
 
     /**
@@ -80,7 +84,7 @@ class AuthorController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Author")
+     *         @OA\JsonContent(ref="#/components/schemas/AuthorResource")
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -88,15 +92,11 @@ class AuthorController extends Controller
      *     )
      * )
      */
-    public function show($id)
+    public function show($author_id)
     {
-        $author = Author::find($id);
+        $author = Author::findOrFail($author_id);
 
-        if (!$author) {
-            return response()->json(['message' => 'Author not found'], 404);
-        }
-
-        return response()->json($author);
+        return new AuthorResource($author);
     }
 
     /**
@@ -115,12 +115,12 @@ class AuthorController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/Author")
+     *         @OA\JsonContent(ref="#/components/schemas/AuthorRequest")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Author updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Author")
+     *         @OA\JsonContent(ref="#/components/schemas/AuthorResource")
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -128,24 +128,13 @@ class AuthorController extends Controller
      *     )
      * )
      */
-    public function update(Request $request, $id)
+    public function update(AuthorRequest $request, $author_id)
     {
-        $author = Author::find($id);
-
-        if (!$author) {
-            return response()->json(['message' => 'Author not found'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'biography' => 'nullable|string',
-            'author_image_url' => 'nullable|string|url',
-        ]);
-
+        $author = Author::findOrFail($author_id);
+        $validatedData = $request->validated();
         $author->update($validatedData);
 
-        return response()->json($author);
+        return new AuthorResource($author);
     }
 
     /**
@@ -172,15 +161,11 @@ class AuthorController extends Controller
      *     )
      * )
      */
-    public function destroy($id)
+    public function destroy($author_id)
     {
-        $author = Author::find($id);
-
-        if (!$author) {
-            return response()->json(['message' => 'Author not found'], 404);
-        }
-
+        $author = Author::findOrFail($author_id);
         $author->delete();
-        return response()->json(null, 204);
+
+        return response()->json(null, HttpCodes::HTTP_NO_CONTENT);
     }
 }

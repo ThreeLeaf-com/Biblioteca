@@ -13,12 +13,12 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * A paragraph associated with a chapter.
  *
- * @property string          $paragraph_id      Primary key of the paragraph in UUID format.
- * @property string          $chapter_id        UUID of the associated chapter.
- * @property int             $paragraph_number  Number of the paragraph in the chapter.
- * @property string          $content           Content of the paragraph.
- * @property-read Chapter    $chapter           The chapter associated with the paragraph.
- * @property-read Sentence[] $sentences         The sentences associated with the paragraph.
+ * @property string                 $paragraph_id      Primary key of the paragraph in UUID format.
+ * @property string                 $chapter_id        UUID of the associated chapter.
+ * @property int                    $paragraph_number  Number of the paragraph in the chapter.
+ * @property string                 $content           Content of the paragraph.
+ * @property-read Chapter           $chapter           The chapter associated with the paragraph.
+ * @property-read HasMany<Sentence> $sentences         The sentences associated with the paragraph.
  *
  * @mixin Builder
  *

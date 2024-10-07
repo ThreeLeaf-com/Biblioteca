@@ -13,12 +13,12 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * A series of books associated with an author.
  *
- * @property string      $series_id   Primary key of the series in UUID format.
- * @property string      $name        Name of the series.
- * @property string      $description Description of the series.
- * @property string      $author_id   UUID of the associated author.
- * @property-read Author $author      The author associated with the series.
- * @property-read Book[] $books       The books associated with this series.
+ * @property string             $series_id   Primary key of the series in UUID format.
+ * @property string             $name        Name of the series.
+ * @property string             $description Description of the series.
+ * @property string             $author_id   UUID of the associated author.
+ * @property-read Author        $author      The author associated with the series.
+ * @property-read HasMany<Book> $books       The books associated with this series.
  *
  * @mixin Builder
  *

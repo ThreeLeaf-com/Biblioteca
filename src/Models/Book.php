@@ -15,24 +15,24 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * A book with chapters, associated with an author and publisher.
  *
- * @property string         $book_id            Primary key of the book in UUID format.
- * @property string         $title              Title of the book.
- * @property string         $author_id          UUID of the author.
- * @property Carbon         $published_date     Publication date of the book.
- * @property string         $isbn               ISBN of the book.
- * @property string         $publisher_id       UUID of the publisher.
- * @property string         $edition            Edition of the book.
- * @property string         $locale             Locale of the book (e.g., en_US).
- * @property string         $suggested_citation Suggested citation format for the book.
- * @property string         $cover_image_url    URL of the book cover image.
- * @property string         $summary            A brief summary of the book.
- * @property int            $number_in_series   The book’s number in a series (if applicable).
- * @property-read Author    $author             The author associated with the book.
- * @property-read Publisher $publisher          The publisher associated with the book.
- * @property-read Series    $series             The series the book belongs to.
- * @property-read Chapter[] $chapters           The chapters associated with the book.
- * @property-read Tag[]     $tags               The tags associated with the book.
- * @property-read Genre[]   $genres             The genres associated with the book.
+ * @property string                $book_id            Primary key of the book in UUID format.
+ * @property string                $title              Title of the book.
+ * @property string                $author_id          UUID of the author.
+ * @property Carbon                $published_date     Publication date of the book.
+ * @property string                $isbn               ISBN of the book.
+ * @property string                $publisher_id       UUID of the publisher.
+ * @property string                $edition            Edition of the book.
+ * @property string                $locale             Locale of the book (e.g., en_US).
+ * @property string                $suggested_citation Suggested citation format for the book.
+ * @property string                $cover_image_url    URL of the book cover image.
+ * @property string                $summary            A brief summary of the book.
+ * @property int                   $number_in_series   The book’s number in a series (if applicable).
+ * @property-read Author           $author             The author associated with the book.
+ * @property-read Publisher        $publisher          The publisher associated with the book.
+ * @property-read Series           $series             The series the book belongs to.
+ * @property-read HasMany<Chapter> $chapters           The chapters associated with the book.
+ * @property-read HasMany<Tag>     $tags               The tags associated with the book.
+ * @property-read HasMany<Genre>   $genres             The genres associated with the book.
  *
  * @mixin Builder
  *

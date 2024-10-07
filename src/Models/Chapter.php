@@ -13,15 +13,15 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * A chapter associated with a book.
  *
- * @property string           $chapter_id        Primary key of the chapter in UUID format.
- * @property string           $book_id           UUID of the associated book.
- * @property int              $chapter_number    Number of the chapter in the book.
- * @property string           $title             Title of the chapter.
- * @property string           $summary           A brief summary of the chapter.
- * @property string           $chapter_image_url URL of the chapter’s image.
- * @property-read Book        $book              The book associated with the chapter.
- * @property-read Paragraph[] $paragraphs        The paragraphs associated with the chapter.
- * @property-read Figure[]    $figures           The figures associated with the chapter.
+ * @property string                  $chapter_id        Primary key of the chapter in UUID format.
+ * @property string                  $book_id           UUID of the associated book.
+ * @property int                     $chapter_number    Number of the chapter in the book.
+ * @property string                  $title             Title of the chapter.
+ * @property string                  $summary           A brief summary of the chapter.
+ * @property string                  $chapter_image_url URL of the chapter’s image.
+ * @property-read Book               $book              The book associated with the chapter.
+ * @property-read HasMany<Paragraph> $paragraphs        The paragraphs associated with the chapter.
+ * @property-read HasMany<Figure>    $figures           The figures associated with the chapter.
  *
  * @mixin Builder
  *

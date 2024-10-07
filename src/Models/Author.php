@@ -12,12 +12,12 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 /**
  * Author of books.
  *
- * @property string      $author_id        Primary key of the author in UUID format
- * @property string      $first_name       First name of the author
- * @property string      $last_name        Last name of the author
- * @property string      $biography        A brief biography of the author
- * @property string      $author_image_url URL of the author's image
- * @property-read Book[] $books            Collection of books associated with this author
+ * @property string             $author_id        Primary key of the author in UUID format
+ * @property string             $first_name       First name of the author
+ * @property string             $last_name        Last name of the author
+ * @property string             $biography        A brief biography of the author
+ * @property string             $author_image_url URL of the author's image
+ * @property-read HasMany<Book> $books            Collection of books associated with this author
  *
  * @mixin Builder
  *

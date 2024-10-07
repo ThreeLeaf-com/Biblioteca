@@ -7,14 +7,15 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\Biblioteca;
 
 /**
  * A tag associated with multiple books.
  *
- * @property string      $tag_id Primary key of the tag in UUID format.
- * @property string      $name   Name of the tag.
- * @property-read Book[] $books  The books associated with this tag.
+ * @property string             $tag_id Primary key of the tag in UUID format.
+ * @property string             $name   Name of the tag.
+ * @property-read HasMany<Book> $books  The books associated with this tag.
  *
  * @mixin Builder
  *
