@@ -33,7 +33,7 @@ The Biblioteca Model library includes the following data models:
 1. Install the package via Composer:
 
    ```bash
-   composer require threeleaf/biblioteca-model
+   composer require threeleaf/biblioteca
    ```
 
 2. Publish the package configuration:
@@ -58,25 +58,21 @@ After installation and configuration, you can use the models provided by the Bib
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 
-// Create a new author
 $author = Author::create([
     'first_name' => 'John',
-    'last_name' => 'Doe',
-    'biography' => 'John Doe is a prolific writer...',
+    'last_name' => 'Marsh',
+    'biography' => 'John Marsh is a prolific writer...',
 ]);
 
-// Create a new book and associate it with the author
 $book = Book::create([
     'title' => 'The Great Adventure',
-    'author_id' => $author->id,
+    'author_id' => $author->author_id,
     'published_date' => now(),
-    'isbn' => '978-3-16-148410-0',
     'summary' => 'A thrilling tale of adventure...',
 ]);
 
-// Access the book's author
 $bookAuthor = $book->author;
-echo "Book Author: {$bookAuthor->first_name} {$bookAuthor->last_name}";
+echo "Book Author: $bookAuthor->first_name $bookAuthor->last_name";
 ```
 
 ### Example: Adding Chapters and Paragraphs to a Book
@@ -85,16 +81,14 @@ echo "Book Author: {$bookAuthor->first_name} {$bookAuthor->last_name}";
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 
-// Add a new chapter to the book
 $chapter = Chapter::create([
-    'book_id' => $book->id,
+    'book_id' => $book->book_id,
     'chapter_number' => 1,
     'title' => 'Chapter 1: The Beginning',
 ]);
 
-// Add a paragraph to the chapter
 $paragraph = Paragraph::create([
-    'chapter_id' => $chapter->id,
+    'chapter_id' => $chapter->chapter_id,
     'paragraph_number' => 1,
     'content' => 'This is the first paragraph of the chapter...',
 ]);
@@ -103,8 +97,8 @@ $paragraph = Paragraph::create([
 ### Example: Querying Books by Author
 
 ```php
-// Retrieve all books by a specific author
-$booksByAuthor = Author::find($author->id)->books;
+/* Retrieve all books by a specific author */
+$booksByAuthor = Author::find($author->author_id)->books;
 
 foreach ($booksByAuthor as $book) {
     echo $book->title;

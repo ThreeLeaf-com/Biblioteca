@@ -1,6 +1,6 @@
 {
     "name": "threeleaf/biblioteca",
-    "description": "A Laravel Eloquent Model set representing Books or a series of Books.",
+    "description": "A Laravel Eloquent Model set for representing Books.",
     "version": "1.0.0",
     "type": "library",
     "license": "MIT",

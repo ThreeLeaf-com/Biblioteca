@@ -154,4 +154,44 @@ class BibliotecaTest extends TestCase
             'book_id' => $book->book_id,
         ]);
     }
+
+    /** @test README examples. */
+    public function readmeExamples()
+    {
+        $author = Author::create([
+            'first_name' => 'John',
+            'last_name' => 'Marsh',
+            'biography' => 'John Marsh is a prolific writer...',
+        ]);
+
+        $book = Book::create([
+            'title' => 'The Great Adventure',
+            'author_id' => $author->author_id,
+            'published_date' => now(),
+            'summary' => 'A thrilling tale of adventure...',
+        ]);
+
+        $bookAuthor = $book->author;
+        echo "Book Author: $bookAuthor->first_name $bookAuthor->last_name";
+
+        $this->assertEquals('John', $bookAuthor->first_name);
+
+        $chapter = Chapter::create([
+            'book_id' => $book->book_id,
+            'chapter_number' => 1,
+            'title' => 'Chapter 1: The Beginning',
+        ]);
+
+        $paragraph = Paragraph::create([
+            'chapter_id' => $chapter->chapter_id,
+            'paragraph_number' => 1,
+            'content' => 'This is the first paragraph of the chapter...',
+        ]);
+
+        $booksByAuthor = Author::find($author->author_id)->books;
+
+        foreach ($booksByAuthor as $book) {
+            echo $book->title;
+        }
+    }
 }
