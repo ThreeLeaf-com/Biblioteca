@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 /**
  * @OA\Info(
+ *      title="ThreeLeaf.com Biblioteca API",
+ *      description="APIs for the Biblioteca Models.",
  *      version="1.0.0",
- *      title="ThreeLeaf.com Biblioteca APIs",
- *      description="APIs for the Bibliotecha Models.",
  *      @OA\Contact(
- *          email="api@threeleafcom.com"
+ *          email="biblioteca@threeleafcom.com"
  *      )
  * )
  * @OA\OpenApi(

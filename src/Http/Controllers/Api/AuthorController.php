@@ -11,7 +11,10 @@ use ThreeLeaf\Biblioteca\Models\Author;
 /**
  * Controller for {@link Author}.
  *
- * @OA\Tag(name="Authors", description="Operations related to authors")
+ * @OA\Tag(
+ *     name="Biblioteca/Author",
+ *     description="APIs related to Authors in Biblioteca"
+ * )
  */
 class AuthorController extends Controller
 {
@@ -21,7 +24,6 @@ class AuthorController extends Controller
      * @OA\Get(
      *     path="/api/authors",
      *     summary="Get a list of authors",
-     *     tags={"Authors"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -45,7 +47,6 @@ class AuthorController extends Controller
      * @OA\Post(
      *     path="/api/authors",
      *     summary="Create a new author",
-     *     tags={"Authors"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/AuthorRequest")
@@ -73,7 +74,6 @@ class AuthorController extends Controller
      * @OA\Get(
      *     path="/api/authors/{id}",
      *     summary="Get a specific author by ID",
-     *     tags={"Authors"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,7 +105,6 @@ class AuthorController extends Controller
      * @OA\Put(
      *     path="/api/authors/{id}",
      *     summary="Update an existing author",
-     *     tags={"Authors"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -143,7 +142,6 @@ class AuthorController extends Controller
      * @OA\Delete(
      *     path="/api/authors/{id}",
      *     summary="Delete a specific author",
-     *     tags={"Authors"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

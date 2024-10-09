@@ -2,7 +2,6 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use ThreeLeaf\Biblioteca\Models\Author;
 
@@ -43,7 +42,11 @@ use ThreeLeaf\Biblioteca\Models\Author;
  */
 class AuthorRequest extends FormRequest
 {
-    /** Determine if the user is authorized to make this request. */
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool True if the user is authorized, otherwise false.
+     */
     public function authorize(): bool
     {
         return true;
@@ -52,7 +55,7 @@ class AuthorRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, mixed> The validation rules for the author request.
      */
     public function rules(): array
     {

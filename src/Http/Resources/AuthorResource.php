@@ -60,7 +60,7 @@ class AuthorResource extends JsonResource
      *
      * @param Request $request
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed> The transformed author resource.
      */
     public function toArray(Request $request): array
     {

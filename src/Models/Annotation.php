@@ -25,7 +25,7 @@ use ThreeLeaf\Biblioteca\Constants\Biblioteca;
  *     description="An annotation applied to a paragraph or sentence",
  *     @OA\Property(property="annotation_id", type="string", description="Unique identifier for the annotation in UUID format"),
  *     @OA\Property(property="reference_id", type="string", description="Reference UUID for the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", description="The type/class of the referenced entity (paragraph or sentence)"),
+ *     @OA\Property(property="reference_type", type="string", example="\ThreeLeaf\Biblioteca\Models\Sentence", description="The type/class of the referenced entity"),
  *     @OA\Property(property="content", type="string", description="The content of the annotation"),
  *     @OA\Property(
  *         property="reference",
