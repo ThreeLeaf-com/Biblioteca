@@ -24,6 +24,7 @@ class BookController extends Controller
      * @OA\Get(
      *     path="/api/books",
      *     summary="Get a list of books",
+     *     tags={"Biblioteca/Books"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class BookController extends Controller
      * @OA\Post(
      *     path="/api/books",
      *     summary="Create a new book",
+     *     tags={"Biblioteca/Books"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/BookRequest")
@@ -74,6 +76,7 @@ class BookController extends Controller
      * @OA\Get(
      *     path="/api/books/{id}",
      *     summary="Get a specific book by ID",
+     *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class BookController extends Controller
      * @OA\Put(
      *     path="/api/books/{id}",
      *     summary="Update an existing book",
+     *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class BookController extends Controller
      * @OA\Delete(
      *     path="/api/books/{id}",
      *     summary="Delete a specific book",
+     *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

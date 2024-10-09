@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Paragraph;
  * Controller for {@link Paragraph}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Paragraphs",
- *      description="APIs related to Paragraphs in Biblioteca"
- *  )
+ *     name="Biblioteca/Paragraphs",
+ *     description="APIs related to Paragraphs in Biblioteca"
+ * )
  */
 class ParagraphController extends Controller
 {
@@ -24,6 +24,7 @@ class ParagraphController extends Controller
      * @OA\Get(
      *     path="/api/paragraphs",
      *     summary="Get a list of paragraphs",
+     *     tags={"Biblioteca/Paragraphs"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class ParagraphController extends Controller
      * @OA\Post(
      *     path="/api/paragraphs",
      *     summary="Create a new paragraph",
+     *     tags={"Biblioteca/Paragraphs"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/ParagraphRequest")
@@ -74,6 +76,7 @@ class ParagraphController extends Controller
      * @OA\Get(
      *     path="/api/paragraphs/{id}",
      *     summary="Get a specific paragraph by ID",
+     *     tags={"Biblioteca/Paragraphs"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class ParagraphController extends Controller
      * @OA\Put(
      *     path="/api/paragraphs/{id}",
      *     summary="Update an existing paragraph",
+     *     tags={"Biblioteca/Paragraphs"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class ParagraphController extends Controller
      * @OA\Delete(
      *     path="/api/paragraphs/{id}",
      *     summary="Delete a specific paragraph",
+     *     tags={"Biblioteca/Paragraphs"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

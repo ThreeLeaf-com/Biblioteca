@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Tag;
  * Controller for {@link Tag}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Tags",
- *      description="APIs related to Tags in Biblioteca"
- *  )
+ *     name="Biblioteca/Tags",
+ *     description="APIs related to Tags in Biblioteca"
+ * )
  */
 class TagController extends Controller
 {
@@ -24,6 +24,7 @@ class TagController extends Controller
      * @OA\Get(
      *     path="/api/tags",
      *     summary="Get a list of tags",
+     *     tags={"Biblioteca/Tags"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class TagController extends Controller
      * @OA\Post(
      *     path="/api/tags",
      *     summary="Create a new tag",
+     *     tags={"Biblioteca/Tags"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/TagRequest")
@@ -74,6 +76,7 @@ class TagController extends Controller
      * @OA\Get(
      *     path="/api/tags/{id}",
      *     summary="Get a specific tag by ID",
+     *     tags={"Biblioteca/Tags"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class TagController extends Controller
      * @OA\Put(
      *     path="/api/tags/{id}",
      *     summary="Update an existing tag",
+     *     tags={"Biblioteca/Tags"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class TagController extends Controller
      * @OA\Delete(
      *     path="/api/tags/{id}",
      *     summary="Delete a specific tag",
+     *     tags={"Biblioteca/Tags"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

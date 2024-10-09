@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Annotation;
  * Controller for {@link Annotation}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Annotations",
- *      description="APIs related to Annotations in Biblioteca"
- *  )
+ *     name="Biblioteca/Annotations",
+ *     description="APIs related to Annotations in Biblioteca"
+ * )
  */
 class AnnotationController extends Controller
 {
@@ -24,6 +24,7 @@ class AnnotationController extends Controller
      * @OA\Get(
      *     path="/api/annotations",
      *     summary="Get a list of annotations",
+     *     tags={"Biblioteca/Annotations"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class AnnotationController extends Controller
      * @OA\Post(
      *     path="/api/annotations",
      *     summary="Create a new annotation",
+     *     tags={"Biblioteca/Annotations"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/AnnotationRequest")
@@ -74,6 +76,7 @@ class AnnotationController extends Controller
      * @OA\Get(
      *     path="/api/annotations/{id}",
      *     summary="Get a specific annotation by ID",
+     *     tags={"Biblioteca/Annotations"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class AnnotationController extends Controller
      * @OA\Put(
      *     path="/api/annotations/{id}",
      *     summary="Update an existing annotation",
+     *     tags={"Biblioteca/Annotations"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class AnnotationController extends Controller
      * @OA\Delete(
      *     path="/api/annotations/{id}",
      *     summary="Delete a specific annotation",
+     *     tags={"Biblioteca/Annotations"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

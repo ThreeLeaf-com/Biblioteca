@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Genre;
  * Controller for {@link Genre}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Genres",
- *      description="APIs related to Genres in Biblioteca"
- *  )
+ *     name="Biblioteca/Genres",
+ *     description="APIs related to Genres in Biblioteca"
+ * )
  */
 class GenreController extends Controller
 {
@@ -24,6 +24,7 @@ class GenreController extends Controller
      * @OA\Get(
      *     path="/api/genres",
      *     summary="Get a list of genres",
+     *     tags={"Biblioteca/Genres"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class GenreController extends Controller
      * @OA\Post(
      *     path="/api/genres",
      *     summary="Create a new genre",
+     *     tags={"Biblioteca/Genres"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/GenreRequest")
@@ -74,6 +76,7 @@ class GenreController extends Controller
      * @OA\Get(
      *     path="/api/genres/{id}",
      *     summary="Get a specific genre by ID",
+     *     tags={"Biblioteca/Genres"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class GenreController extends Controller
      * @OA\Put(
      *     path="/api/genres/{id}",
      *     summary="Update an existing genre",
+     *     tags={"Biblioteca/Genres"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class GenreController extends Controller
      * @OA\Delete(
      *     path="/api/genres/{id}",
      *     summary="Delete a specific genre",
+     *     tags={"Biblioteca/Genres"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

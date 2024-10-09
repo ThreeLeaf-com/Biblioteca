@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Publisher;
  * Controller for {@link Publisher}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Publishers",
- *      description="APIs related to Publishers in Biblioteca"
- *  )
+ *     name="Biblioteca/Publishers",
+ *     description="APIs related to Publishers in Biblioteca"
+ * )
  */
 class PublisherController extends Controller
 {
@@ -24,6 +24,7 @@ class PublisherController extends Controller
      * @OA\Get(
      *     path="/api/publishers",
      *     summary="Get a list of publishers",
+     *     tags={"Biblioteca/Publishers"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class PublisherController extends Controller
      * @OA\Post(
      *     path="/api/publishers",
      *     summary="Create a new publisher",
+     *     tags={"Biblioteca/Publishers"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/PublisherRequest")
@@ -74,6 +76,7 @@ class PublisherController extends Controller
      * @OA\Get(
      *     path="/api/publishers/{id}",
      *     summary="Get a specific publisher by ID",
+     *     tags={"Biblioteca/Publishers"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class PublisherController extends Controller
      * @OA\Put(
      *     path="/api/publishers/{id}",
      *     summary="Update an existing publisher",
+     *     tags={"Biblioteca/Publishers"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class PublisherController extends Controller
      * @OA\Delete(
      *     path="/api/publishers/{id}",
      *     summary="Delete a specific publisher",
+     *     tags={"Biblioteca/Publishers"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

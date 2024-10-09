@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Figure;
  * Controller for {@link Figure}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Figures",
- *      description="APIs related to Figures in Biblioteca"
- *  )
+ *     name="Biblioteca/Figures",
+ *     description="APIs related to Figures in Biblioteca"
+ * )
  */
 class FigureController extends Controller
 {
@@ -24,6 +24,7 @@ class FigureController extends Controller
      * @OA\Get(
      *     path="/api/figures",
      *     summary="Get a list of figures",
+     *     tags={"Biblioteca/Figures"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class FigureController extends Controller
      * @OA\Post(
      *     path="/api/figures",
      *     summary="Create a new figure",
+     *     tags={"Biblioteca/Figures"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/FigureRequest")
@@ -74,6 +76,7 @@ class FigureController extends Controller
      * @OA\Get(
      *     path="/api/figures/{id}",
      *     summary="Get a specific figure by ID",
+     *     tags={"Biblioteca/Figures"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class FigureController extends Controller
      * @OA\Put(
      *     path="/api/figures/{id}",
      *     summary="Update an existing figure",
+     *     tags={"Biblioteca/Figures"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class FigureController extends Controller
      * @OA\Delete(
      *     path="/api/figures/{id}",
      *     summary="Delete a specific figure",
+     *     tags={"Biblioteca/Figures"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

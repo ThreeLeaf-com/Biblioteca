@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Sentence;
  * Controller for {@link Sentence}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Sentences",
- *      description="APIs related to Sentences in Biblioteca"
- *  )
+ *     name="Biblioteca/Sentences",
+ *     description="APIs related to Sentences in Biblioteca"
+ * )
  */
 class SentenceController extends Controller
 {
@@ -24,6 +24,7 @@ class SentenceController extends Controller
      * @OA\Get(
      *     path="/api/sentences",
      *     summary="Get a list of sentences",
+     *     tags={"Biblioteca/Sentences"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class SentenceController extends Controller
      * @OA\Post(
      *     path="/api/sentences",
      *     summary="Create a new sentence",
+     *     tags={"Biblioteca/Sentences"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/SentenceRequest")
@@ -74,6 +76,7 @@ class SentenceController extends Controller
      * @OA\Get(
      *     path="/api/sentences/{id}",
      *     summary="Get a specific sentence by ID",
+     *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class SentenceController extends Controller
      * @OA\Put(
      *     path="/api/sentences/{id}",
      *     summary="Update an existing sentence",
+     *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class SentenceController extends Controller
      * @OA\Delete(
      *     path="/api/sentences/{id}",
      *     summary="Delete a specific sentence",
+     *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

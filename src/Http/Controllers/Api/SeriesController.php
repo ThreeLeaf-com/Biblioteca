@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Series;
  * Controller for {@link Series}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Series",
- *      description="APIs related to Series in Biblioteca"
- *  )
+ *     name="Biblioteca/Series",
+ *     description="APIs related to Series in Biblioteca"
+ * )
  */
 class SeriesController extends Controller
 {
@@ -24,6 +24,7 @@ class SeriesController extends Controller
      * @OA\Get(
      *     path="/api/series",
      *     summary="Get a list of series",
+     *     tags={"Biblioteca/Series"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class SeriesController extends Controller
      * @OA\Post(
      *     path="/api/series",
      *     summary="Create a new series",
+     *     tags={"Biblioteca/Series"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/SeriesRequest")
@@ -74,6 +76,7 @@ class SeriesController extends Controller
      * @OA\Get(
      *     path="/api/series/{id}",
      *     summary="Get a specific series by ID",
+     *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class SeriesController extends Controller
      * @OA\Put(
      *     path="/api/series/{id}",
      *     summary="Update an existing series",
+     *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class SeriesController extends Controller
      * @OA\Delete(
      *     path="/api/series/{id}",
      *     summary="Delete a specific series",
+     *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

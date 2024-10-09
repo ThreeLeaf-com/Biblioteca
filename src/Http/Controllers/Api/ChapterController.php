@@ -12,9 +12,9 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
  * Controller for {@link Chapter}.
  *
  * @OA\Tag(
- *      name="Biblioteca/Chapters",
- *      description="APIs related to Chapters in Biblioteca"
- *  )
+ *     name="Biblioteca/Chapters",
+ *     description="APIs related to Chapters in Biblioteca"
+ * )
  */
 class ChapterController extends Controller
 {
@@ -24,6 +24,7 @@ class ChapterController extends Controller
      * @OA\Get(
      *     path="/api/chapters",
      *     summary="Get a list of chapters",
+     *     tags={"Biblioteca/Chapters"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -47,6 +48,7 @@ class ChapterController extends Controller
      * @OA\Post(
      *     path="/api/chapters",
      *     summary="Create a new chapter",
+     *     tags={"Biblioteca/Chapters"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(ref="#/components/schemas/ChapterRequest")
@@ -74,6 +76,7 @@ class ChapterController extends Controller
      * @OA\Get(
      *     path="/api/chapters/{id}",
      *     summary="Get a specific chapter by ID",
+     *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,6 +108,7 @@ class ChapterController extends Controller
      * @OA\Put(
      *     path="/api/chapters/{id}",
      *     summary="Update an existing chapter",
+     *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -142,6 +146,7 @@ class ChapterController extends Controller
      * @OA\Delete(
      *     path="/api/chapters/{id}",
      *     summary="Delete a specific chapter",
+     *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
