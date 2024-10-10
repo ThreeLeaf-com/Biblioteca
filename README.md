@@ -125,6 +125,15 @@ Run the Swagger documentation generation command to create up-to-date documentat
 php artisan l5-swagger:generate
 ```
 
+A complete example of the available API routes can be found in the Biblioteca project's [api.php](routes/api.php) file.
+
+If you would like to use the Biblioteca project's [api.php](routes/api.php) file as-is, you can include the project API
+routes into your own project by adding the following line to your project's `api.php` file:
+
+```php
+require base_path('vendor/threeleaf/biblioteca/routes/api.php'); 
+```
+
 ## Database Migrations
 
 After installing the library, run migrations to create all the necessary database tables for storing data related to books and other written material.
