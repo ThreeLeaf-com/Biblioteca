@@ -50,6 +50,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     @OA\Property(property="suggested_citation", type="string", description="Suggested citation format for the book"),
  *     @OA\Property(property="cover_image_url", type="string", description="URL of the book cover image"),
  *     @OA\Property(property="summary", type="string", description="A brief summary of the book"),
+ *     @OA\Property(property="series_id", type="string", description="The series ID of the series this book belongs to"),
  *     @OA\Property(property="number_in_series", type="integer", description="The book’s number in a series (if applicable)"),
  *     @OA\Property(
  *         property="author",
@@ -108,6 +109,7 @@ class Book extends Model
         'suggested_citation',
         'cover_image_url',
         'summary',
+        'series_id',
         'number_in_series',
     ];
 
@@ -152,7 +154,7 @@ class Book extends Model
      */
     public function chapters(): HasMany
     {
-        return $this->hasMany(Chapter::class, 'chapter_id');
+        return $this->hasMany(Chapter::class, 'book_id');
     }
 
     /**

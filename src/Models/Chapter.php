@@ -19,6 +19,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property string                  $title             Title of the chapter.
  * @property string                  $summary           A brief summary of the chapter.
  * @property string                  $chapter_image_url URL of the chapter’s image.
+ * @property string                  $content           Content of the chapter.
  * @property-read Book               $book              The book associated with the chapter.
  * @property-read HasMany<Paragraph> $paragraphs        The paragraphs associated with the chapter.
  * @property-read HasMany<Figure>    $figures           The figures associated with the chapter.
@@ -34,6 +35,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     @OA\Property(property="title", type="string", description="Title of the chapter"),
  *     @OA\Property(property="summary", type="string", description="A brief summary of the chapter"),
  *     @OA\Property(property="chapter_image_url", type="string", description="URL of the chapter’s image"),
+ *     @OA\Property(property="content", type="string", description="Content of the chapter"),
  *     @OA\Property(
  *         property="book",
  *         ref="#/components/schemas/Book",
@@ -70,6 +72,7 @@ class Chapter extends Model
         'title',
         'summary',
         'chapter_image_url',
+        'content',
     ];
 
     /**
@@ -89,7 +92,7 @@ class Chapter extends Model
      */
     public function paragraphs(): HasMany
     {
-        return $this->hasMany(Paragraph::class, 'paragraph_id');
+        return $this->hasMany(Paragraph::class, 'chapter_id');
     }
 
     /**
@@ -99,6 +102,6 @@ class Chapter extends Model
      */
     public function figures(): HasMany
     {
-        return $this->hasMany(Figure::class, 'figure_id');
+        return $this->hasMany(Figure::class, 'chapter_id');
     }
 }

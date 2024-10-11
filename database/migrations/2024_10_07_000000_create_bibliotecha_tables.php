@@ -4,7 +4,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Enums\Context;
 use ThreeLeaf\Biblioteca\Enums\NoteType;
 use ThreeLeaf\Biblioteca\Models\Annotation;
@@ -29,7 +28,7 @@ return new class extends Migration {
     {
 
         /** Create the {@link Annotation} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'annotations', function (Blueprint $table) {
+        Schema::create('b_annotations', function (Blueprint $table) {
             $table->comment('Annotations for paragraphs and sentences');
             $table->uuid('annotation_id')->primary()->comment('Primary key of the annotation in UUID format');
             $table->uuid('reference_id')->comment('Reference UUID pointing to either a paragraph or a sentence');
@@ -40,7 +39,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Author} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'authors', function (Blueprint $table) {
+        Schema::create('b_authors', function (Blueprint $table) {
             $table->comment('Authors of books');
             $table->uuid('author_id')->primary()->comment('Primary key of the author in UUID format');
             $table->string('first_name')->comment('First name of the author');
@@ -52,7 +51,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Series} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'series', function (Blueprint $table) {
+        Schema::create('b_series', function (Blueprint $table) {
             $table->comment('Series of books associated with an author');
             $table->uuid('series_id')->primary()->comment('Primary key of the series in UUID format');
             $table->string('name')->comment('Name of the series');
@@ -63,7 +62,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Bibliography} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'bibliographies', function (Blueprint $table) {
+        Schema::create('b_bibliographies', function (Blueprint $table) {
             $table->comment('Bibliography entries associated with books');
             $table->uuid('bibliography_id')->primary()->comment('Primary key of the bibliography entry in UUID format');
             $table->uuid('book_id')->comment('UUID of the associated book');
@@ -73,7 +72,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Book} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'books', function (Blueprint $table) {
+        Schema::create('b_books', function (Blueprint $table) {
             $table->comment('Books with chapters, associated with authors and publishers');
             $table->uuid('book_id')->primary()->comment('Primary key of the book in UUID format');
             $table->string('title')->comment('Title of the book');
@@ -90,24 +89,25 @@ return new class extends Migration {
             $table->integer('number_in_series')->nullable()->comment('The book’s number in a series (if applicable)');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the book record was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the book record was last updated');
-            $table->foreign('series_id')->references('series_id')->on(BibliotecaConstants::TABLE_PREFIX . 'series');
+            $table->foreign('series_id')->references('series_id')->on('b_series');
         });
 
         /** Create the {@link Chapter} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'chapters', function (Blueprint $table) {
+        Schema::create('b_chapters', function (Blueprint $table) {
             $table->comment('Chapters associated with books');
             $table->uuid('chapter_id')->primary()->comment('Primary key of the chapter in UUID format');
             $table->uuid('book_id')->comment('UUID of the associated book');
             $table->integer('chapter_number')->comment('Number of the chapter in the book');
-            $table->string('title')->comment('Title of the chapter');
+            $table->string('title')->nullable()->comment('Title of the chapter');
             $table->text('summary')->nullable()->comment('A brief summary of the chapter');
             $table->string('chapter_image_url')->nullable()->comment('URL of the chapter’s image');
+            $table->text('content')->nullable()->comment('Content of the chapter');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the chapter record was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the chapter record was last updated');
         });
 
         /** Create the {@link Figure} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'figures', function (Blueprint $table) {
+        Schema::create('b_figures', function (Blueprint $table) {
             $table->comment('Figures associated with chapters');
             $table->uuid('figure_id')->primary()->comment('Primary key of the figure in UUID format');
             $table->uuid('chapter_id')->comment('UUID of the associated chapter');
@@ -120,7 +120,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Note} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'notes', function (Blueprint $table) {
+        Schema::create('b_notes', function (Blueprint $table) {
             $table->comment('Notes associated with sentences');
             $table->uuid('note_id')->primary()->comment('Primary key of the note in UUID format');
             $table->uuid('sentence_id')->comment('UUID of the associated sentence');
@@ -133,7 +133,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Genre} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'genres', function (Blueprint $table) {
+        Schema::create('b_genres', function (Blueprint $table) {
             $table->comment('Genres associated with multiple books');
             $table->uuid('genre_id')->primary()->comment('Primary key of the genre in UUID format');
             $table->string('name')->comment('Name of the genre');
@@ -143,7 +143,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Index} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'indices', function (Blueprint $table) {
+        Schema::create('b_indices', function (Blueprint $table) {
             $table->comment('Index entries associated with books');
             $table->uuid('index_id')->primary()->comment('Primary key of the index entry in UUID format');
             $table->uuid('book_id')->comment('UUID of the associated book');
@@ -154,18 +154,18 @@ return new class extends Migration {
         });
 
         /** Create the {@link Paragraph} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'paragraphs', function (Blueprint $table) {
+        Schema::create('b_paragraphs', function (Blueprint $table) {
             $table->comment('Paragraphs associated with chapters');
             $table->uuid('paragraph_id')->primary()->comment('Primary key of the paragraph in UUID format');
             $table->uuid('chapter_id')->comment('UUID of the associated chapter');
             $table->integer('paragraph_number')->comment('Number of the paragraph in the chapter');
-            $table->text('content')->comment('Content of the paragraph');
+            $table->text('content')->nullable()->comment('Content of the paragraph');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the paragraph was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the paragraph was last updated');
         });
 
         /** Create the {@link Publisher} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'publishers', function (Blueprint $table) {
+        Schema::create('b_publishers', function (Blueprint $table) {
             $table->comment('Publishers associated with multiple books');
             $table->uuid('publisher_id')->primary()->comment('Primary key of the publisher in UUID format');
             $table->string('name')->comment('Name of the publisher');
@@ -176,7 +176,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Sentence} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'sentences', function (Blueprint $table) {
+        Schema::create('b_sentences', function (Blueprint $table) {
             $table->comment('Sentences associated with paragraphs');
             $table->uuid('sentence_id')->primary()->comment('Primary key of the sentence in UUID format');
             $table->uuid('paragraph_id')->comment('UUID of the associated paragraph');
@@ -187,7 +187,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link TableOfContents} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'table_of_contents', function (Blueprint $table) {
+        Schema::create('b_table_of_contents', function (Blueprint $table) {
             $table->comment('Table of contents entries associated with books and chapters');
             $table->uuid('toc_id')->primary()->comment('Primary key of the table of contents entry in UUID format');
             $table->uuid('book_id')->comment('UUID of the associated book');
@@ -199,7 +199,7 @@ return new class extends Migration {
         });
 
         /** Create the {@link Tag} table. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'tags', function (Blueprint $table) {
+        Schema::create('b_tags', function (Blueprint $table) {
             $table->comment('Tags associated with multiple books');
             $table->uuid('tag_id')->primary()->comment('Primary key of the tag in UUID format');
             $table->string('name')->comment('Name of the tag');
@@ -208,7 +208,7 @@ return new class extends Migration {
         });
 
         /** Create the pivot table for {@link Book}s and {@link Tag}s. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'book_tags', function (Blueprint $table) {
+        Schema::create('b_book_tags', function (Blueprint $table) {
             $table->comment('Pivot table for books and tags');
 
             $table->uuid('book_id')->comment('UUID of the associated book');
@@ -216,12 +216,12 @@ return new class extends Migration {
 
             $table->primary(['book_id', 'tag_id']);
 
-            $table->foreign('book_id')->references('book_id')->on(BibliotecaConstants::TABLE_PREFIX . 'books')->onDelete('cascade');
-            $table->foreign('tag_id')->references('tag_id')->on(BibliotecaConstants::TABLE_PREFIX . 'tags')->onDelete('cascade');
+            $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
+            $table->foreign('tag_id')->references('tag_id')->on('b_tags')->onDelete('cascade');
         });
 
         /** Create the pivot table for {@link Book}s and {@link Genre}s. */
-        Schema::create(BibliotecaConstants::TABLE_PREFIX . 'book_genres', function (Blueprint $table) {
+        Schema::create('b_book_genres', function (Blueprint $table) {
             $table->comment('Pivot table for books and genres');
 
             $table->uuid('book_id')->comment('UUID of the associated book');
@@ -229,30 +229,30 @@ return new class extends Migration {
 
             $table->primary(['book_id', 'genre_id']);
 
-            $table->foreign('book_id')->references('book_id')->on(BibliotecaConstants::TABLE_PREFIX . 'books')->onDelete('cascade');
-            $table->foreign('genre_id')->references('genre_id')->on(BibliotecaConstants::TABLE_PREFIX . 'genres')->onDelete('cascade');
+            $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
+            $table->foreign('genre_id')->references('genre_id')->on('b_genres')->onDelete('cascade');
         });
     }
 
     /** Reverse the migrations. */
     public function down(): void
     {
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'book_genres');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'book_tags');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'tags');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'table_of_contents');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'sentences');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'publishers');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'paragraphs');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'indices');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'genres');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'notes');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'figures');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'chapters');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'books');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'bibliographies');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'series');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'authors');
-        Schema::dropIfExists(BibliotecaConstants::TABLE_PREFIX . 'annotations');
+        Schema::dropIfExists('b_book_genres');
+        Schema::dropIfExists('b_book_tags');
+        Schema::dropIfExists('b_tags');
+        Schema::dropIfExists('b_table_of_contents');
+        Schema::dropIfExists('b_sentences');
+        Schema::dropIfExists('b_publishers');
+        Schema::dropIfExists('b_paragraphs');
+        Schema::dropIfExists('b_indices');
+        Schema::dropIfExists('b_genres');
+        Schema::dropIfExists('b_notes');
+        Schema::dropIfExists('b_figures');
+        Schema::dropIfExists('b_chapters');
+        Schema::dropIfExists('b_books');
+        Schema::dropIfExists('b_bibliographies');
+        Schema::dropIfExists('b_series');
+        Schema::dropIfExists('b_authors');
+        Schema::dropIfExists('b_annotations');
     }
 };

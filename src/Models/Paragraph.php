@@ -76,6 +76,6 @@ class Paragraph extends Model
      */
     public function sentences(): HasMany
     {
-        return $this->hasMany(Sentence::class, 'sentence_id');
+        return $this->hasMany(Sentence::class, 'paragraph_id');
     }
 }

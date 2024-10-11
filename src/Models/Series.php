@@ -76,6 +76,6 @@ class Series extends Model
      */
     public function books(): HasMany
     {
-        return $this->hasMany(Book::class, 'book_id');
+        return $this->hasMany(Book::class, 'series_id');
     }
 }
