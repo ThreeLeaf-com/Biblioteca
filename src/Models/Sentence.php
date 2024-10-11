@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * A sentence associated with a paragraph.
@@ -39,7 +39,7 @@ class Sentence extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'sentences';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'sentences';
 
     protected $table = self::TABLE_NAME;
 

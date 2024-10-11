@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * A bibliography entry associated with a book.
@@ -37,7 +37,7 @@ class Bibliography extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'bibliographies';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'bibliographies';
 
     protected $table = self::TABLE_NAME;
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * A genre that can be associated with multiple books.
@@ -39,7 +39,7 @@ class Genre extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'genres';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'genres';
 
     protected $table = self::TABLE_NAME;
 

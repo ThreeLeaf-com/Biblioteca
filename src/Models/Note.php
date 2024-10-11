@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Enums\Context;
 use ThreeLeaf\Biblioteca\Enums\NoteType;
 
@@ -45,7 +45,7 @@ class Note extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'notes';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'notes';
 
     protected $table = self::TABLE_NAME;
 

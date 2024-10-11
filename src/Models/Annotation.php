@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * Represents an annotation that can be applied to either a paragraph or sentence.
@@ -43,7 +43,7 @@ class Annotation extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'annotations';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'annotations';
 
     public $timestamps = false;
 

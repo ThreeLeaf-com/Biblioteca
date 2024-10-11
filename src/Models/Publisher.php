@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * A publisher associated with multiple books.
@@ -40,7 +40,7 @@ class Publisher extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'publishers';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'publishers';
 
     protected $table = self::TABLE_NAME;
 

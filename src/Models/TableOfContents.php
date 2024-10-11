@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
  * A table of contents entry associated with a book and a chapter.
@@ -47,7 +47,7 @@ class TableOfContents extends Model
     use HasUuids;
     use HasFactory;
 
-    public const TABLE_NAME = Biblioteca::TABLE_PREFIX . 'table_of_contents';
+    public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'table_of_contents';
 
     protected $table = self::TABLE_NAME;
 

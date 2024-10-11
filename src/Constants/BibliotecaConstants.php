@@ -3,7 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Constants;
 
 /** Biblioteca constants. */
-class Biblioteca
+class BibliotecaConstants
 {
     const TABLE_PREFIX = 'b_';
 }

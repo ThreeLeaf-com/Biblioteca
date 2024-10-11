@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use ThreeLeaf\Biblioteca\Constants\Biblioteca;
+use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Bibliography;
@@ -39,7 +39,7 @@ class BibliotecaTest extends TestCase
 
         $book->tags()->attach($tag);
 
-        $this->assertDatabaseHas(Biblioteca::TABLE_PREFIX . 'book_tags', [
+        $this->assertDatabaseHas(BibliotecaConstants::TABLE_PREFIX . 'book_tags', [
             'book_id' => $book->book_id,
             'tag_id' => $tag->tag_id,
         ]);
