@@ -142,27 +142,20 @@ After installing the library, run migrations to create all the necessary databas
 php artisan migrate
 ```
 
-## License
-
-This package is open-source software licensed under the [GNU license](LICENSE).
-
 ## Contributing
 
-Feel free to contribute by submitting issues or pull requests to the [GitHub repository](https://github.com/ThreeLeaf-com/Biblioteca).
+Contributions are welcome! Please submit a pull request or open an issue to discuss your ideas.
 
-### Key Sections:
+## License
 
-- **Introduction**: Describes the purpose and functionality of the library.
-- **Installation**: Includes steps for installing the library using Composer.
-- **Usage**: Provides examples of how to use the models for CRUD operations.
-- **API Integration**: Demonstrates how to integrate the library with an API and generate Swagger documentation.
-- **Database Migrations**: Instructions for running database migrations.
-- **Contributing & License**: Standard sections for contributing and licensing.
-
-This README serves as a clear guide for users of the Biblioteca Model library, explaining its purpose, installation, and usage. Let me know if you need further customization!
+This library is open-sourced software licensed under the [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## Miscellaneous
 
-### Zip File Creation
+### OpenApi Documentation
 
-git archive --worktree-attributes --format=zip --output=biblioteca.zip HEAD
+OpenAPI documentation can be generated within the application using the command:
+
+```
+composer generate-swagger
+```
