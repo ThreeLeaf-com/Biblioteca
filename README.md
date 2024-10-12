@@ -3,6 +3,14 @@
 **Biblioteca Model** is a Laravel-based library designed to provide a comprehensive model framework to organize and manage data related to many kinds of written material, with a specific focus on books. This library allows you to structure and manage
 complex data, including authors, books, chapters, paragraphs, sentences, notes, and more.
 
+[![Latest Stable Version](https://poser.pugx.org/threeleaf/biblioteca/v/stable)](https://packagist.org/packages/threeleaf/biblioteca)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ThreeLeaf-com/Biblioteca)](https://github.com/ThreeLeaf-com/Biblioteca/commits/main)
+[![Build Status](https://github.com/ThreeLeaf-com/Biblioteca/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/ThreeLeaf-com/Biblioteca/actions)
+![Coverage](./public/images/coverage-badge.svg)
+[![PHP Version](https://img.shields.io/packagist/php-v/threeleaf/biblioteca)](https://packagist.org/packages/threeleaf/biblioteca)
+[![License](https://poser.pugx.org/threeleaf/biblioteca/license)](https://packagist.org/packages/threeleaf/biblioteca)
+[![Total Downloads](https://poser.pugx.org/threeleaf/biblioteca/downloads)](https://packagist.org/packages/threeleaf/biblioteca)
+
 ## Features
 
 - **Organize Complex Written Materials**: Manage data models for books, chapters, paragraphs, sentences, notes, and much more.

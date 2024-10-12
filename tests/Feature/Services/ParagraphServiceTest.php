@@ -3,7 +3,7 @@
 namespace Tests\Feature\Services;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 use ThreeLeaf\Biblioteca\Services\ParagraphService;
