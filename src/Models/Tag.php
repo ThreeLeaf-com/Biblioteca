@@ -54,6 +54,6 @@ class Tag extends Model
      */
     public function books(): BelongsToMany
     {
-        return $this->belongsToMany(Book::class, 'book_tag', 'tag_id', 'book_id');
+        return $this->belongsToMany(Book::class, BookTag::TABLE_NAME, 'tag_id', 'book_id');
     }
 }

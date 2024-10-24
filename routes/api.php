@@ -13,15 +13,7 @@ use ThreeLeaf\Biblioteca\Http\Controllers\Api\SentenceController;
 use ThreeLeaf\Biblioteca\Http\Controllers\Api\SeriesController;
 use ThreeLeaf\Biblioteca\Http\Controllers\Api\TagController;
 
-/**
- * Biblioteca API routes.
- *
- * This is an example of api routes that can be used to create, edit, update, and delete Biblioteca Models.
- * In this example, GET endpoints are public while POST, PUT, and DELETE endpoints require an authenticated `admin` role.
- * Adjust this to suit the needs of the application.
- */
-
-Route::get('library', [BibliotecaController::class, 'getLibraryData'])->name('library.data');
+Route::get('library', [BibliotecaController::class, 'index'])->name('library.data');
 
 Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::get('authors/{author_id}', [AuthorController::class, 'show'])->name('authors.show');

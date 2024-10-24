@@ -26,8 +26,6 @@ class AuthorFactory extends Factory
             'last_name' => $this->faker->lastName(),
             'biography' => $this->faker->paragraph(),
             'author_image_url' => $this->faker->imageUrl(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

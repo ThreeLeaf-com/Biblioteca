@@ -3,6 +3,7 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 
 /**
@@ -21,12 +22,11 @@ class SentenceFactory extends Factory
      */
     public function definition(): array
     {
+        $paragraph = Paragraph::factory()->create();
         return [
-            'paragraph_id' => $this->faker->uuid(),
+            'paragraph_id' => $paragraph->paragraph_id,
             'sentence_number' => $this->faker->numberBetween(1, 100),
             'content' => $this->faker->sentence(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

@@ -50,7 +50,7 @@ class BibliotecaController extends Controller
      *     )
      * )
      */
-    public function getLibraryData()
+    public function index()
     {
         try {
             $seriesIds = Series::pluck('series_id')->toArray();

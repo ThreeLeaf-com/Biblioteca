@@ -3,6 +3,7 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 
 /**
@@ -21,12 +22,11 @@ class ParagraphFactory extends Factory
      */
     public function definition(): array
     {
+        $chapter = Chapter::factory()->create();
         return [
-            'chapter_id' => $this->faker->uuid(),
+            'chapter_id' => $chapter->chapter_id,
             'paragraph_number' => $this->faker->numberBetween(1, 100),
             'content' => $this->faker->paragraph(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

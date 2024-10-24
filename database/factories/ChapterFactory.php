@@ -3,7 +3,6 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 
@@ -23,17 +22,14 @@ class ChapterFactory extends Factory
      */
     public function definition(): array
     {
-        $author = Author::factory()->create();
-        $book = Book::factory()->create(['author_id' => $author->author_id]);
+        $book = Book::factory()->create();
         return [
             'book_id' => $book->book_id,
             'chapter_image_url' => $this->faker->url(),
-            'content' => $this->faker->paragraphs(5, true),  // Generate 5 paragraphs with 2 sentences each.
+            'content' => $this->faker->paragraphs(5, true),
             'title' => $this->faker->sentence(),
             'summary' => $this->faker->paragraph(),
             'chapter_number' => $this->faker->numberBetween(1, 100),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

@@ -54,9 +54,10 @@ return new class extends Migration {
         Schema::create('b_series', function (Blueprint $table) {
             $table->comment('Series of books associated with an author');
             $table->uuid('series_id')->primary()->comment('Primary key of the series in UUID format');
-            $table->string('name')->comment('Name of the series');
+            $table->string('title')->comment('The title of the series');
+            $table->string('subtitle')->nullable()->comment('The subtitle of the series');
             $table->text('description')->nullable()->comment('Description of the series');
-            $table->uuid('author_id')->comment('UUID of the associated author');
+            $table->uuid('editor_id')->comment('The editor or author unique ID');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the series was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the series was last updated');
         });
@@ -76,20 +77,18 @@ return new class extends Migration {
             $table->comment('Books with chapters, associated with authors and publishers');
             $table->uuid('book_id')->primary()->comment('Primary key of the book in UUID format');
             $table->string('title')->comment('Title of the book');
+            $table->string('subtitle')->nullable()->comment('Title of the book');
             $table->uuid('author_id')->comment('UUID of the author');
-            $table->date('published_date')->nullable()->comment('Publication date of the book');
             $table->string('isbn')->nullable()->comment('ISBN of the book');
             $table->uuid('publisher_id')->nullable()->comment('UUID of the publisher');
+            $table->date('published_date')->nullable()->comment('Publication date of the book');
             $table->string('edition')->nullable()->comment('Edition of the book');
             $table->string('locale')->nullable()->comment('Locale of the book (e.g., en_US)');
             $table->string('suggested_citation')->nullable()->comment('Suggested citation format for the book');
             $table->string('cover_image_url')->nullable()->comment('URL of the book cover image');
             $table->text('summary')->nullable()->comment('A brief summary of the book');
-            $table->uuid('series_id')->nullable()->comment('The series this book belongs to');
-            $table->integer('number_in_series')->nullable()->comment('The book’s number in a series (if applicable)');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the book record was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the book record was last updated');
-            $table->foreign('series_id')->references('series_id')->on('b_series');
         });
 
         /** Create the {@link Chapter} table. */
@@ -202,7 +201,7 @@ return new class extends Migration {
         Schema::create('b_tags', function (Blueprint $table) {
             $table->comment('Tags associated with multiple books');
             $table->uuid('tag_id')->primary()->comment('Primary key of the tag in UUID format');
-            $table->string('name')->comment('Name of the tag');
+            $table->string('name')->unique()->comment('Name of the tag');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the tag was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the tag was last updated');
         });
@@ -213,6 +212,8 @@ return new class extends Migration {
 
             $table->uuid('book_id')->comment('UUID of the associated book');
             $table->uuid('tag_id')->comment('UUID of the associated tag');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the tag was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the tag was last updated');
 
             $table->primary(['book_id', 'tag_id']);
 
@@ -226,17 +227,42 @@ return new class extends Migration {
 
             $table->uuid('book_id')->comment('UUID of the associated book');
             $table->uuid('genre_id')->comment('UUID of the associated genre');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the tag was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the tag was last updated');
 
             $table->primary(['book_id', 'genre_id']);
 
             $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
             $table->foreign('genre_id')->references('genre_id')->on('b_genres')->onDelete('cascade');
         });
+
+        Schema::create('b_series_books', function (Blueprint $table) {
+            $table->comment = 'Table representing the relationship between Series and Book, defining the order of books within a series';
+            $table->uuid('series_id')->comment('Foreign key referencing the Series the book belongs to');
+            $table->uuid('book_id')->comment('Foreign key referencing the Book in the series');
+            $table->integer('number')->comment('The number or position of the book within the series');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the record was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the record was last updated');
+
+            /* The composite primary key */
+            $table->primary(['series_id', 'book_id']);
+
+            $table->foreign('series_id')
+                ->references('series_id')
+                ->on('b_series')
+                ->onDelete('cascade');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
+        });
     }
 
     /** Reverse the migrations. */
     public function down(): void
     {
+        Schema::dropIfExists('b_series_books');
         Schema::dropIfExists('b_book_genres');
         Schema::dropIfExists('b_book_tags');
         Schema::dropIfExists('b_tags');

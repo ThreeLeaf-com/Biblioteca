@@ -17,6 +17,7 @@ use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 use ThreeLeaf\Biblioteca\Models\Series;
+use ThreeLeaf\Biblioteca\Models\SeriesBook;
 use ThreeLeaf\Biblioteca\Models\TableOfContents;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
@@ -26,13 +27,7 @@ class BibliotecaTest extends TestCase
 
     public function test_book_and_tag_relationship()
     {
-        $author = Author::factory()->create();
-        $series = Series::factory()
-            ->for($author)
-            ->create();
         $book = Book::factory()
-            ->for($author)
-            ->for($series)
             ->create();
         $tag = Tag::factory()->create();
 
@@ -56,15 +51,18 @@ class BibliotecaTest extends TestCase
         $publisher = Publisher::factory()->create();
         $author = Author::factory()->create();
         $series = Series::factory()
-            ->for($author)
             ->create();
         $genre = Genre::factory()->create();
         $book = Book::factory()
             ->for($author)
             ->for($publisher)
-            ->for($series)
             ->hasAttached($genre)
             ->create();
+        $seriesBook = SeriesBook::create([
+            'series_id' => $series->series_id,
+            'book_id' => $book->book_id,
+            'number' => 1,
+        ]);
         $chapter = Chapter::factory()
             ->for($book)
             ->create();
@@ -138,11 +136,9 @@ class BibliotecaTest extends TestCase
     {
         $author = Author::factory()->create();
         $series = Series::factory()
-            ->for($author)
             ->create();
         $book = Book::factory()
             ->for($author)
-            ->for($series)
             ->create();
         $bibliography = Bibliography::factory()
             ->for($book)

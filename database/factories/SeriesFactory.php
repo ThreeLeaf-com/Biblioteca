@@ -3,6 +3,7 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Series;
 
 /**
@@ -22,10 +23,9 @@ class SeriesFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->sentence(2),
+            'title' => $this->faker->sentence(2),
+            'editor_id' => Author::factory(),
             'description' => $this->faker->paragraph(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }
