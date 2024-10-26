@@ -24,8 +24,6 @@ class TableOfContentsFactory extends Factory
         return [
             'title' => $this->faker->sentence(),
             'page_number' => $this->faker->numberBetween(1, 1000),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

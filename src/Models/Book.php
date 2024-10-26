@@ -21,7 +21,6 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property string                $author_id             The primary author's unique ID.
  * @property string                $publisher_id          The publisher's unique ID.
  * @property Carbon                $published_date        The publication date.
- * @property string|null           $isbn                  The ISBN of the book.
  * @property string|null           $edition               The book edition.
  * @property string                $locale                The locale /language of the book (e.g., en_US).
  * @property string|null           $suggested_citation    The suggested citation format for the book.
@@ -42,11 +41,10 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     @OA\Property(property="book_id", type="string", description="Primary key of the book in UUID format"),
  *     @OA\Property(property="title", type="string", description="The title of the book"),
  *     @OA\Property(property="subtitle", type="string", description="The subtitle of the book"),
- *     @OA\Property(property="author_id", type="string", description="The primary author"s unique ID"),
- *     @OA\Property(property="publisher_id", type="string", description="The publisher"s unique ID"),
+ *     @OA\Property(property="author_id", type="string", description="The primary author's unique ID"),
+ *     @OA\Property(property="publisher_id", type="string", description="The publisher's unique ID"),
  *     @OA\Property(property="published_date", type="string", format="date", description="Publication date of the book"),
  *     @OA\Property(property="edition", type="string", description="Edition of the book"),
- *     @OA\Property(property="isbn", type="string", description="ISBN of the book"),
  *     @OA\Property(property="locale", type="string", description="Locale of the book (e.g., en_US)"),
  *     @OA\Property(property="suggested_citation", type="string", description="Suggested citation format for the book"),
  *     @OA\Property(property="cover_image_url", type="string", description="URL of the book cover image"),
@@ -102,7 +100,6 @@ class Book extends Model
         'author_id',
         'publisher_id',
         'published_date',
-        'isbn',
         'edition',
         'locale',
         'suggested_citation',

@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Series;
 
 /**
@@ -38,9 +39,11 @@ class SeriesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'author_id' => 'required|exists:authors,author_id|uuid',
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'editor_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
         ];
     }
+
 }

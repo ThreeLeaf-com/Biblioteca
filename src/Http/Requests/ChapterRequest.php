@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 
 /**
@@ -41,11 +42,12 @@ class ChapterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'book_id' => 'required|exists:books,book_id|uuid',
+            'book_id' => 'required|exists:' . Book::TABLE_NAME . ',book_id|uuid',
             'chapter_number' => 'required|integer|min:1',
             'title' => 'required|string|max:255',
             'summary' => 'nullable|string',
             'chapter_image_url' => 'nullable|url',
+            'content' => 'nullable|string',
         ];
     }
 }

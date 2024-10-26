@@ -23,7 +23,8 @@ class SeriesFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence(2),
+            'title' => $this->faker->sentence(5),
+            'subtitle' => $this->faker->sentence(2),
             'editor_id' => Author::factory(),
             'description' => $this->faker->paragraph(),
         ];

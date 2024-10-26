@@ -79,7 +79,6 @@ return new class extends Migration {
             $table->string('title')->comment('Title of the book');
             $table->string('subtitle')->nullable()->comment('Title of the book');
             $table->uuid('author_id')->comment('UUID of the author');
-            $table->string('isbn')->nullable()->comment('ISBN of the book');
             $table->uuid('publisher_id')->nullable()->comment('UUID of the publisher');
             $table->date('published_date')->nullable()->comment('Publication date of the book');
             $table->string('edition')->nullable()->comment('Edition of the book');

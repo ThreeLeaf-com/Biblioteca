@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 
 /**
@@ -38,9 +39,21 @@ class SentenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'paragraph_id' => 'required|exists:paragraphs,paragraph_id|uuid',
-            'sentence_number' => 'required|integer|min:1',
-            'content' => 'required|string',
+            'paragraph_id' => [
+                'required',
+                'exists:' . Paragraph::TABLE_NAME . ',paragraph_id',
+                'uuid',
+            ],
+            'sentence_number' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+            'content' => [
+                'required',
+                'string',
+            ],
         ];
+
     }
 }

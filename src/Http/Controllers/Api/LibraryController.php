@@ -2,8 +2,6 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
-use Exception;
-use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
@@ -16,7 +14,7 @@ use ThreeLeaf\Biblioteca\Models\Series;
  *     description="General endpoints for the Biblioteca"
  * )
  */
-class BibliotecaController extends Controller
+class LibraryController extends Controller
 {
     /**
      * Get an array of series IDs and book IDs.
@@ -52,16 +50,12 @@ class BibliotecaController extends Controller
      */
     public function index()
     {
-        try {
-            $seriesIds = Series::pluck('series_id')->toArray();
-            $bookIds = Book::pluck('book_id')->toArray();
+        $seriesIds = Series::pluck('series_id')->toArray();
+        $bookIds = Book::pluck('book_id')->toArray();
 
-            return response()->json([
-                'series_ids' => $seriesIds,
-                'book_ids' => $bookIds,
-            ]);
-        } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred while retrieving data'], HttpCodes::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json([
+            'series_ids' => $seriesIds,
+            'book_ids' => $bookIds,
+        ]);
     }
 }

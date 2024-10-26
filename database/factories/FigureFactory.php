@@ -3,6 +3,7 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Figure;
 
 /**
@@ -21,13 +22,13 @@ class FigureFactory extends Factory
      */
     public function definition(): array
     {
+        $chapter = Chapter::factory()->create();
         return [
+            'chapter_id' => $chapter->chapter_id,
             'figure_label' => $this->faker->randomLetter(),
             'caption' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'image_url' => $this->faker->imageUrl(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

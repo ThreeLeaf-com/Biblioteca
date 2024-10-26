@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 
 /**
@@ -38,7 +39,7 @@ class ParagraphRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'chapter_id' => 'required|exists:chapters,chapter_id|uuid',
+            'chapter_id' => 'required|exists:' . Chapter::TABLE_NAME . ',chapter_id|uuid',
             'paragraph_number' => 'required|integer|min:1',
             'content' => 'required|string',
         ];

@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature\Models;
+namespace Tests\Feature\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -33,14 +33,12 @@ class BookTest extends TestCase
     {
         Book::factory()->create([
             'title' => 'Sample Book',
-            'isbn' => '978-3-16-148410-0',
             'published_date' => Carbon::now()->subYear(),
             'locale' => 'en_US',
         ]);
 
         $this->assertDatabaseHas(Book::TABLE_NAME, [
             'title' => 'Sample Book',
-            'isbn' => '978-3-16-148410-0',
             'locale' => 'en_US',
         ]);
     }

@@ -30,7 +30,6 @@ class BookFactory extends Factory
             'author_id' => $author->author_id,
             'publisher_id' => $publisher->publisher_id,
             'published_date' => $this->faker->date(),
-            'isbn' => $this->faker->isbn13(),
             'summary' => $this->faker->paragraph(),
         ];
     }
