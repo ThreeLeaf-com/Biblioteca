@@ -39,20 +39,9 @@ class SentenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'paragraph_id' => [
-                'required',
-                'exists:' . Paragraph::TABLE_NAME . ',paragraph_id',
-                'uuid',
-            ],
-            'sentence_number' => [
-                'required',
-                'integer',
-                'min:1',
-            ],
-            'content' => [
-                'required',
-                'string',
-            ],
+            'paragraph_id' => ['required', 'exists:' . Paragraph::TABLE_NAME . ',paragraph_id', 'uuid',],
+            'sentence_number' => ['required', 'integer', 'min:1',],
+            'content' => ['required', 'string',],
         ];
 
     }

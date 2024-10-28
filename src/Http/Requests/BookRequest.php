@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 
 /**
@@ -46,7 +47,7 @@ class BookRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'author_id' => ['required', 'exists:b_authors,author_id'],
+            'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id'],
             'publisher_id' => ['required', 'exists:b_publishers,publisher_id'],
             'published_date' => ['nullable', 'date'],
             'edition' => ['nullable', 'string', 'max:100'],

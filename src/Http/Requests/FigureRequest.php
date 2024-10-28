@@ -41,11 +41,11 @@ class FigureRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'chapter_id' => 'required|exists:' . Chapter::TABLE_NAME . ',chapter_id|uuid',
-            'figure_label' => 'required|string|max:50',
-            'caption' => 'required|string|max:255',
-            'image_url' => 'required|url',
-            'description' => 'nullable|string',
+            'chapter_id' => ['required', 'exists:' . Chapter::TABLE_NAME . ',chapter_id', 'uuid'],
+            'figure_label' => ['required', 'string', 'max:50'],
+            'caption' => ['required', 'string', 'max:255'],
+            'image_url' => ['required', 'url'],
+            'description' => ['nullable', 'string'],
         ];
     }
 }

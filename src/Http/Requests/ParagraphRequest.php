@@ -39,9 +39,9 @@ class ParagraphRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'chapter_id' => 'required|exists:' . Chapter::TABLE_NAME . ',chapter_id|uuid',
-            'paragraph_number' => 'required|integer|min:1',
-            'content' => 'required|string',
+            'chapter_id' => ['required', 'exists:' . Chapter::TABLE_NAME . ',chapter_id', 'uuid'],
+            'paragraph_number' => ['required', 'integer', 'min:1'],
+            'content' => ['required', 'string'],
         ];
     }
 }

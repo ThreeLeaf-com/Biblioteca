@@ -60,10 +60,10 @@ class AuthorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'biography' => 'nullable|string',
-            'author_image_url' => 'nullable|string|url',
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'biography' => ['nullable', 'string'],
+            'author_image_url' => ['nullable', 'string', 'url'],
         ];
     }
 }

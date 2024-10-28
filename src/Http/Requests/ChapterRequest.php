@@ -42,12 +42,12 @@ class ChapterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'book_id' => 'required|exists:' . Book::TABLE_NAME . ',book_id|uuid',
-            'chapter_number' => 'required|integer|min:1',
-            'title' => 'required|string|max:255',
-            'summary' => 'nullable|string',
-            'chapter_image_url' => 'nullable|url',
-            'content' => 'nullable|string',
+            'book_id' => ['required', 'exists:' . Book::TABLE_NAME . ',book_id', 'uuid'],
+            'chapter_number' => ['required', 'integer', 'min:1'],
+            'title' => ['required', 'string', 'max:255'],
+            'summary' => ['nullable', 'string'],
+            'chapter_image_url' => ['nullable', 'url'],
+            'content' => ['nullable', 'string'],
         ];
     }
 }

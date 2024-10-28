@@ -38,9 +38,9 @@ class AnnotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reference_id' => 'required|uuid',
-            'reference_type' => 'required|string',
-            'content' => 'required|string',
+            'reference_id' => ['required', 'uuid'],
+            'reference_type' => ['required', 'string'],
+            'content' => ['required', 'string'],
         ];
     }
 }
