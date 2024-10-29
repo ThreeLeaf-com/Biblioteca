@@ -50,8 +50,6 @@ class SeriesBook extends Model
 
     public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'series_books';
 
-    public $incrementing = false;
-
     protected $table = self::TABLE_NAME;
 
     /** @var string[] composite primary key. */

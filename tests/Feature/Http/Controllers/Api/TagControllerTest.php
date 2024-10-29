@@ -39,7 +39,7 @@ class TagControllerTest extends TestCase
     public function storeTag(): void
     {
         $data = [
-            'name' => $this->faker->word(),
+            'name' => $this->faker->regexify('[A-Za-z0-9]{20}'),
         ];
 
         $response = $this->postJson(route('tags.store'), $data);
