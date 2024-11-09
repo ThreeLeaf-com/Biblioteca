@@ -2,6 +2,8 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\SentenceRequest;
@@ -13,7 +15,7 @@ use ThreeLeaf\Biblioteca\Models\Sentence;
  *
  * @OA\Tag(
  *     name="Biblioteca/Sentences",
- *     description="APIs related to Sentences in Biblioteca"
+ *     description="API Endpoints for managing Sentences in Biblioteca"
  * )
  */
 class SentenceController extends Controller
@@ -34,8 +36,10 @@ class SentenceController extends Controller
      *         )
      *     )
      * )
+     *
+     * @return ResourceCollection<SentenceResource> A collection of sentence resources.
      */
-    public function index()
+    public function index(): ResourceCollection
     {
         $sentences = Sentence::all();
 
@@ -57,8 +61,16 @@ class SentenceController extends Controller
      *         response=201,
      *         description="Sentence created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/SentenceResource")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request"
      *     )
      * )
+     *
+     * @param SentenceRequest $request The request object containing the sentence data.
+     *
+     * @return JsonResponse The created sentence resource.
      */
     public function store(SentenceRequest $request)
     {
@@ -74,11 +86,11 @@ class SentenceController extends Controller
      * Display the specified sentence.
      *
      * @OA\Get(
-     *     path="/api/sentences/{id}",
+     *     path="/api/sentences/{sentence_id}",
      *     summary="Get a specific sentence by ID",
      *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="sentence_id",
      *         in="path",
      *         required=true,
      *         description="ID of the sentence",
@@ -94,8 +106,12 @@ class SentenceController extends Controller
      *         description="Sentence not found"
      *     )
      * )
+     *
+     * @param string $sentence_id The unique ID of the sentence to retrieve.
+     *
+     * @return SentenceResource The requested sentence resource.
      */
-    public function show($sentence_id)
+    public function show(string $sentence_id): SentenceResource
     {
         $sentence = Sentence::findOrFail($sentence_id);
 
@@ -106,11 +122,11 @@ class SentenceController extends Controller
      * Update the specified sentence in storage.
      *
      * @OA\Put(
-     *     path="/api/sentences/{id}",
+     *     path="/api/sentences/{sentence_id}",
      *     summary="Update an existing sentence",
      *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="sentence_id",
      *         in="path",
      *         required=true,
      *         description="ID of the sentence",
@@ -130,8 +146,13 @@ class SentenceController extends Controller
      *         description="Sentence not found"
      *     )
      * )
+     *
+     * @param SentenceRequest $request     The request object containing the updated sentence data.
+     * @param string          $sentence_id The unique ID of the sentence to update.
+     *
+     * @return SentenceResource The updated sentence resource.
      */
-    public function update(SentenceRequest $request, $sentence_id)
+    public function update(SentenceRequest $request, string $sentence_id): SentenceResource
     {
         $sentence = Sentence::findOrFail($sentence_id);
         $validatedData = $request->validated();
@@ -144,11 +165,11 @@ class SentenceController extends Controller
      * Remove the specified sentence from storage.
      *
      * @OA\Delete(
-     *     path="/api/sentences/{id}",
+     *     path="/api/sentences/{sentence_id}",
      *     summary="Delete a specific sentence",
      *     tags={"Biblioteca/Sentences"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="sentence_id",
      *         in="path",
      *         required=true,
      *         description="ID of the sentence",
@@ -163,8 +184,12 @@ class SentenceController extends Controller
      *         description="Sentence not found"
      *     )
      * )
+     *
+     * @param string $sentence_id The unique ID of the sentence to delete.
+     *
+     * @return JsonResponse A JSON response with a HTTP 204 status code indicating success.
      */
-    public function destroy($sentence_id)
+    public function destroy(string $sentence_id): JsonResponse
     {
         $sentence = Sentence::findOrFail($sentence_id);
         $sentence->delete();

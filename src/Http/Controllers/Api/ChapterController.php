@@ -13,7 +13,7 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
  *
  * @OA\Tag(
  *     name="Biblioteca/Chapters",
- *     description="APIs related to Chapters in Biblioteca"
+ *     description="API Endpoints for managing Chapters in Biblioteca"
  * )
  */
 class ChapterController extends Controller
@@ -74,11 +74,11 @@ class ChapterController extends Controller
      * Display the specified chapter.
      *
      * @OA\Get(
-     *     path="/api/chapters/{id}",
+     *     path="/api/chapters/{chapter_id}",
      *     summary="Get a specific chapter by ID",
      *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="chapter_id",
      *         in="path",
      *         required=true,
      *         description="ID of the chapter",
@@ -106,11 +106,11 @@ class ChapterController extends Controller
      * Update the specified chapter in storage.
      *
      * @OA\Put(
-     *     path="/api/chapters/{id}",
+     *     path="/api/chapters/{chapter_id}",
      *     summary="Update an existing chapter",
      *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="chapter_id",
      *         in="path",
      *         required=true,
      *         description="ID of the chapter",
@@ -144,11 +144,11 @@ class ChapterController extends Controller
      * Remove the specified chapter from storage.
      *
      * @OA\Delete(
-     *     path="/api/chapters/{id}",
+     *     path="/api/chapters/{chapter_id}",
      *     summary="Delete a specific chapter",
      *     tags={"Biblioteca/Chapters"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="chapter_id",
      *         in="path",
      *         required=true,
      *         description="ID of the chapter",

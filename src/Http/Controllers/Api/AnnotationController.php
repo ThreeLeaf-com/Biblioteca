@@ -2,6 +2,8 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest;
@@ -13,7 +15,7 @@ use ThreeLeaf\Biblioteca\Models\Annotation;
  *
  * @OA\Tag(
  *     name="Biblioteca/Annotations",
- *     description="APIs related to Annotations in Biblioteca"
+ *     description="API Endpoints for managing Annotations in Biblioteca"
  * )
  */
 class AnnotationController extends Controller
@@ -34,8 +36,10 @@ class AnnotationController extends Controller
      *         )
      *     )
      * )
+     *
+     * @return ResourceCollection<AnnotationResource> A collection of annotation resources.
      */
-    public function index()
+    public function index(): ResourceCollection
     {
         $annotations = Annotation::all();
 
@@ -59,6 +63,10 @@ class AnnotationController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/AnnotationResource")
      *     )
      * )
+     *
+     * @param AnnotationRequest $request The request object containing the annotation data.
+     *
+     * @return JsonResponse The created annotation resource.
      */
     public function store(AnnotationRequest $request)
     {
@@ -74,11 +82,11 @@ class AnnotationController extends Controller
      * Display the specified annotation.
      *
      * @OA\Get(
-     *     path="/api/annotations/{id}",
+     *     path="/api/annotations/{annotation_id}",
      *     summary="Get a specific annotation by ID",
      *     tags={"Biblioteca/Annotations"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="annotation_id",
      *         in="path",
      *         required=true,
      *         description="ID of the annotation",
@@ -94,8 +102,12 @@ class AnnotationController extends Controller
      *         description="Annotation not found"
      *     )
      * )
+     *
+     * @param string $annotation_id The unique ID of the annotation to retrieve.
+     *
+     * @return AnnotationResource The requested annotation resource.
      */
-    public function show($annotation_id)
+    public function show(string $annotation_id)
     {
         $annotation = Annotation::findOrFail($annotation_id);
 
@@ -130,8 +142,13 @@ class AnnotationController extends Controller
      *         description="Annotation not found"
      *     )
      * )
+     *
+     * @param AnnotationRequest $request       The request object containing the updated annotation data.
+     * @param string            $annotation_id The unique ID of the annotation to update.
+     *
+     * @return AnnotationResource The updated annotation resource.
      */
-    public function update(AnnotationRequest $request, $annotation_id)
+    public function update(AnnotationRequest $request, string $annotation_id)
     {
         $annotation = Annotation::findOrFail($annotation_id);
         $validatedData = $request->validated();
@@ -144,11 +161,11 @@ class AnnotationController extends Controller
      * Remove the specified annotation from storage.
      *
      * @OA\Delete(
-     *     path="/api/annotations/{id}",
+     *     path="/api/annotations/{annotation_id}",
      *     summary="Delete a specific annotation",
      *     tags={"Biblioteca/Annotations"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="annotation_id",
      *         in="path",
      *         required=true,
      *         description="ID of the annotation",
@@ -163,8 +180,12 @@ class AnnotationController extends Controller
      *         description="Annotation not found"
      *     )
      * )
+     *
+     * @param string $annotation_id The unique ID of the annotation to delete.
+     *
+     * @return JsonResponse A JSON response with a HTTP 204 status code indicating success.
      */
-    public function destroy($annotation_id)
+    public function destroy(string $annotation_id)
     {
         $annotation = Annotation::findOrFail($annotation_id);
         $annotation->delete();

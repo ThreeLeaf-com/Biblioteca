@@ -2,6 +2,8 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\SeriesRequest;
@@ -13,7 +15,7 @@ use ThreeLeaf\Biblioteca\Models\Series;
  *
  * @OA\Tag(
  *     name="Biblioteca/Series",
- *     description="APIs related to Series in Biblioteca"
+ *     description="API Endpoints for managing Series in Biblioteca"
  * )
  */
 class SeriesController extends Controller
@@ -34,8 +36,10 @@ class SeriesController extends Controller
      *         )
      *     )
      * )
+     *
+     * @return ResourceCollection<SeriesResource> A collection of series resources.
      */
-    public function index()
+    public function index(): ResourceCollection
     {
         $series = Series::all();
 
@@ -57,10 +61,18 @@ class SeriesController extends Controller
      *         response=201,
      *         description="Series created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/SeriesResource")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request"
      *     )
      * )
+     *
+     * @param SeriesRequest $request The request object containing the series data.
+     *
+     * @return JsonResponse The created series resource.
      */
-    public function store(SeriesRequest $request)
+    public function store(SeriesRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
         $series = Series::create($validatedData);
@@ -74,11 +86,11 @@ class SeriesController extends Controller
      * Display the specified series.
      *
      * @OA\Get(
-     *     path="/api/series/{id}",
+     *     path="/api/series/{series_id}",
      *     summary="Get a specific series by ID",
      *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="series_id",
      *         in="path",
      *         required=true,
      *         description="ID of the series",
@@ -94,8 +106,12 @@ class SeriesController extends Controller
      *         description="Series not found"
      *     )
      * )
+     *
+     * @param string $series_id The unique ID of the series to retrieve.
+     *
+     * @return SeriesResource The requested series resource.
      */
-    public function show($series_id)
+    public function show(string $series_id): SeriesResource
     {
         $series = Series::findOrFail($series_id);
 
@@ -106,11 +122,11 @@ class SeriesController extends Controller
      * Update the specified series in storage.
      *
      * @OA\Put(
-     *     path="/api/series/{id}",
+     *     path="/api/series/{series_id}",
      *     summary="Update an existing series",
      *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="series_id",
      *         in="path",
      *         required=true,
      *         description="ID of the series",
@@ -130,8 +146,13 @@ class SeriesController extends Controller
      *         description="Series not found"
      *     )
      * )
+     *
+     * @param SeriesRequest $request   The request object containing the updated series data.
+     * @param string        $series_id The unique ID of the series to update.
+     *
+     * @return SeriesResource The updated series resource.
      */
-    public function update(SeriesRequest $request, $series_id)
+    public function update(SeriesRequest $request, string $series_id): SeriesResource
     {
         $series = Series::findOrFail($series_id);
         $validatedData = $request->validated();
@@ -144,11 +165,11 @@ class SeriesController extends Controller
      * Remove the specified series from storage.
      *
      * @OA\Delete(
-     *     path="/api/series/{id}",
+     *     path="/api/series/{series_id}",
      *     summary="Delete a specific series",
      *     tags={"Biblioteca/Series"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="series_id",
      *         in="path",
      *         required=true,
      *         description="ID of the series",
@@ -163,8 +184,12 @@ class SeriesController extends Controller
      *         description="Series not found"
      *     )
      * )
+     *
+     * @param string $series_id The unique ID of the series to delete.
+     *
+     * @return JsonResponse A JSON response with a HTTP 204 status code indicating success.
      */
-    public function destroy($series_id)
+    public function destroy(string $series_id): JsonResponse
     {
         $series = Series::findOrFail($series_id);
         $series->delete();

@@ -14,7 +14,7 @@ use ThreeLeaf\Biblioteca\Models\Book;
  *
  * @OA\Tag(
  *     name="Biblioteca/Books",
- *     description="APIs related to Books in Biblioteca"
+ *     description="API Endpoints for managing Books in Biblioteca"
  * )
  */
 class BookController extends Controller
@@ -75,11 +75,11 @@ class BookController extends Controller
      * Display the specified book.
      *
      * @OA\Get(
-     *     path="/api/books/{id}",
+     *     path="/api/books/{book_id}",
      *     summary="Get a specific book by ID",
      *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="book_id",
      *         in="path",
      *         required=true,
      *         description="ID of the book",
@@ -107,11 +107,11 @@ class BookController extends Controller
      * Update the specified book in storage.
      *
      * @OA\Put(
-     *     path="/api/books/{id}",
+     *     path="/api/books/{book_id}",
      *     summary="Update an existing book",
      *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="book_id",
      *         in="path",
      *         required=true,
      *         description="ID of the book",
@@ -145,11 +145,11 @@ class BookController extends Controller
      * Remove the specified book from storage.
      *
      * @OA\Delete(
-     *     path="/api/books/{id}",
+     *     path="/api/books/{book_id}",
      *     summary="Delete a specific book",
      *     tags={"Biblioteca/Books"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="book_id",
      *         in="path",
      *         required=true,
      *         description="ID of the book",
