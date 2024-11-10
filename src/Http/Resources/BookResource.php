@@ -13,7 +13,7 @@ use ThreeLeaf\Biblioteca\Models\Book;
  *
  * @OA\Schema(
  *     schema="BookResource",
- *     @OA\Property(property="id", type="integer", example=1, description="ID of the book"),
+ *     @OA\Property(property="book_id", type="integer", example=1, description="The unique ID of the book"),
  *     @OA\Property(property="title", type="string", example="The Great Adventure", description="Title of the book"),
  *     @OA\Property(property="author", ref="#/components/schemas/AuthorResource", description="Author of the book"),
  *     @OA\Property(property="publisher", type="object", ref="#/components/schemas/PublisherResource", description="Publisher of the book"),
@@ -42,18 +42,17 @@ class BookResource extends JsonResource
     public function toArray(Request $request)
     {
         return [
-            'id' => $this->id,
+            'book_id' => $this->book_id,
             'title' => $this->title,
             'author' => new AuthorResource($this->whenLoaded('author')),
             'publisher' => new PublisherResource($this->whenLoaded('publisher')),
-            'series' => new SeriesResource($this->whenLoaded('series')),
+            'series' => SeriesResource::collection($this->whenLoaded('series')),
             'published_date' => $this->published_date,
             'edition' => $this->edition,
             'locale' => $this->locale,
             'suggested_citation' => $this->suggested_citation,
             'cover_image_url' => $this->cover_image_url,
             'summary' => $this->summary,
-            'number_in_series' => $this->number_in_series,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'genres' => GenreResource::collection($this->whenLoaded('genres')),
             'chapters' => ChapterResource::collection($this->whenLoaded('chapters')),

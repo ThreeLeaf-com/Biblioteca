@@ -38,7 +38,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::all();
+        $books = Book::with(['author', 'publisher', 'series', 'tags', 'genres'])->get();
 
         return BookResource::collection($books);
     }
@@ -98,7 +98,7 @@ class BookController extends Controller
      */
     public function show($book_id)
     {
-        $book = Book::findOrFail($book_id);
+        $book = Book::with(['author', 'publisher', 'series', 'tags', 'genres'])->findOrFail($book_id);
 
         return new BookResource($book);
     }
