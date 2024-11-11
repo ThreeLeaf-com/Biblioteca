@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature\Models;
+namespace Tests\Feature\Models;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

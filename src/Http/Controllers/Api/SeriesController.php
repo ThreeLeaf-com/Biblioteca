@@ -41,7 +41,7 @@ class SeriesController extends Controller
      */
     public function index(): ResourceCollection
     {
-        $series = Series::all();
+        $series = Series::with(['author', 'books'])->get();
 
         return SeriesResource::collection($series);
     }
@@ -113,7 +113,7 @@ class SeriesController extends Controller
      */
     public function show(string $series_id): SeriesResource
     {
-        $series = Series::findOrFail($series_id);
+        $series = Series::with(['author', 'books'])->findOrFail($series_id);
 
         return new SeriesResource($series);
     }

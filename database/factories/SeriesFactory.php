@@ -22,10 +22,11 @@ class SeriesFactory extends Factory
      */
     public function definition(): array
     {
+        $author = Author::factory()->create();
         return [
             'title' => $this->faker->sentence(5),
             'subtitle' => $this->faker->sentence(2),
-            'editor_id' => Author::factory(),
+            'author_id' => $author->author_id,
             'description' => $this->faker->paragraph(),
         ];
     }

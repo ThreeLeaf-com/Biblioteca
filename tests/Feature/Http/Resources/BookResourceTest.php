@@ -1,18 +1,21 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Http\Resources;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\TestCase;
+use ThreeLeaf\Biblioteca\Http\Resources\BookResource;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Genre;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
+/** Test {@link BookResource}. */
 class BookResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    /** @test {@link BookResource::toArray()}. */
     public function showBookResource()
     {
         $book = Book::factory()->create();

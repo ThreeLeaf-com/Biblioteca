@@ -42,7 +42,7 @@ class SeriesRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'editor_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
+            'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
         ];
     }
 

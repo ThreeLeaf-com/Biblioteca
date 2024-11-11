@@ -44,7 +44,7 @@ class SeriesControllerTest extends TestCase
             'title' => $this->faker->sentence(),
             'subtitle' => $this->faker->sentence(5),
             'description' => $this->faker->paragraph(),
-            'editor_id' => $author->author_id,
+            'author_id' => $author->author_id,
         ];
 
         $response = $this->postJson(route('series.store'), $data);
@@ -85,7 +85,7 @@ class SeriesControllerTest extends TestCase
             'title' => 'Updated Series Title',
             'subtitle' => $this->faker->sentence(5),
             'description' => 'Updated description for the series.',
-            'editor_id' => $series->editor_id,
+            'author_id' => $series->author_id,
         ];
 
         $response = $this->putJson(route('series.update', $series->series_id), $updatedData);

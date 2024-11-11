@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature\Models;
+namespace Tests\Feature\Models;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
@@ -28,10 +28,12 @@ class SeriesTest extends TestCase
     /** @test {@link Series::book()}. */
     public function books()
     {
+        /** @var Series $series */
         $series = Series::factory()->create();
-        $books = SeriesBook::factory(3)->create(['series_id' => $series->series_id]);
 
-        $this->assertInstanceOf(Author::class, $series->editor);
+        SeriesBook::factory(3)->create(['series_id' => $series->series_id]);
+
+        $this->assertInstanceOf(Author::class, $series->author);
         $this->assertCount(3, $series->books);
     }
 

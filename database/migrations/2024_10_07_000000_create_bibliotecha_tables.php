@@ -57,7 +57,7 @@ return new class extends Migration {
             $table->string('title')->comment('The title of the series');
             $table->string('subtitle')->nullable()->comment('The subtitle of the series');
             $table->text('description')->nullable()->comment('Description of the series');
-            $table->uuid('editor_id')->comment('The editor or author unique ID');
+            $table->uuid('author_id')->comment('The author or editor unique ID');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the series was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the series was last updated');
         });

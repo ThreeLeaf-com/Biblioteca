@@ -19,8 +19,8 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property string                   $title        The title of the series.
  * @property string                   $subtitle     The subtitle of the series.
  * @property string                   $description  The description of the series.
- * @property string                   $editor_id    The unique ID of the editor or author.
- * @property-read Author              $editor       The editor or author associated with the series.
+ * @property string                   $author_id    The unique ID of the author or editor.
+ * @property-read Author              $author       The author or editor associated with the series.
  * @property-read HasMany<SeriesBook> $books        The books associated with this series.
  *
  * @mixin Builder
@@ -32,11 +32,11 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     @OA\Property(property="title", type="string", description="The title of the series"),
  *     @OA\Property(property="subtitle", type="string", description="The subtitle of the series"),
  *     @OA\Property(property="description", type="string", description="The series desccription"),
- *     @OA\Property(property="editor_id", type="string", description="The editor or author unique ID"),
+ *     @OA\Property(property="author_id", type="string", description="The author or editor unique ID"),
  *     @OA\Property(
- *         property="editor",
+ *         property="author",
  *         ref="#/components/schemas/Author",
- *         description="The editor or author associated with the series"
+ *         description="The author or editor associated with the series"
  *     ),
  *     @OA\Property(
  *         property="books",
@@ -61,7 +61,7 @@ class Series extends Model
         'title',
         'subtitle',
         'description',
-        'editor_id',
+        'author_id',
     ];
 
     /**
@@ -69,9 +69,9 @@ class Series extends Model
      *
      * @return BelongsTo<Author>
      */
-    public function editor(): BelongsTo
+    public function author(): BelongsTo
     {
-        return $this->belongsTo(Author::class, 'editor_id');
+        return $this->belongsTo(Author::class, 'author_id');
     }
 
     /**
