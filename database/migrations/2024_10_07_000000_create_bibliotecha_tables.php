@@ -236,7 +236,7 @@ return new class extends Migration {
         });
 
         Schema::create('b_series_books', function (Blueprint $table) {
-            $table->comment = 'Table representing the relationship between Series and Book, defining the order of books within a series';
+            $table->comment('Table representing the relationship between Series and Book, defining the order of books within a series');
             $table->uuid('series_id')->comment('Foreign key referencing the Series the book belongs to');
             $table->uuid('book_id')->comment('Foreign key referencing the Book in the series');
             $table->integer('number')->comment('The number or position of the book within the series');
