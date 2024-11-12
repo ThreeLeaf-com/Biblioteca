@@ -9,6 +9,7 @@ use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\SeriesRequest;
 use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Series;
+use ThreeLeaf\Biblioteca\Services\SeriesService;
 
 /**
  * Controller for {@link Series}.
@@ -20,6 +21,12 @@ use ThreeLeaf\Biblioteca\Models\Series;
  */
 class SeriesController extends Controller
 {
+    public function __construct(
+        private readonly SeriesService $seriesService,
+    )
+    {
+    }
+
     /**
      * Display a listing of the series.
      *
@@ -156,7 +163,7 @@ class SeriesController extends Controller
     {
         $series = Series::findOrFail($series_id);
         $validatedData = $request->validated();
-        $series->update($validatedData);
+        $series = $this->seriesService->update($series, $validatedData);
 
         return new SeriesResource($series);
     }
