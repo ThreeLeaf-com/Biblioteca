@@ -90,4 +90,33 @@ class SeriesTest extends TestCase
         $this->assertEquals(2, $series->books->find($book1->book_id)->pivot->number);
         $this->assertEquals(3, $series->books->find($book2->book_id)->pivot->number);
     }
+
+    /** @test {@link Series::books} in numerical order. */
+    public function testBooksAreOrderedByNumber()
+    {
+        $series = Series::factory()->create();
+        $book1 = Book::factory()->create();
+        $book2 = Book::factory()->create();
+        $book3 = Book::factory()->create();
+
+        /* Attach books with out-of-order numbers */
+        $series->books()->attach($book1->book_id, ['number' => 3]);
+        $series->books()->attach($book2->book_id, ['number' => 1]);
+        $series->books()->attach($book3->book_id, ['number' => 2]);
+
+        /* Retrieve the books via the relationship */
+        $books = $series->books;
+
+        /* Extract the book IDs from the books */
+        $numbers = $books->pluck('book_id')->toArray();
+
+        $this->assertEquals(
+            [
+                $book2->book_id,
+                $book3->book_id,
+                $book1->book_id,
+            ],
+            $numbers
+        );
+    }
 }

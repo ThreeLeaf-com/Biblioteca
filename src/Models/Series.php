@@ -83,7 +83,8 @@ class Series extends Model
     {
         return $this->belongsToMany(Book::class, 'b_series_books', 'series_id', 'book_id')
             ->withPivot('number')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderBy('number');
     }
 
     /**
