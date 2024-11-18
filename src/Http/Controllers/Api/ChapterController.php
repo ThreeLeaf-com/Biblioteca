@@ -2,11 +2,15 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\ChapterRequest;
 use ThreeLeaf\Biblioteca\Http\Resources\ChapterResource;
 use ThreeLeaf\Biblioteca\Models\Chapter;
+use ThreeLeaf\Biblioteca\Services\ChapterService;
 
 /**
  * Controller for {@link Chapter}.
@@ -18,6 +22,13 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
  */
 class ChapterController extends Controller
 {
+
+    public function __construct(
+        private readonly ChapterService $chapterService,
+    )
+    {
+    }
+
     /**
      * Display a listing of the chapters.
      *
@@ -34,10 +45,11 @@ class ChapterController extends Controller
      *         )
      *     )
      * )
+     * @return ResourceCollection<ChapterResource> The {@link ChapterResource}
      */
-    public function index()
+    public function index(): ResourceCollection
     {
-        $chapters = Chapter::all();
+        $chapters = $this->chapterService->getAll();
 
         return ChapterResource::collection($chapters);
     }
@@ -59,11 +71,15 @@ class ChapterController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/ChapterResource")
      *     )
      * )
+     *
+     * @param ChapterRequest $request The chapter request
+     *
+     * @return JsonResponse The {@link ChapterResource}
      */
-    public function store(ChapterRequest $request)
+    public function store(ChapterRequest $request): JsonResponse
     {
-        $validatedData = $request->validated();
-        $chapter = Chapter::create($validatedData);
+        $data = $request->validated();
+        $chapter = $this->chapterService->create($data);
 
         return (new ChapterResource($chapter))
             ->response()
@@ -94,8 +110,12 @@ class ChapterController extends Controller
      *         description="Chapter not found"
      *     )
      * )
+     *
+     * @param string $chapter_id The chapter ID.
+     *
+     * @return JsonResource The {@link ChapterResource}
      */
-    public function show($chapter_id)
+    public function show(string $chapter_id): JsonResource
     {
         $chapter = Chapter::findOrFail($chapter_id);
 
@@ -103,7 +123,7 @@ class ChapterController extends Controller
     }
 
     /**
-     * Update the specified chapter in storage.
+     * Update an existing chapter in storage.
      *
      * @OA\Put(
      *     path="/api/chapters/{chapter_id}",
@@ -130,12 +150,16 @@ class ChapterController extends Controller
      *         description="Chapter not found"
      *     )
      * )
+     * @param ChapterRequest $request    The validated request containing the updated chapter data.
+     * @param string         $chapter_id The chapter ID.
+     *
+     * @return JsonResource The {@link ChapterResource}
      */
-    public function update(ChapterRequest $request, $chapter_id)
+    public function update(ChapterRequest $request, string $chapter_id): JsonResource
     {
         $chapter = Chapter::findOrFail($chapter_id);
-        $validatedData = $request->validated();
-        $chapter->update($validatedData);
+        $data = $request->validated();
+        $chapter = $this->chapterService->update($chapter, $data);
 
         return new ChapterResource($chapter);
     }
@@ -163,11 +187,15 @@ class ChapterController extends Controller
      *         description="Chapter not found"
      *     )
      * )
+     *
+     * @param string $chapter_id The chapter ID.
+     *
+     * @return JsonResponse A JSON response with HTTP status code 204 (No Content) indicating successful deletion.
      */
-    public function destroy($chapter_id)
+    public function destroy(string $chapter_id): JsonResponse
     {
-        $chapter = Chapter::findOrFail($chapter_id);
-        $chapter->delete();
+        $chapter = $this->chapterService->findOrFail($chapter_id);
+        $this->chapterService->delete($chapter);
 
         return response()->json(null, HttpCodes::HTTP_NO_CONTENT);
     }

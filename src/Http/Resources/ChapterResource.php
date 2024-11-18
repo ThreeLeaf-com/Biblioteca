@@ -21,7 +21,7 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
  *     @OA\Property(property="chapter_number", type="integer", example=1, description="Number of the chapter in the book"),
  *     @OA\Property(property="title", type="string", example="The Mysterious Beginning", description="Title of the chapter"),
  *     @OA\Property(property="summary", type="string", example="This chapter introduces the main mystery.", description="A brief summary of the chapter"),
- *     @OA\Property(property="chapter_image_url", type="string", example="http://example.com/chapter1.jpg", description="URL of the chapter’s image"),
+ *     @OA\Property(property="chapter_image_url", type="string", example="https://example.com/chapter1.jpg", description="URL of the chapter’s image"),
  *     @OA\Property(
  *         property="paragraphs",
  *         type="array",
@@ -55,7 +55,6 @@ class ChapterResource extends JsonResource
             'summary' => $this->summary,
             'chapter_image_url' => $this->chapter_image_url,
             'paragraphs' => ParagraphResource::collection($this->whenLoaded('paragraphs')),
-            'figures' => FigureResource::collection($this->whenLoaded('figures')),
         ];
     }
 }

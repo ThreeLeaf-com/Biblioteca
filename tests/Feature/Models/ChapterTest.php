@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
-use ThreeLeaf\Biblioteca\Models\Figure;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 
 class ChapterTest extends TestCase
@@ -36,12 +35,10 @@ class ChapterTest extends TestCase
     public function testChapterRelationships()
     {
         $chapter = Chapter::factory()->create();
-        $paragraphs = Paragraph::factory(3)->create(['chapter_id' => $chapter->chapter_id]);
-        $figures = Figure::factory(2)->create(['chapter_id' => $chapter->chapter_id]);
+        Paragraph::factory(3)->create(['chapter_id' => $chapter->chapter_id]);
 
         $this->assertInstanceOf(Book::class, $chapter->book);
         $this->assertCount(3, $chapter->paragraphs);
-        $this->assertCount(2, $chapter->figures);
     }
 
     /**

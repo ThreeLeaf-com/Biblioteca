@@ -4,14 +4,75 @@ namespace ThreeLeaf\Biblioteca\Services;
 
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
+use ThreeLeaf\Biblioteca\Repositories\ChapterRepository;
 
 /** {@link Chapter} services. */
 class ChapterService
 {
     public function __construct(
-        private readonly ParagraphService $paragraphService,
+        private readonly ChapterRepository $chapterRepository,
+        private readonly ParagraphService  $paragraphService,
     )
     {
+    }
+
+    /**
+     * Creates a new Chapter and parses its content into Paragraphs.
+     *
+     * @param mixed $data The data to create the Chapter with.
+     *
+     * @return Chapter The newly created Chapter with its Paragraphs parsed.
+     */
+    public function create(mixed $data): Chapter
+    {
+        $chapter = $this->chapterRepository->create($data);
+        $this->parseChapterContents($chapter);
+
+        return $chapter;
+    }
+
+    /**
+     * Retrieves all Chapters from the database.
+     *
+     * This function uses the ChapterRepository to fetch all Chapters from the database.
+     * It returns an array of Chapter models.
+     *
+     * @return Chapter[] An array of Chapter models.
+     */
+    public function getAll(): array
+    {
+        return $this->chapterRepository->readAll();
+    }
+
+    /**
+     * Updates a Chapter and parses its content into Paragraphs.
+     *
+     * @param Chapter $chapter The Chapter to update.
+     * @param array   $data    The data to update the Chapter with.
+     *
+     * @return Chapter The updated Chapter with its Paragraphs parsed.
+     */
+    public function update(Chapter $chapter, array $data): Chapter
+    {
+        $chapter = $this->chapterRepository->update($chapter, $data);
+        $this->parseChapterContents($chapter);
+
+        return $chapter;
+    }
+
+    /**
+     * Deletes a Chapter and all its associated Paragraphs.
+     *
+     * This function takes a Chapter model as a parameter and deletes it from the database.
+     * It also deletes all Paragraphs associated with the given Chapter.
+     *
+     * @param Chapter $chapter The Chapter to delete.
+     *
+     * @return bool True if the chapter was successfully deleted, false otherwise.
+     */
+    public function delete(Chapter $chapter): bool
+    {
+        return $this->chapterRepository->deleteChapter($chapter);
     }
 
     /**
@@ -24,20 +85,25 @@ class ChapterService
     public function parseChapterContents(Chapter $chapter): array
     {
         $paragraphs = [];
-        $content = $this->normalizeContent($chapter->content);
-        $paragraphStrings = $this->parseToParagraphs($content);
+        $this->chapterRepository->deleteAllParagraphs($chapter);
 
-        foreach ($paragraphStrings as $paragraphString) {
-            $paragraph = Paragraph::create([
-                'chapter_id' => $chapter->chapter_id,
-                'paragraph_number' => count($paragraphs) + 1,
-                'content' => $paragraphString,
-            ]);
-            $paragraphs[] = $paragraph;
-            $this->paragraphService->parseParagraphContents($paragraph);
+        if ($chapter->content) {
+            $content = $this->normalizeContent($chapter->content);
+            $paragraphStrings = $this->parseToParagraphs($content);
+
+            foreach ($paragraphStrings as $paragraphString) {
+                $paragraph = Paragraph::create([
+                    'chapter_id' => $chapter->chapter_id,
+                    'paragraph_number' => count($paragraphs) + 1,
+                    'content' => $paragraphString,
+                ]);
+                $paragraphs[] = $paragraph;
+                $this->paragraphService->parseParagraphContents($paragraph);
+            }
+
+            $this->chapterRepository->addParagraphs($chapter, $paragraphs);
+            $chapter->refresh();
         }
-
-        $chapter->refresh();
 
         return $paragraphs;
     }
@@ -64,6 +130,11 @@ class ChapterService
     public function combineIntoChapter(array $paragraphs): string
     {
         return implode("\n", $paragraphs);
+    }
+
+    public function findOrFail(string $chapter_id): Chapter
+    {
+        return $this->chapterRepository->readOrFail($chapter_id);
     }
 
     /**

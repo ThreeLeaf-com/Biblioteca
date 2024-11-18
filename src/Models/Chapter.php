@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
+use ThreeLeaf\Biblioteca\Traits\Equals;
 
 /**
  * A chapter associated with a book.
  *
- * @property string                  $chapter_id        Primary key of the chapter in UUID format.
- * @property string                  $book_id           UUID of the associated book.
+ * @property string                  $chapter_id        The chapter's unique ID.
+ * @property string                  $book_id           The unique ID of the associated book.
  * @property int                     $chapter_number    Number of the chapter in the book.
  * @property string                  $title             Title of the chapter.
  * @property string                  $summary           A brief summary of the chapter.
@@ -46,12 +47,6 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *         type="array",
  *         @OA\Items(ref="#/components/schemas/Paragraph"),
  *         description="The paragraphs associated with the chapter"
- *     ),
- *     @OA\Property(
- *         property="figures",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Figure"),
- *         description="The figures associated with the chapter"
  *     )
  * )
  */
@@ -59,6 +54,7 @@ class Chapter extends Model
 {
     use HasUuids;
     use HasFactory;
+    use Equals;
 
     public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'chapters';
 
@@ -92,16 +88,6 @@ class Chapter extends Model
      */
     public function paragraphs(): HasMany
     {
-        return $this->hasMany(Paragraph::class, 'chapter_id');
-    }
-
-    /**
-     * Get the figures associated with the chapter.
-     *
-     * @return HasMany<Figure>
-     */
-    public function figures(): HasMany
-    {
-        return $this->hasMany(Figure::class, 'chapter_id');
+        return $this->hasMany(Paragraph::class, 'chapter_id')->orderBy('paragraph_number');
     }
 }
