@@ -189,6 +189,24 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEmpty($this->chapterRepository->readAll());
     }
 
+    /** @test {@link ChapterRepository::readAll()} with Book::$id. */
+    public function readAllBookId()
+    {
+        $book1 = Book::factory()->create();
+        $book2 = Book::factory()->create();
+        Chapter::factory()->count(3)->create(['book_id' => $book1->book_id]);
+        Chapter::factory()->count(2)->create(['book_id' => $book2->book_id]);
+
+        $chaptersForBook1 = $this->chapterRepository->readAll($book1->book_id);
+
+        $this->assertCount(3, $chaptersForBook1);
+
+        $chapterIdsForBook1 = $book1->chapters()->pluck('chapter_id')->toArray();
+        $chapterIdsForBook1Database = collect($chaptersForBook1)->pluck('chapter_id')->toArray();
+
+        $this->assertEquals($chapterIdsForBook1Database, $chapterIdsForBook1);
+    }
+
     /** @test {@link ChapterRepository::update()} no chapters. */
     public function update()
     {

@@ -35,13 +35,15 @@ class ChapterService
      * Retrieves all Chapters from the database.
      *
      * This function uses the ChapterRepository to fetch all Chapters from the database.
-     * It returns an array of Chapter models.
+     * If a bookId is provided, it will filter the Chapters by the given bookId.
+     *
+     * @param string|null $bookId The ID of the book to filter Chapters by. If null, all Chapters will be returned.
      *
      * @return Chapter[] An array of Chapter models.
      */
-    public function getAll(): array
+    public function getAll(?string $bookId = null): array
     {
-        return $this->chapterRepository->readAll();
+        return $this->chapterRepository->readAll($bookId);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
@@ -36,6 +37,12 @@ class ChapterController extends Controller
      *     path="/api/chapters",
      *     summary="Get a list of chapters",
      *     tags={"Biblioteca/Chapters"},
+     *     @OA\Parameter(
+     *         name="bookId",
+     *         in="query",
+     *         description="ID of the book",
+     *         @OA\Schema(type="string")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -45,11 +52,14 @@ class ChapterController extends Controller
      *         )
      *     )
      * )
+     * @param Request $request The request object
+     *
      * @return ResourceCollection<ChapterResource> The {@link ChapterResource}
      */
-    public function index(): ResourceCollection
+    public function index(Request $request): ResourceCollection
     {
-        $chapters = $this->chapterService->getAll();
+        $bookId = $request->query('bookId');
+        $chapters = $this->chapterService->getAll($bookId);
 
         return ChapterResource::collection($chapters);
     }

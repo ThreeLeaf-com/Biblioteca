@@ -25,6 +25,7 @@ class ChapterControllerTest extends TestCase
         $chapters = Chapter::factory()->count(3)->create();
 
         $expectedData = ChapterResource::collection($chapters)->response()->getData(true);
+        $expectedData['data'] = ksort($expectedData['data']);
 
         $response = $this->getJson(route('chapters.index'));
 

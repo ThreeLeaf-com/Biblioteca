@@ -70,16 +70,27 @@ class ChapterRepository
     }
 
     /**
-     * Retrieves all Chapter records from the database.
+     * Retrieves all Chapter records from the database, optionally filtered by book ID.
      *
      * This function uses Eloquent's query builder to fetch all Chapter records from the database.
-     * It returns an array of Chapter model instances, representing the retrieved records.
+     * If a book ID is provided, the function will filter the results to only include chapters belonging to the specified book.
+     * The retrieved records are sorted by chapter number in ascending order.
      *
-     * @return Chapter[] An array of Chapter model instances, representing all Chapter records in the database.
+     * @param string|null $bookId The unique identifier of the book for which to retrieve chapters.
+     *                            If null, all chapters will be retrieved.
+     *
+     * @return Chapter[] An array of Chapter model instances, representing all Chapter records in the database,
+     *                  optionally filtered by book ID.
      */
-    public function readAll(): array
+    public function readAll(?string $bookId = null): array
     {
-        return Chapter::all()->all();
+        $query = Chapter::query();
+
+        if ($bookId) {
+            $query->where('book_id', $bookId);
+        }
+
+        return $query->orderBy('chapter_number')->get()->all();
     }
 
     /**
