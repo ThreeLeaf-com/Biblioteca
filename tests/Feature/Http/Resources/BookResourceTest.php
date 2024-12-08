@@ -70,4 +70,48 @@ class BookResourceTest extends TestCase
         $this->assertEquals($book->publisher->publisher_id, $response->json('data.publisher.publisher_id'));
         $this->assertEquals($series->series_id, $response->json('data.series.0.series_id'));
     }
+
+    /** @test {@link BookResource::$published_date)}. */
+    public function publishedDateFormatPositive()
+    {
+        $book = Book::factory()->create([
+            'published_date' => now(),
+        ]);
+
+        $response = $this->getJson(route('books.show', $book->book_id));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'published_date',
+                ],
+            ])
+            ->assertJson([
+                'data' => [
+                    'published_date' => now()->toDateString(),
+                ],
+            ]);
+    }
+
+    /** @test {@link BookResource::$published_date)}. */
+    public function publishedDateFormatNull()
+    {
+        $book = Book::factory()->create([
+            'published_date' => null,
+        ]);
+
+        $response = $this->getJson(route('books.show', $book->book_id));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'published_date',
+                ],
+            ])
+            ->assertJson([
+                'data' => [
+                    'published_date' => null,
+                ],
+            ]);
+    }
 }

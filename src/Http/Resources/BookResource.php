@@ -47,7 +47,7 @@ class BookResource extends JsonResource
             'author' => new AuthorResource($this->whenLoaded('author')),
             'publisher' => new PublisherResource($this->whenLoaded('publisher')),
             'series' => SeriesResource::collection($this->whenLoaded('series')),
-            'published_date' => $this->published_date,
+            'published_date' => $this->published_date?->toDateString(),
             'edition' => $this->edition,
             'locale' => $this->locale,
             'suggested_citation' => $this->suggested_citation,
