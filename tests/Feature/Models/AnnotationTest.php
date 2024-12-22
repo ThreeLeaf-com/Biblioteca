@@ -1,8 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Models;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Author;
@@ -21,11 +22,13 @@ use ThreeLeaf\Biblioteca\Models\SeriesBook;
 use ThreeLeaf\Biblioteca\Models\TableOfContents;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
-class BibliotecaTest extends TestCase
+/** Test several models at once. */
+class AnnotationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_book_and_tag_relationship()
+    /** @test the creation of all related models. */
+    public function attachTagToBook()
     {
         $book = Book::factory()
             ->create();
@@ -41,12 +44,8 @@ class BibliotecaTest extends TestCase
         $this->assertTrue($book->tags->contains($tag));
     }
 
-    /**
-     * Test the creation of all related models.
-     *
-     * @return void
-     */
-    public function test_create_all_models_with_factories()
+    /** @test the creation of all related models. */
+    public function allModelFactories()
     {
         $publisher = Publisher::factory()->create();
         $author = Author::factory()->create();
@@ -97,7 +96,8 @@ class BibliotecaTest extends TestCase
         $this->assertDatabaseHas(Tag::TABLE_NAME, ['tag_id' => $tag->tag_id]);
     }
 
-    public function test_annotation_for_paragraph()
+    /** @test the creation of all related models. */
+    public function attachAnnotationToParagraph()
     {
         $paragraph = Paragraph::factory()->create();
 
@@ -115,7 +115,8 @@ class BibliotecaTest extends TestCase
         $this->assertTrue($annotation->reference()->is($paragraph));
     }
 
-    public function test_annotation_for_sentence()
+    /** @test the creation of all related models. */
+    public function attachAnnotationToSentence()
     {
         $sentence = Sentence::factory()->create();
         $annotation = Annotation::factory()->create([
@@ -132,7 +133,8 @@ class BibliotecaTest extends TestCase
         $this->assertTrue($annotation->reference()->is($sentence));
     }
 
-    public function test_create_bibliography()
+    /** @test attach Bibliography to Book. */
+    public function attachBibliographyToBook()
     {
         $author = Author::factory()->create();
         $series = Series::factory()
@@ -154,33 +156,33 @@ class BibliotecaTest extends TestCase
     public function readmeExamples()
     {
         $author = Author::create([
-            'first_name' => 'John',
-            'last_name' => 'Marsh',
-            'biography' => 'John Marsh is a prolific writer...',
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'biography' => implode("\n", fake()->paragraphs(3)),
         ]);
 
         $book = Book::create([
-            'title' => 'The Great Adventure',
+            'title' => fake()->sentence(6),
             'author_id' => $author->author_id,
-            'published_date' => now(),
-            'summary' => 'A thrilling tale of adventure...',
+            'published_date' => fake()->dateTimeBetween('-5 years', 'now'),
+            'summary' => implode("\n", fake()->paragraphs(3)),
         ]);
 
         $bookAuthor = $book->author;
         echo "Book Author: $bookAuthor->first_name $bookAuthor->last_name";
 
-        $this->assertEquals('John', $bookAuthor->first_name);
+        $this->assertEquals($author->first_name, $bookAuthor->first_name);
 
         $chapter = Chapter::create([
             'book_id' => $book->book_id,
-            'chapter_number' => 1,
-            'title' => 'Chapter 1: The Beginning',
+            'chapter_number' => fake()->randomNumber(2),
+            'title' => fake()->sentence(6),
         ]);
 
         $paragraph = Paragraph::create([
             'chapter_id' => $chapter->chapter_id,
-            'paragraph_number' => 1,
-            'content' => 'This is the first paragraph of the chapter...',
+            'paragraph_number' => fake()->randomNumber(2),
+            'content' => implode("\n", fake()->paragraphs(3)),
         ]);
 
         $booksByAuthor = Author::find($author->author_id)->books;

@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 
 /**
@@ -38,7 +39,15 @@ class PublisherRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(Publisher::TABLE_NAME)->ignore(
+                    $this->route('publisher')?->publisher_id,
+                    'publisher_id'
+                ),
+            ],
             'address' => ['nullable', 'string', 'max:255'],
             'website' => ['nullable', 'url', 'max:255'],
         ];

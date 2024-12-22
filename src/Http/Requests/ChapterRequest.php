@@ -13,9 +13,9 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
  *
  * @OA\Schema(
  *     schema="ChapterRequest",
- *     required={"book_id", "chapter_number", "title"},
+ *     required={"book_id"},
  *     @OA\Property(property="book_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="UUID of the associated book"),
- *     @OA\Property(property="chapter_number", type="integer", example=1, description="Number of the chapter in the book"),
+ *     @OA\Property(property="chapter_number", type="integer", example=1, description="Number of the chapter in the book (will auto-increment if not specified)"),
  *     @OA\Property(property="title", type="string", example="The Mysterious Beginning", description="Title of the chapter"),
  *     @OA\Property(property="summary", type="string", example="This chapter introduces the main mystery.", description="A brief summary of the chapter"),
  *     @OA\Property(property="chapter_image_url", type="string", example="https://example.com/chapter1.jpg", description="URL of the chapter’s image"),
@@ -44,7 +44,7 @@ class ChapterRequest extends FormRequest
         return [
             'book_id' => ['required', 'exists:' . Book::TABLE_NAME . ',book_id', 'uuid'],
             'chapter_number' => ['sometimes', 'integer', 'min:1'],
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['string', 'max:255'],
             'summary' => ['nullable', 'string'],
             'chapter_image_url' => ['nullable', 'url'],
             'content' => ['nullable', 'string'],

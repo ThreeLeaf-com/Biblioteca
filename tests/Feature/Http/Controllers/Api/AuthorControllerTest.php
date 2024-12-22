@@ -23,12 +23,20 @@ class AuthorControllerTest extends TestCase
     {
         $authors = Author::factory()->count(3)->create();
 
-        $expectedData = AuthorResource::collection($authors)->response()->getData(true);
-
         $response = $this->getJson(route('authors.index'));
 
-        $response->assertStatus(HttpCodes::HTTP_OK)
-            ->assertJson($expectedData);
+        $response->assertStatus(HttpCodes::HTTP_OK);
+
+        foreach ($authors as $author) {
+            $response->assertJsonFragment([
+                'author_id' => $author->author_id,
+                'first_name' => $author->first_name,
+                'last_name' => $author->last_name,
+                'biography' => $author->biography,
+                'author_image_url' => $author->author_image_url,
+                'books' => [],
+            ]);
+        }
     }
 
     /**
@@ -48,10 +56,9 @@ class AuthorControllerTest extends TestCase
         $response = $this->postJson(route('authors.store'), $data);
         $response->assertStatus(HttpCodes::HTTP_CREATED);
 
-        $author = Author::latest()->first();
-        $expectedData = (new AuthorResource($author))->response()->getData(true);
-
-        $response->assertJson($expectedData);
+        foreach ($data as $field => $value) {
+            $response->assertJsonFragment([$field => $value]);
+        }
 
         $this->assertDatabaseHas(Author::TABLE_NAME, $data);
     }

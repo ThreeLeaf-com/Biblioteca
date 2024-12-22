@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use ThreeLeaf\Biblioteca\Models\Author;
 
 /**
@@ -11,6 +12,7 @@ use ThreeLeaf\Biblioteca\Models\Author;
  * @OA\Schema(
  *     title="AuthorRequest",
  *     description="Request body for creating or updating an author",
+ *     required={"first_name", "last_name"},
  *     @OA\Property(
  *         property="first_name",
  *         type="string",
@@ -61,9 +63,29 @@ class AuthorRequest extends FormRequest
     {
         return [
             'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
+            'last_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(Author::TABLE_NAME)
+                    ->where('first_name', $this->input('first_name'))
+                    ->ignore($this->route('author')?->author_id, 'author_id'),
+            ],
             'biography' => ['nullable', 'string'],
-            'author_image_url' => ['nullable', 'string', 'url'],
+            'author_image_url' => ['nullable', 'url', 'max:255'],
+        ];
+    }
+
+    /**
+     * This function returns custom validation error messages for the author request.
+     *
+     * @return array<string, string> An associative array where the keys are validation rule names and the values are custom error messages.
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public function messages(): array
+    {
+        return [
+            'last_name.unique' => 'An author with this first name and last name combination already exists.',
         ];
     }
 }

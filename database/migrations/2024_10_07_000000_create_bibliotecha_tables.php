@@ -48,6 +48,8 @@ return new class extends Migration {
             $table->string('author_image_url')->nullable()->comment('URL of the author\'s image');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the annotation was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');
+
+            $table->unique(['first_name', 'last_name']);
         });
 
         /** Create the {@link Series} table. */
@@ -88,6 +90,8 @@ return new class extends Migration {
             $table->text('summary')->nullable()->comment('A brief summary of the book');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the book record was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the book record was last updated');
+
+            $table->unique(['title', 'author_id', 'publisher_id']);
         });
 
         /** Create the {@link Chapter} table. */
@@ -102,6 +106,8 @@ return new class extends Migration {
             $table->text('content')->nullable()->comment('Content of the chapter');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the chapter record was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the chapter record was last updated');
+
+            $table->unique(['book_id', 'chapter_number']);
         });
 
         /** Create the {@link Figure} table. */
@@ -166,7 +172,7 @@ return new class extends Migration {
         Schema::create('b_publishers', function (Blueprint $table) {
             $table->comment('Publishers associated with multiple books');
             $table->uuid('publisher_id')->primary()->comment('Primary key of the publisher in UUID format');
-            $table->string('name')->comment('Name of the publisher');
+            $table->string('name')->unique()->comment('Name of the publisher');
             $table->string('address')->nullable()->comment('Address of the publisher');
             $table->string('website')->nullable()->comment('Website of the publisher');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');

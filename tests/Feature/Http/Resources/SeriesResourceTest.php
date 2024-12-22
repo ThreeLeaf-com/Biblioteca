@@ -4,15 +4,17 @@ namespace Tests\Feature\Http\Resources;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
+use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 
+/** Test {@link SeriesResource}. */
 class SeriesResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function it_loads_author_and_books_in_series_resource()
+    /** @test {@link SeriesResource::toArray()}. */
+    public function toArray()
     {
         $series = Series::factory()->create();
         $author = $series->author;
@@ -49,6 +51,8 @@ class SeriesResourceTest extends TestCase
         $this->assertEquals($series->series_id, $response->json('data.series_id'));
         $this->assertEquals($author->author_id, $response->json('data.author.author_id'));
         $this->assertCount(3, $response->json('data.books'));
-        $this->assertEquals($books->pluck('book_id')->toArray(), collect($response->json('data.books'))->pluck('book_id')->toArray());
+        $expectedBookIds = $books->pluck('book_id')->toArray();
+        $actualBookIds = collect($response->json('data.books'))->pluck('book_id')->sort()->toArray();
+        $this->assertEquals(sort($expectedBookIds), sort($actualBookIds));
     }
 }

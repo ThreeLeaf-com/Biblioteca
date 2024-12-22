@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Traits\Equals;
+use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
 /**
  * A chapter associated with a book.
@@ -30,10 +31,11 @@ use ThreeLeaf\Biblioteca\Traits\Equals;
  * @OA\Schema(
  *     title="Chapter",
  *     description="A chapter model",
+ *     required={"book_id"},
  *     @OA\Property(property="chapter_id", type="string", description="Primary key of the chapter in UUID format"),
  *     @OA\Property(property="book_id", type="string", description="UUID of the associated book"),
  *     @OA\Property(property="chapter_number", type="integer", description="Number of the chapter in the book"),
- *     @OA\Property(property="title", type="string", description="Title of the chapter"),
+ *     @OA\Property(property="title", type="string", description="Title of the chapter (Defaults to Chapter $chapter_number)"),
  *     @OA\Property(property="summary", type="string", description="A brief summary of the chapter"),
  *     @OA\Property(property="chapter_image_url", type="string", description="URL of the chapter’s image"),
  *     @OA\Property(property="content", type="string", description="Content of the chapter"),
@@ -70,6 +72,29 @@ class Chapter extends Model
         'chapter_image_url',
         'content',
     ];
+
+    /**
+     * Boot the model and attach event listeners to handle UUID generation.
+     *
+     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        /**
+         * When a new chapter is being created, a deterministic UUID is generated using the book ID and the chapter number.
+         *
+         * @param Closure $callback The callback function to be executed when a new chapter is being created.
+         */
+        static::creating(function (/** @var Chapter $chapter */ $chapter) {
+            if (empty($chapter->title)) {
+                $chapter->title = "Chapter $chapter->chapter_number";
+            }
+            $distinguishedName = "cn=$chapter->title,o=$chapter->book_id,ou=$chapter->chapter_number";
+            $chapter->chapter_id = UuidUtil::generateX500Uuid($distinguishedName);
+        });
+    }
 
     /**
      * Get the book associated with the chapter.

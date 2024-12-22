@@ -38,7 +38,7 @@ class SeriesResource extends JsonResource
      *
      * @return array<string, mixed> The transformed series resource.
      */
-    public function toArray(Request $request)
+    public function toArray(Request $request): array
     {
         return [
             'series_id' => $this->series_id,

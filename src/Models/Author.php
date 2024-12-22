@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
+use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
 /**
  * Author of books.
@@ -25,6 +26,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     schema="Author",
  *     title="Author",
  *     description="An author of books",
+ *     required={"first_name", "last_name"},
  *     @OA\Property(property="author_id", type="string", description="Primary key of the author in UUID format"),
  *     @OA\Property(property="first_name", type="string", description="First name of the author"),
  *     @OA\Property(property="last_name", type="string", description="Last name of the author"),
@@ -55,6 +57,26 @@ class Author extends Model
         'biography',
         'author_image_url',
     ];
+
+    /**
+     * Boot the model and attach event listeners to handle UUID generation.
+     *
+     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        /**
+         * When a new author is being created, a deterministic UUID is generated using the author's name.
+         *
+         * @param Closure $callback The callback function to be executed when a new author is being created.
+         */
+        static::creating(function (/** @var Author $author */ $author) {
+            $distinguishedName = "sn=$author->last_name,givenName=$author->first_name";
+            $author->author_id = UuidUtil::generateX500Uuid($distinguishedName);
+        });
+    }
 
     /**
      * Get the books associated with the author.

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
+use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
 /**
  * A book with chapters, associated with an author and publisher.
@@ -38,6 +39,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @OA\Schema(
  *     title="Book",
  *     description="A book model",
+ *     required={"title", "author_id", "publisher_id"},
  *     @OA\Property(property="book_id", type="string", description="Primary key of the book in UUID format"),
  *     @OA\Property(property="title", type="string", description="The title of the book"),
  *     @OA\Property(property="subtitle", type="string", description="The subtitle of the book"),
@@ -112,6 +114,26 @@ class Book extends Model
     protected $casts = [
         'published_date' => 'date',
     ];
+
+    /**
+     * Boot the model and attach event listeners to handle UUID generation.
+     *
+     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        /**
+         * When a new book is being created, a deterministic UUID is generated using the book's title, the author ID, and the publisher ID.
+         *
+         * @param Closure $callback The callback function to be executed when a new book is being created.
+         */
+        static::creating(function (/** @var Book $book */ $book) {
+            $distinguishedName = "cn=$book->title,creator=$book->author_id,o=$book->publisher_id";
+            $book->book_id = UuidUtil::generateX500Uuid($distinguishedName);
+        });
+    }
 
     /**
      * Get the author associated with the book.

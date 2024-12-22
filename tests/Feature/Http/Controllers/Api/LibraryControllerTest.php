@@ -18,17 +18,15 @@ class LibraryControllerTest extends TestCase
     {
         $series = Series::factory()->count(2)->create();
         $books = Book::factory()->count(3)->create();
-
+    
         $expectedSeriesIds = $series->pluck('series_id')->toArray();
         $expectedBookIds = $books->pluck('book_id')->toArray();
-
+    
         $response = $this->getJson(route('library.index'));
-
+    
         $response->assertStatus(HttpCodes::HTTP_OK)
-            ->assertJson([
-                'series_ids' => $expectedSeriesIds,
-                'book_ids' => $expectedBookIds,
-            ]);
+            ->assertJsonFragment(['series_ids' => $expectedSeriesIds])
+            ->assertJsonFragment(['book_ids' => $expectedBookIds]);
     }
 
 }
