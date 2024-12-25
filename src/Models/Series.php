@@ -80,9 +80,9 @@ class Series extends Model
          *
          * @param Closure $callback The callback function to be executed when a new Series is being created.
          */
-        static::creating(function (/** @var Series $Series */ $Series) {
-            $distinguishedName = "cn=$Series->title,creator=$Series->author_id";
-            $Series->Series_id = UuidUtil::generateX500Uuid($distinguishedName);
+        static::creating(function (/** @var Series $series */ $series) {
+            $distinguishedName = "cn=$series->title,creator=$series->author_id";
+            $series->series_id = UuidUtil::generateX500Uuid($distinguishedName);
         });
     }
 
