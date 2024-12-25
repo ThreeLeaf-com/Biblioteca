@@ -108,8 +108,6 @@ class Book extends Model
         'suggested_citation',
         'cover_image_url',
         'summary',
-        'series_id',
-        'number_in_series',
     ];
 
     protected $casts = [

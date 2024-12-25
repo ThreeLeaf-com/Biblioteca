@@ -12,9 +12,7 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 use ThreeLeaf\Biblioteca\Models\Series;
 
-/**
- * Test {@link Book}
- */
+/** Test {@link Book}. */
 class BookTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,8 +26,8 @@ class BookTest extends TestCase
         $this->assertDatabaseHas(Book::TABLE_NAME, ['title' => $book->title]);
     }
 
-    /** @test */
-    public function it_creates_a_book_entry_with_all_attributes(): void
+    /** @test {@link Book::create()}. */
+    public function create(): void
     {
         Book::factory()->create([
             'title' => 'Sample Book',
@@ -43,8 +41,8 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_updates_a_book_entry(): void
+    /** @test {@link Book::update()}. */
+    public function update(): void
     {
         $book = Book::factory()->create(['title' => 'Old Title']);
         $book->update(['title' => 'Updated Title']);
@@ -55,8 +53,8 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_deletes_a_book_entry(): void
+    /** @test {@link Book::delete()}. */
+    public function testDelete(): void
     {
         $book = Book::factory()->create();
         $book->delete();
@@ -66,22 +64,22 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_verifies_relationship_with_author(): void
+    /** @test {@link Book::$author}. */
+    public function bookAuthor(): void
     {
         $book = Book::factory()->create();
         $this->assertInstanceOf(Author::class, $book->author);
     }
 
-    /** @test */
-    public function it_verifies_relationship_with_publisher(): void
+    /** @test {@link Book::$publisher}. */
+    public function bookPublisher(): void
     {
         $book = Book::factory()->create();
         $this->assertInstanceOf(Publisher::class, $book->publisher);
     }
 
-    /** @test */
-    public function it_verifies_relationship_with_chapters(): void
+    /** @test {@link Book::$chapters}. */
+    public function bookChapters(): void
     {
         $book = Book::factory()->create();
         Chapter::factory(3)->create(['book_id' => $book->book_id]);
@@ -89,42 +87,29 @@ class BookTest extends TestCase
         $this->assertCount(3, $book->chapters);
     }
 
-    /** @test */
-    public function it_verifies_relationship_with_series(): void
-    {
-        $book = Book::factory()->create();
-        $series = Series::factory()->create();
-
-        $series->attachBook($book->book_id);
-
-        $this->assertTrue($series->books->contains($book));
-    }
-
-    /** @test */
-    public function it_verifies_required_fields_for_book(): void
+    /** @test {@link Book} required fields. */
+    public function bookRequiredFields(): void
     {
         $this->expectException(QueryException::class);
 
         Book::factory()->create(['title' => null]); // Title is required
     }
 
-    /** @test */
-    public function it_verifies_series_relationship_with_pivot_data(): void
+    /** @test {@link Book} attaches to {@link Series}. */
+    public function bookSeries(): void
     {
-        // Create a book and a series
         $book = Book::factory()->create();
         $series = Series::factory()->create();
 
-        // Attach the book to the series with a specific 'number' value
+        /* Attach the book to the series with a specific 'number' value */
         $series->books()->attach($book->book_id, ['number' => 1]);
 
-        // Refresh the book instance to load the relationship
         $book->refresh();
 
-        // Assert that the book has the correct series
+        /* Assert that the book has the correct series */
         $this->assertTrue($book->series->contains($series));
 
-        // Retrieve the series with pivot data and verify 'number'
+        /* Retrieve the series with pivot data and verify 'number' */
         $relatedSeries = $book->series->first();
         $this->assertEquals(1, $relatedSeries->pivot->number);
     }

@@ -9,16 +9,13 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
 
+/** Test {@link SeriesBook}. */
 class SeriesBookTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Test the creation of a SeriesBook entry.
-     *
-     * @return void
-     */
-    public function test_it_creates_a_series_book_entry(): void
+    /**  @test {@link SeriesBook::create()}. */
+    public function create(): void
     {
         $series = Series::factory()->create();
         $book = Book::factory()->create();
@@ -41,12 +38,8 @@ class SeriesBookTest extends TestCase
         $this->assertEquals($book->title, $seriesBook->book->title);
     }
 
-    /**
-     * Test the relationship between Series and Books in SeriesBook.
-     *
-     * @return void
-     */
-    public function test_series_book_relationships(): void
+    /**  @test {@link SeriesBook::create()} relationship. */
+    public function createRelationship(): void
     {
         $seriesBook = SeriesBook::factory()->create();
 
@@ -54,12 +47,8 @@ class SeriesBookTest extends TestCase
         $this->assertInstanceOf(Book::class, $seriesBook->book);
     }
 
-    /**
-     * Test updating a SeriesBook entry.
-     *
-     * @return void
-     */
-    public function test_update_series_book_entry(): void
+    /**  @test {@link SeriesBook::update()}. */
+    public function update(): void
     {
         $seriesBook = SeriesBook::factory()->create(['number' => 1]);
 
@@ -72,12 +61,8 @@ class SeriesBookTest extends TestCase
         ]);
     }
 
-    /**
-     * Test deleting a SeriesBook entry.
-     *
-     * @return void
-     */
-    public function test_delete_series_book_entry(): void
+    /**  @test {@link SeriesBook::delete()}. */
+    public function testDelete(): void
     {
         $seriesBook = SeriesBook::factory()->create();
 
@@ -89,12 +74,8 @@ class SeriesBookTest extends TestCase
         ]);
     }
 
-    /**
-     * Test SeriesBook enforces unique series_id and book_id combination.
-     *
-     * @return void
-     */
-    public function test_unique_constraint_on_series_id_and_book_id(): void
+    /**  @test {@link SeriesBook::create()} unique. */
+    public function createUnique(): void
     {
         $this->expectException(QueryException::class);
 
@@ -106,22 +87,29 @@ class SeriesBookTest extends TestCase
             'book_id' => $book->book_id,
         ]);
 
-        // Attempt to create a duplicate entry with the same series_id and book_id
+        /* Attempt to create a duplicate entry with the same series_id and book_id fails */
         SeriesBook::factory()->create([
             'series_id' => $series->series_id,
             'book_id' => $book->book_id,
         ]);
     }
 
-    /**
-     * Test SeriesBook requires a series_id and book_id.
-     *
-     * @return void
-     */
-    public function test_series_book_requires_series_id_and_book_id(): void
+    /**  @test {@link SeriesBook::create()} required fields. */
+    public function createRequired(): void
     {
         $this->expectException(QueryException::class);
 
         SeriesBook::factory()->create(['series_id' => null, 'book_id' => null]);
+    }
+
+    /** @test {@link Series::attachBook()}. */
+    public function attachBookToSeries(): void
+    {
+        $book = Book::factory()->create();
+        $series = Series::factory()->create();
+
+        $series->attachBook($book->book_id);
+
+        $this->assertTrue($series->books->contains($book));
     }
 }
