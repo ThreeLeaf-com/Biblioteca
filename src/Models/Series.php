@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
+use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
 /**
  * A series of books associated with an author.
@@ -28,6 +29,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @OA\Schema(
  *     title="Series",
  *     description="A series model",
+ *     required={"title", "author_id"},
  *     @OA\Property(property="series_id", type="string", description="The series unique ID"),
  *     @OA\Property(property="title", type="string", description="The title of the series"),
  *     @OA\Property(property="subtitle", type="string", description="The subtitle of the series"),
@@ -63,6 +65,26 @@ class Series extends Model
         'description',
         'author_id',
     ];
+
+    /**
+     * Boot the model and attach event listeners to handle UUID generation.
+     *
+     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        /**
+         * When a new series is being created, a deterministic UUID is generated using the series' title and author ID.
+         *
+         * @param Closure $callback The callback function to be executed when a new Series is being created.
+         */
+        static::creating(function (/** @var Series $Series */ $Series) {
+            $distinguishedName = "cn=$Series->title,creator=$Series->author_id";
+            $Series->Series_id = UuidUtil::generateX500Uuid($distinguishedName);
+        });
+    }
 
     /**
      * Get the author associated with the series.
