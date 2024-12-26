@@ -46,6 +46,22 @@ return new class extends Migration {
                 ->onDelete('cascade');
         });
 
+        /** Create the {@link Publisher} table. */
+        Schema::create('b_publishers', function (Blueprint $table) {
+            $table->comment('Publishers associated with multiple books');
+            $table->uuid('publisher_id')->primary()->comment('Primary key of the publisher in UUID format');
+            $table->string('name')->unique()->comment('Name of the publisher');
+            $table->string('address')->nullable()->comment('Address of the publisher');
+            $table->string('website')->nullable()->comment('Website of the publisher');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the publisher was last updated');
+
+            $table->foreign('publisher_id')
+                ->references('publisher_id')
+                ->on('b_publishers')
+                ->onDelete('set null');
+        });
+
         /** Create the {@link Series} table. */
         Schema::create('b_series', function (Blueprint $table) {
             $table->comment('Series of books associated with an author');
@@ -113,6 +129,40 @@ return new class extends Migration {
                 ->onDelete('cascade');
         });
 
+        /** Create the {@link Paragraph} table. */
+        Schema::create('b_paragraphs', function (Blueprint $table) {
+            $table->comment('Paragraphs associated with chapters');
+            $table->uuid('paragraph_id')->primary()->comment('Primary key of the paragraph in UUID format');
+            $table->uuid('chapter_id')->comment('UUID of the associated chapter');
+            $table->integer('paragraph_number')->comment('Number of the paragraph in the chapter');
+            $table->text('content')->nullable()->comment('Content of the paragraph');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the paragraph was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the paragraph was last updated');
+
+            $table->unique(['chapter_id', 'paragraph_number']);
+
+            $table->foreign('chapter_id')
+                ->references('chapter_id')
+                ->on('b_chapters')
+                ->onDelete('cascade');
+        });
+
+        /** Create the {@link Sentence} table. */
+        Schema::create('b_sentences', function (Blueprint $table) {
+            $table->comment('Sentences associated with paragraphs');
+            $table->uuid('sentence_id')->primary()->comment('Primary key of the sentence in UUID format');
+            $table->uuid('paragraph_id')->comment('UUID of the associated paragraph');
+            $table->integer('sentence_number')->comment('Number of the sentence within the paragraph');
+            $table->text('content')->comment('Content of the sentence');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the sentence was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the sentence was last updated');
+
+            $table->foreign('paragraph_id')
+                ->references('paragraph_id')
+                ->on('b_paragraphs')
+                ->onDelete('cascade');
+        });
+
         /** Create the {@link Bibliography} table. */
         Schema::create('b_bibliographies', function (Blueprint $table) {
             $table->comment('Bibliography entries associated with books');
@@ -169,56 +219,6 @@ return new class extends Migration {
             $table->foreign('book_id')
                 ->references('book_id')
                 ->on('b_books')
-                ->onDelete('cascade');
-        });
-
-        /** Create the {@link Paragraph} table. */
-        Schema::create('b_paragraphs', function (Blueprint $table) {
-            $table->comment('Paragraphs associated with chapters');
-            $table->uuid('paragraph_id')->primary()->comment('Primary key of the paragraph in UUID format');
-            $table->uuid('chapter_id')->comment('UUID of the associated chapter');
-            $table->integer('paragraph_number')->comment('Number of the paragraph in the chapter');
-            $table->text('content')->nullable()->comment('Content of the paragraph');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the paragraph was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the paragraph was last updated');
-
-            $table->unique(['chapter_id', 'paragraph_number']);
-
-            $table->foreign('chapter_id')
-                ->references('chapter_id')
-                ->on('b_chapters')
-                ->onDelete('cascade');
-        });
-
-        /** Create the {@link Publisher} table. */
-        Schema::create('b_publishers', function (Blueprint $table) {
-            $table->comment('Publishers associated with multiple books');
-            $table->uuid('publisher_id')->primary()->comment('Primary key of the publisher in UUID format');
-            $table->string('name')->unique()->comment('Name of the publisher');
-            $table->string('address')->nullable()->comment('Address of the publisher');
-            $table->string('website')->nullable()->comment('Website of the publisher');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the publisher was last updated');
-
-            $table->foreign('publisher_id')
-                ->references('publisher_id')
-                ->on('b_publishers')
-                ->onDelete('set null');
-        });
-
-        /** Create the {@link Sentence} table. */
-        Schema::create('b_sentences', function (Blueprint $table) {
-            $table->comment('Sentences associated with paragraphs');
-            $table->uuid('sentence_id')->primary()->comment('Primary key of the sentence in UUID format');
-            $table->uuid('paragraph_id')->comment('UUID of the associated paragraph');
-            $table->integer('sentence_number')->comment('Number of the sentence within the paragraph');
-            $table->text('content')->comment('Content of the sentence');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the sentence was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the sentence was last updated');
-
-            $table->foreign('paragraph_id')
-                ->references('paragraph_id')
-                ->on('b_paragraphs')
                 ->onDelete('cascade');
         });
 
