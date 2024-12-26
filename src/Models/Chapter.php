@@ -74,26 +74,18 @@ class Chapter extends Model
     ];
 
     /**
-     * Boot the model and attach event listeners to handle UUID generation.
+     * Get the chapter ID attribute.
      *
-     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     * @return string
      */
-    protected static function boot(): void
+    public function getChapterIdAttribute(): string
     {
-        parent::boot();
+        if (empty($this->attributes['chapter_id'])) {
+            $distinguishedName = "cn=$this->title,o=$this->book_id,ou=$this->chapter_number";
+            $this->attributes['chapter_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
 
-        /**
-         * When a new chapter is being created, a deterministic UUID is generated using the book ID and the chapter number.
-         *
-         * @param Closure $callback The callback function to be executed when a new chapter is being created.
-         */
-        static::creating(function (/** @var Chapter $chapter */ $chapter) {
-            if (empty($chapter->title)) {
-                $chapter->title = "Chapter $chapter->chapter_number";
-            }
-            $distinguishedName = "cn=$chapter->title,o=$chapter->book_id,ou=$chapter->chapter_number";
-            $chapter->chapter_id = UuidUtil::generateX500Uuid($distinguishedName);
-        });
+        return $this->attributes['chapter_id'];
     }
 
     /**

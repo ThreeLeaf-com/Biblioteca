@@ -2,7 +2,6 @@
 
 namespace ThreeLeaf\Biblioteca\Models;
 
-use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -61,23 +60,18 @@ class Publisher extends Model
     ];
 
     /**
-     * Boot the model and attach event listeners to handle UUID generation.
+     * Get the publisher ID attribute.
      *
-     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     * @return string
      */
-    protected static function boot(): void
+    public function getPublisherIdAttribute(): string
     {
-        parent::boot();
+        if (empty($this->attributes['publisher_id'])) {
+            $distinguishedName = "cn=$this->name";
+            $this->attributes['publisher_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
 
-        /**
-         * When a new publisher is being created, a deterministic UUID is generated using the publisher's name.
-         *
-         * @param Closure $callback The callback function to be executed when a new publisher is being created.
-         */
-        static::creating(function (/** @var Publisher $publisher */ $publisher) {
-            $distinguishedName = "cn=$publisher->name";
-            $publisher->publisher_id = UuidUtil::generateX500Uuid($distinguishedName);
-        });
+        return $this->attributes['publisher_id'];
     }
 
     /**

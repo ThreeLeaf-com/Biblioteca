@@ -59,23 +59,18 @@ class Author extends Model
     ];
 
     /**
-     * Boot the model and attach event listeners to handle UUID generation.
+     * Get the author ID attribute.
      *
-     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     * @return string
      */
-    protected static function boot(): void
+    public function getAuthorIdAttribute(): string
     {
-        parent::boot();
+        if (empty($this->attributes['author_id'])) {
+            $distinguishedName = "sn=$this->last_name,givenName=$this->first_name";
+            $this->attributes['author_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
 
-        /**
-         * When a new author is being created, a deterministic UUID is generated using the author's name.
-         *
-         * @param Closure $callback The callback function to be executed when a new author is being created.
-         */
-        static::creating(function (/** @var Author $author */ $author) {
-            $distinguishedName = "sn=$author->last_name,givenName=$author->first_name";
-            $author->author_id = UuidUtil::generateX500Uuid($distinguishedName);
-        });
+        return $this->attributes['author_id'];
     }
 
     /**

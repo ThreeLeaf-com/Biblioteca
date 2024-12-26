@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
+use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
 /**
  * A paragraph associated with a chapter.
@@ -60,6 +61,21 @@ class Paragraph extends Model
         'paragraph_number',
         'content',
     ];
+
+    /**
+     * Get the paragraph ID attribute.
+     *
+     * @return string
+     */
+    public function getParagraphIdAttribute(): string
+    {
+        if (empty($this->attributes['paragraph_id'])) {
+            $distinguishedName = "o=$this->chapter_id,ou=$this->paragraph_number";
+            $this->attributes['paragraph_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
+
+        return $this->attributes['paragraph_id'];
+    }
 
     /**
      * Get the chapter associated with the paragraph.

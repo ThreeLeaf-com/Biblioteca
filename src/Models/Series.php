@@ -67,23 +67,18 @@ class Series extends Model
     ];
 
     /**
-     * Boot the model and attach event listeners to handle UUID generation.
+     * Get the series ID attribute.
      *
-     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     * @return string
      */
-    protected static function boot(): void
+    public function getSeriesIdAttribute(): string
     {
-        parent::boot();
+        if (empty($this->attributes['series_id'])) {
+            $distinguishedName = "cn={$this->title},creator={$this->author_id}";
+            $this->attributes['series_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
 
-        /**
-         * When a new series is being created, a deterministic UUID is generated using the series' title and author ID.
-         *
-         * @param Closure $callback The callback function to be executed when a new Series is being created.
-         */
-        static::creating(function (/** @var Series $series */ $series) {
-            $distinguishedName = "cn=$series->title,creator=$series->author_id";
-            $series->series_id = UuidUtil::generateX500Uuid($distinguishedName);
-        });
+        return $this->attributes['series_id'];
     }
 
     /**

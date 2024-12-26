@@ -29,7 +29,7 @@ class ChapterFactory extends Factory
             'content' => $this->faker->paragraphs(5, true),
             'title' => $this->faker->sentence(),
             'summary' => $this->faker->paragraph(),
-            'chapter_number' => $this->faker->numberBetween(1, 100),
+            'chapter_number' => $this->faker->numberBetween(1, 10000),
         ];
     }
 }

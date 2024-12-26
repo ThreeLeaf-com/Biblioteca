@@ -115,23 +115,18 @@ class Book extends Model
     ];
 
     /**
-     * Boot the model and attach event listeners to handle UUID generation.
+     * Get the book ID attribute.
      *
-     * This method overrides the boot method in the HasUuids trait and attaches a creating event listener.
+     * @return string
      */
-    protected static function boot(): void
+    public function getBookIdAttribute(): string
     {
-        parent::boot();
+        if (empty($this->attributes['book_id'])) {
+            $distinguishedName = "cn={$this->title},creator=$this->author_id,o=$this->publisher_id";
+            $this->attributes['book_id'] = UuidUtil::generateX500Uuid($distinguishedName);
+        }
 
-        /**
-         * When a new book is being created, a deterministic UUID is generated using the book's title, the author ID, and the publisher ID.
-         *
-         * @param Closure $callback The callback function to be executed when a new book is being created.
-         */
-        static::creating(function (/** @var Book $book */ $book) {
-            $distinguishedName = "cn=$book->title,creator=$book->author_id,o=$book->publisher_id";
-            $book->book_id = UuidUtil::generateX500Uuid($distinguishedName);
-        });
+        return $this->attributes['book_id'];
     }
 
     /**
