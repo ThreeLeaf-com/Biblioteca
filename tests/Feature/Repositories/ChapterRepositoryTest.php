@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Repositories;
 
-use ErrorException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -23,96 +23,19 @@ class ChapterRepositoryTest extends TestCase
     private ChapterRepository $chapterRepository;
 
     /** @test {@link ChapterRepository::create()} with missing book ID. */
-    public function createMissingBookId()
+    public function requireMissingBookId()
     {
         $data = [
             'title' => $this->faker->sentence(),
             'content' => $this->faker->paragraph(),
         ];
 
-        $this->expectException(ErrorException::class);
+        $this->expectException(QueryException::class);
         $this->chapterRepository->create($data);
     }
 
-    /** @test {@link ChapterRepository::create()} autoincrement chapter number. */
-    public function createAutoincrementChapterNumber()
-    {
-        $chapter1 = Chapter::factory()->create(['chapter_number' => 1]);
-        $book = $chapter1->book;
-        $bookId = $book->book_id;
-        Chapter::factory()->create([
-            'book_id' => $bookId,
-            'chapter_number' => 2,
-        ]);
-        $newChapterData = [
-            'book_id' => $bookId,
-            'title' => $this->faker->sentence(),
-            'content' => $this->faker->paragraph(),
-        ];
-
-        $newChapter = $this->chapterRepository->create($newChapterData);
-
-        $this->assertEquals(3, $newChapter->chapter_number);
-    }
-
-    /** @test {@link ChapterRepository::create()} override negative chapter number. */
-    public function createNegativeChapterNumber()
-    {
-        $chapter1 = Chapter::factory()->create(['chapter_number' => 1]);
-        $book = $chapter1->book;
-        $bookId = $book->book_id;
-        Chapter::factory()->create([
-            'book_id' => $bookId,
-            'chapter_number' => 2,
-        ]);
-        $newChapterData = [
-            'book_id' => $bookId,
-            'title' => $this->faker->sentence(),
-            'content' => $this->faker->paragraph(),
-            'chapter_number' => $this->faker->numberBetween(-100, -1),
-        ];
-
-        $newChapter = $this->chapterRepository->create($newChapterData);
-
-        $this->assertEquals(3, $newChapter->chapter_number);
-    }
-
-    /** @test {@link ChapterRepository::create()} override non-numeric chapter number. */
-    public function createNanChapterNumber()
-    {
-        $chapter1 = Chapter::factory()->create(['chapter_number' => 1]);
-        $book = $chapter1->book;
-        $bookId = $book->book_id;
-        $newChapterData = [
-            'book_id' => $bookId,
-            'title' => $this->faker->sentence(),
-            'content' => $this->faker->paragraph(),
-            'chapter_number' => $this->faker->randomLetter(),
-        ];
-
-        $newChapter = $this->chapterRepository->create($newChapterData);
-
-        $this->assertEquals(2, $newChapter->chapter_number);
-    }
-
-    /** @test {@link ChapterRepository::create()} first chapter number. */
-    public function createFirstChapterNumber()
-    {
-        $book = Book::factory()->create();
-        $bookId = $book->book_id;
-        $newChapterData = [
-            'book_id' => $bookId,
-            'title' => $this->faker->sentence(),
-            'content' => $this->faker->paragraph(),
-        ];
-
-        $newChapter = $this->chapterRepository->create($newChapterData);
-
-        $this->assertEquals(1, $newChapter->chapter_number);
-    }
-
     /** @test {@link ChapterRepository::create()} does not allow duplicate chapter number. */
-    public function createDuplicateChapterNumber()
+    public function disallowDuplicateChapterNumber()
     {
         $chapter1 = Chapter::factory()->create(['chapter_number' => 1]);
         $bookId = $chapter1->book_id;

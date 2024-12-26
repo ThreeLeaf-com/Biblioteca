@@ -25,6 +25,7 @@ class ChapterService
      */
     public function create(mixed $data): Chapter
     {
+        $data = $this->assignChapterNumber($data);
         $chapter = $this->chapterRepository->create($data);
         $this->parseChapterContents($chapter);
 
@@ -57,6 +58,23 @@ class ChapterService
     public function update(Chapter $chapter, array $data): Chapter
     {
         $chapter = $this->chapterRepository->update($chapter, $data);
+        $this->parseChapterContents($chapter);
+
+        return $chapter;
+    }
+
+    /**
+     * Creates a new Chapter and parses its content into Paragraphs.
+     * If a Chapter with the same book_id and chapter_number already exists, it will be updated.
+     *
+     * @param mixed $data The data to create or update the Chapter with.
+     *
+     * @return Chapter The newly created or updated Chapter with its Paragraphs parsed.
+     */
+    public function updateOrCreate(mixed $data): Chapter
+    {
+        $data = $this->assignChapterNumber($data);
+        $chapter = $this->chapterRepository->updateOrCreate($data);
         $this->parseChapterContents($chapter);
 
         return $chapter;
@@ -108,6 +126,34 @@ class ChapterService
         }
 
         return $paragraphs;
+    }
+
+    /**
+     * Assigns a chapter number to the chapter data.
+     *
+     * If the 'chapter_number' is not provided in the input data, the function will attempt to determine the next available chapter number for the given book.
+     * It does this by fetching the highest chapter number for the book from the database and incrementing it by one.
+     * If no chapters exist for the book, the function will default to chapter number 1.
+     *
+     * @param array $data the chapter data
+     *
+     * @return array the updated chapter data
+     */
+    public function assignChapterNumber(array $data): array
+    {
+        if (empty($data['chapter_number']) || !is_numeric($data['chapter_number']) || $data['chapter_number'] < 1) {
+            $lastChapter = Chapter::where('book_id', $data['book_id'])
+                ->orderBy('chapter_number', 'desc')
+                ->first();
+
+            if ($lastChapter) {
+                $data['chapter_number'] = $lastChapter->chapter_number + 1;
+            } else {
+                $data['chapter_number'] = 1;
+            }
+        }
+
+        return $data;
     }
 
     /**

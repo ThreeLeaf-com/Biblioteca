@@ -13,28 +13,12 @@ class ChapterRepository
     /**
      * Creates a new Chapter record in the database.
      *
-     * If the 'chapter_number' is not provided in the input data, the function will attempt to determine the next available chapter number for the given book.
-     * It does this by fetching the highest chapter number for the book from the database and incrementing it by one.
-     * If no chapters exist for the book, the function will default to chapter number 1.
-     *
      * @param array $data An associative array containing the data for the new Chapter record.
      *
      * @return Chapter The newly created Chapter model instance.
      */
     public function create(array $data): Chapter
     {
-        if (empty($data['chapter_number']) || !is_numeric($data['chapter_number']) || $data['chapter_number'] < 1) {
-            $lastChapter = Chapter::where('book_id', $data['book_id'])
-                ->orderBy('chapter_number', 'desc')
-                ->first();
-
-            if ($lastChapter) {
-                $data['chapter_number'] = $lastChapter->chapter_number + 1;
-            } else {
-                $data['chapter_number'] = 1;
-            }
-        }
-
         return Chapter::create($data);
     }
 
@@ -113,6 +97,28 @@ class ChapterRepository
         $chapter->update($data);
 
         return $chapter;
+    }
+
+    /**
+     * Updates or creates a Chapter record in the database based on the provided data.
+     *
+     * This function uses Eloquent's updateOrCreate method to update an existing Chapter record in the database,
+     * or create a new record if no matching record is found. The function takes an associative array of data as a parameter,
+     * which should contain the 'book_id' and 'chapter_number' keys to identify the chapter, along with any other attributes to be updated.
+     *
+     * @param array $data An associative array containing the data for the Chapter record to be updated or created.
+     *                    The array should include the 'book_id' and 'chapter_number' keys to identify the chapter,
+     *                    and any other attributes to be updated.
+     *
+     * @return Chapter The updated or newly created Chapter model instance.
+     *                 The function returns the Chapter model instance to allow for method chaining or further processing.
+     */
+    public function updateOrCreate(array $data): Chapter
+    {
+        return Chapter::updateOrCreate(
+            ['book_id' => $data['book_id'], 'chapter_number' => $data['chapter_number']],
+            $data
+        );
     }
 
     /**

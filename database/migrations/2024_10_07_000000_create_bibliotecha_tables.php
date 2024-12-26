@@ -27,17 +27,6 @@ return new class extends Migration {
     public function up(): void
     {
 
-        /** Create the {@link Annotation} table. */
-        Schema::create('b_annotations', function (Blueprint $table) {
-            $table->comment('Annotations for paragraphs and sentences');
-            $table->uuid('annotation_id')->primary()->comment('Primary key of the annotation in UUID format');
-            $table->uuid('reference_id')->comment('Reference UUID pointing to either a paragraph or a sentence');
-            $table->string('reference_type')->comment('The reference type / class');
-            $table->text('content')->comment('The textual content of the annotation');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the annotation was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');
-        });
-
         /** Create the {@link Author} table. */
         Schema::create('b_authors', function (Blueprint $table) {
             $table->comment('Authors of books');
@@ -50,6 +39,11 @@ return new class extends Migration {
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');
 
             $table->unique(['first_name', 'last_name']);
+
+            $table->foreign('author_id')
+                ->references('author_id')
+                ->on('b_authors')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Series} table. */
@@ -62,16 +56,11 @@ return new class extends Migration {
             $table->uuid('author_id')->comment('The author or editor unique ID');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the series was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the series was last updated');
-        });
 
-        /** Create the {@link Bibliography} table. */
-        Schema::create('b_bibliographies', function (Blueprint $table) {
-            $table->comment('Bibliography entries associated with books');
-            $table->uuid('bibliography_id')->primary()->comment('Primary key of the bibliography entry in UUID format');
-            $table->uuid('book_id')->comment('UUID of the associated book');
-            $table->text('content')->comment('Content of the bibliography entry');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the bibliography entry was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the bibliography entry was last updated');
+            $table->foreign('author_id')
+                ->references('author_id')
+                ->on('b_authors')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Book} table. */
@@ -92,6 +81,15 @@ return new class extends Migration {
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the book record was last updated');
 
             $table->unique(['title', 'author_id', 'publisher_id']);
+
+            $table->foreign('author_id')
+                ->references('author_id')
+                ->on('b_authors')
+                ->onDelete('cascade');
+            $table->foreign('publisher_id')
+                ->references('publisher_id')
+                ->on('b_publishers')
+                ->onDelete('set null');
         });
 
         /** Create the {@link Chapter} table. */
@@ -108,6 +106,26 @@ return new class extends Migration {
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the chapter record was last updated');
 
             $table->unique(['book_id', 'chapter_number']);
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
+        });
+
+        /** Create the {@link Bibliography} table. */
+        Schema::create('b_bibliographies', function (Blueprint $table) {
+            $table->comment('Bibliography entries associated with books');
+            $table->uuid('bibliography_id')->primary()->comment('Primary key of the bibliography entry in UUID format');
+            $table->uuid('book_id')->comment('UUID of the associated book');
+            $table->text('content')->comment('Content of the bibliography entry');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the bibliography entry was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the bibliography entry was last updated');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Figure} table. */
@@ -121,19 +139,11 @@ return new class extends Migration {
             $table->text('description')->nullable()->comment('Description of the figure');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the figure was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the figure was last updated');
-        });
 
-        /** Create the {@link Note} table. */
-        Schema::create('b_notes', function (Blueprint $table) {
-            $table->comment('Notes associated with sentences');
-            $table->uuid('note_id')->primary()->comment('Primary key of the note in UUID format');
-            $table->uuid('sentence_id')->comment('UUID of the associated sentence');
-            $table->text('content')->comment('Content of the note');
-            $table->string('note_label')->comment('Alphanumeric label of the note');
-            $table->enum('note_type', array_map(fn($case) => $case->value, NoteType::cases()))->comment('Type of the note');
-            $table->enum('context', array_map(fn($case) => $case->value, Context::cases()))->comment('Context in which the note appears');
-            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the note was created');
-            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the note was last updated');
+            $table->foreign('chapter_id')
+                ->references('chapter_id')
+                ->on('b_chapters')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Genre} table. */
@@ -155,6 +165,11 @@ return new class extends Migration {
             $table->integer('page_number')->comment('Page number where the term is located');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the index entry was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the index entry was last updated');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Paragraph} table. */
@@ -166,6 +181,10 @@ return new class extends Migration {
             $table->text('content')->nullable()->comment('Content of the paragraph');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the paragraph was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the paragraph was last updated');
+            $table->foreign('chapter_id')
+                ->references('chapter_id')
+                ->on('b_chapters')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Publisher} table. */
@@ -177,6 +196,11 @@ return new class extends Migration {
             $table->string('website')->nullable()->comment('Website of the publisher');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the publisher was last updated');
+
+            $table->foreign('publisher_id')
+                ->references('publisher_id')
+                ->on('b_publishers')
+                ->onDelete('set null');
         });
 
         /** Create the {@link Sentence} table. */
@@ -188,6 +212,29 @@ return new class extends Migration {
             $table->text('content')->comment('Content of the sentence');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the sentence was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the sentence was last updated');
+
+            $table->foreign('paragraph_id')
+                ->references('paragraph_id')
+                ->on('b_paragraphs')
+                ->onDelete('cascade');
+        });
+
+        /** Create the {@link Note} table. */
+        Schema::create('b_notes', function (Blueprint $table) {
+            $table->comment('Notes associated with sentences');
+            $table->uuid('note_id')->primary()->comment('Primary key of the note in UUID format');
+            $table->uuid('sentence_id')->comment('UUID of the associated sentence');
+            $table->text('content')->comment('Content of the note');
+            $table->string('note_label')->comment('Alphanumeric label of the note');
+            $table->enum('note_type', array_map(fn($case) => $case->value, NoteType::cases()))->comment('Type of the note');
+            $table->enum('context', array_map(fn($case) => $case->value, Context::cases()))->comment('Context in which the note appears');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the note was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the note was last updated');
+
+            $table->foreign('sentence_id')
+                ->references('sentence_id')
+                ->on('b_sentences')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link TableOfContents} table. */
@@ -200,6 +247,15 @@ return new class extends Migration {
             $table->integer('page_number')->comment('Page number of the chapter/section in the book');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the table of contents entry was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the table of contents entry was last updated');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
+            $table->foreign('chapter_id')
+                ->references('chapter_id')
+                ->on('b_chapters')
+                ->onDelete('cascade');
         });
 
         /** Create the {@link Tag} table. */
@@ -224,6 +280,11 @@ return new class extends Migration {
 
             $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
             $table->foreign('tag_id')->references('tag_id')->on('b_tags')->onDelete('cascade');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
         });
 
         /** Create the pivot table for {@link Book}s and {@link Genre}s. */
@@ -239,6 +300,11 @@ return new class extends Migration {
 
             $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
             $table->foreign('genre_id')->references('genre_id')->on('b_genres')->onDelete('cascade');
+
+            $table->foreign('book_id')
+                ->references('book_id')
+                ->on('b_books')
+                ->onDelete('cascade');
         });
 
         Schema::create('b_series_books', function (Blueprint $table) {
@@ -262,11 +328,24 @@ return new class extends Migration {
                 ->on('b_books')
                 ->onDelete('cascade');
         });
+
+        /** Create the {@link Annotation} table. */
+        Schema::create('b_annotations', function (Blueprint $table) {
+            $table->comment('Annotations for paragraphs and sentences');
+            $table->uuid('annotation_id')->primary()->comment('Primary key of the annotation in UUID format');
+            $table->uuid('reference_id')->comment('Reference UUID pointing to either a paragraph or a sentence');
+            $table->string('reference_type')->comment('The reference type / class');
+            $table->text('content')->comment('The textual content of the annotation');
+            $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the annotation was created');
+            $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');
+        });
+
     }
 
     /** Reverse the migrations. */
     public function down(): void
     {
+        Schema::dropIfExists('b_annotations');
         Schema::dropIfExists('b_series_books');
         Schema::dropIfExists('b_book_genres');
         Schema::dropIfExists('b_book_tags');
@@ -284,6 +363,5 @@ return new class extends Migration {
         Schema::dropIfExists('b_bibliographies');
         Schema::dropIfExists('b_series');
         Schema::dropIfExists('b_authors');
-        Schema::dropIfExists('b_annotations');
     }
 };

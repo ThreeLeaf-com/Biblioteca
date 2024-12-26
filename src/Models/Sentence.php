@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -59,5 +60,19 @@ class Sentence extends Model
     public function paragraph(): BelongsTo
     {
         return $this->belongsTo(Paragraph::class, 'paragraph_id');
+    }
+
+    /**
+     * Get the annotations associated with the sentence.
+     *
+     * This method retrieves all annotations that are associated with the sentence.
+     * Annotations are polymorphic relationships, meaning they can be associated with
+     * multiple models. In this case, the sentence can have many annotations.
+     *
+     * @return MorphMany<Annotation> A collection of annotations associated with the sentence.
+     */
+    public function annotations(): MorphMany
+    {
+        return $this->morphMany(Annotation::class, 'reference');
     }
 }

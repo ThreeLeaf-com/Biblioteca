@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -77,5 +78,20 @@ class Paragraph extends Model
     public function sentences(): HasMany
     {
         return $this->hasMany(Sentence::class, 'paragraph_id');
+    }
+
+    /**
+     * Get the annotations associated with the paragraph.
+     *
+     * This method retrieves all annotations that are associated with the current paragraph.
+     * Annotations are polymorphic relationships, meaning they can be associated with multiple models.
+     * In this case, the annotations are associated with the 'Annotation' model, and the 'reference'
+     * field in the 'Annotation' table is used to link the annotations to the paragraph.
+     *
+     * @return MorphMany<Annotation> A collection of annotations associated with the paragraph.
+     */
+    public function annotations(): MorphMany
+    {
+        return $this->morphMany(Annotation::class, 'reference');
     }
 }

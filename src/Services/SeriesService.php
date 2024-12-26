@@ -5,6 +5,7 @@ namespace ThreeLeaf\Biblioteca\Services;
 use Illuminate\Support\Facades\DB;
 use ThreeLeaf\Biblioteca\Models\Series;
 
+/** {@link Series} services. */
 class SeriesService
 {
     /**
