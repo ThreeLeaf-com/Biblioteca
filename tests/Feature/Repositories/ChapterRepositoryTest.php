@@ -149,6 +149,46 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEquals($newData, $chapter->only(['title', 'content', 'chapter_number', 'book_id']));
     }
 
+    /** @test {@link ChapterRepository::updateOrCreate()}. */
+    public function updateOrCreateNew()
+    {
+        $book = Book::factory()->create();
+        $newChapterData = [
+            'book_id' => $book->book_id,
+            'title' => $this->faker->sentence(),
+            'content' => $this->faker->paragraph(),
+            'chapter_number' => $this->faker->numberBetween(1, 10),
+        ];
+
+        $createdChapter = $this->chapterRepository->updateOrCreate($newChapterData);
+
+        $this->assertNotNull($createdChapter->chapter_id);
+        $this->assertEquals($newChapterData['book_id'], $createdChapter->book_id);
+        $this->assertEquals($newChapterData['title'], $createdChapter->title);
+        $this->assertEquals($newChapterData['content'], $createdChapter->content);
+        $this->assertEquals($newChapterData['chapter_number'], $createdChapter->chapter_number);
+    }
+
+    /** @test {@link ChapterRepository::updateOrCreate()} existing. */
+    public function updateOrCreateExisting()
+    {
+        $chapter = Chapter::factory()->create();
+        $newData = [
+            'book_id' => $chapter->book_id,
+            'chapter_number' => $chapter->chapter_number,
+            'title' => $this->faker->sentence(),
+            'content' => $this->faker->paragraph(),
+        ];
+
+        $updatedChapter = $this->chapterRepository->updateOrCreate($newData);
+
+        $this->assertEquals($chapter->chapter_id, $updatedChapter->chapter_id);
+        $this->assertEquals($newData['book_id'], $updatedChapter->book_id);
+        $this->assertEquals($newData['chapter_number'], $updatedChapter->chapter_number);
+        $this->assertEquals($newData['title'], $updatedChapter->title);
+        $this->assertEquals($newData['content'], $updatedChapter->content);
+    }
+
     /** @test {@link ChapterRepository::delete()}. */
     public function deleteChapterId()
     {

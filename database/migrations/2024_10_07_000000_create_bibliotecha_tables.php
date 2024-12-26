@@ -181,6 +181,9 @@ return new class extends Migration {
             $table->text('content')->nullable()->comment('Content of the paragraph');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the paragraph was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the paragraph was last updated');
+
+            $table->unique(['chapter_id', 'paragraph_number']);
+
             $table->foreign('chapter_id')
                 ->references('chapter_id')
                 ->on('b_chapters')

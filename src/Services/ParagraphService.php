@@ -4,9 +4,18 @@ namespace ThreeLeaf\Biblioteca\Services;
 
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
+use ThreeLeaf\Biblioteca\Repositories\ParagraphRepository;
 
+/** {@link Paragraph} services. */
 class ParagraphService
 {
+
+    public function __construct(
+        private readonly ParagraphRepository $paragraphRepository,
+    )
+    {
+    }
+
     /**
      * Parses a {@link Paragraph} into a {@link Sentence} array.
      *
@@ -17,17 +26,23 @@ class ParagraphService
     public function parseParagraphContents(Paragraph $paragraph): array
     {
         $sentences = [];
-        $sentenceStrings = $this->parseToSentences($paragraph->content);
+        $this->paragraphRepository->deleteAllSentences($paragraph);
 
-        foreach ($sentenceStrings as $sentenceString) {
-            $sentences[] = Sentence::create([
-                'paragraph_id' => $paragraph->paragraph_id,
-                'sentence_number' => count($sentences) + 1,
-                'content' => $sentenceString,
-            ]);
+        if ($paragraph->content) {
+            $sentenceStrings = $this->parseToSentences($paragraph->content);
+
+            foreach ($sentenceStrings as $sentenceString) {
+                $sentence = Sentence::create([
+                    'paragraph_id' => $paragraph->paragraph_id,
+                    'sentence_number' => count($sentences) + 1,
+                    'content' => $sentenceString,
+                ]);
+                $sentences[] = $sentence;
+            }
+
+            $this->paragraphRepository->addSentences($paragraph, $sentences);
+            $paragraph->refresh();
         }
-
-        $paragraph->refresh();
 
         return $sentences;
     }
