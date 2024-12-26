@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
+use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
@@ -13,7 +14,7 @@ class ParagraphTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test the creation of a Paragraph using the factory. */
+    /** @test {@link Paragraph::create()}. */
     public function testParagraphCreation()
     {
         $paragraph = Paragraph::factory()->create();
@@ -24,7 +25,7 @@ class ParagraphTest extends TestCase
         ]);
     }
 
-    /** @test Paragraph relationships. */
+    /** @test {@link Paragraph::$sentences()}. */
     public function testParagraphRelationships()
     {
         $paragraph = Paragraph::factory()->create();
@@ -34,8 +35,8 @@ class ParagraphTest extends TestCase
         $this->assertCount(3, $paragraph->sentences);
     }
 
-    /** @test updating a Paragraph. */
-    public function testParagraphUpdate()
+    /** @test {@link Paragraph::update()}. */
+    public function update()
     {
         $paragraph = Paragraph::factory()->create(['content' => 'Old content.']);
 
@@ -47,8 +48,8 @@ class ParagraphTest extends TestCase
         ]);
     }
 
-    /** @test deleting a Paragraph. */
-    public function testParagraphDeletion()
+    /** @test {@link Paragraph::delete()}. */
+    public function testDelete()
     {
         $paragraph = Paragraph::factory()->create();
 
@@ -57,5 +58,17 @@ class ParagraphTest extends TestCase
         $this->assertDatabaseMissing(Paragraph::TABLE_NAME, [
             'paragraph_id' => $paragraph->paragraph_id,
         ]);
+    }
+
+    /** @test {@link Paragraph::annotations()}. */
+    public function annotation()
+    {
+        $paragraph = Paragraph::factory()->create();
+        $this->assertCount(0, $paragraph->annotations);
+
+        Annotation::factory(3)->create(['reference_id' => $paragraph->paragraph_id, 'reference_type' => Paragraph::class]);
+        $paragraph->refresh();
+
+        $this->assertCount(3, $paragraph->annotations);
     }
 }

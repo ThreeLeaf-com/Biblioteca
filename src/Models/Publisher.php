@@ -31,7 +31,7 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  *         property="name",
  *         type="string",
  *         description="Name of the publisher",
- *         @OA\UniqueItems(uniqueItems=true)
+ *         uniqueItems=true
  *     ),
  *     @OA\Property(property="address", type="string", description="Address of the publisher"),
  *     @OA\Property(property="website", type="string", description="Website of the publisher"),

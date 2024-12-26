@@ -13,11 +13,12 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 /**
  * A sentence associated with a paragraph.
  *
- * @property string         $sentence_id     Primary key of the sentence in UUID format.
- * @property string         $paragraph_id    UUID of the associated paragraph.
- * @property int            $sentence_number Number of the sentence within the paragraph.
- * @property string         $content         Content of the sentence.
- * @property-read Paragraph $paragraph       The paragraph associated with the sentence.
+ * @property string                     $sentence_id       Primary key of the sentence in UUID format.
+ * @property string                     $paragraph_id      UUID of the associated paragraph.
+ * @property int                        $sentence_number   Number of the sentence within the paragraph.
+ * @property string                     $content           Content of the sentence.
+ * @property-read Paragraph             $paragraph         The paragraph associated with the sentence.
+ * @property-read MorphMany<Annotation> $annotations       The annotations associated with the sentence.
  *
  * @mixin Builder
  *
