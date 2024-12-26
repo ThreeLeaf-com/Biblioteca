@@ -39,11 +39,6 @@ return new class extends Migration {
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');
 
             $table->unique(['first_name', 'last_name']);
-
-            $table->foreign('author_id')
-                ->references('author_id')
-                ->on('b_authors')
-                ->onDelete('cascade');
         });
 
         /** Create the {@link Publisher} table. */
@@ -56,10 +51,7 @@ return new class extends Migration {
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the publisher was last updated');
 
-            $table->foreign('publisher_id')
-                ->references('publisher_id')
-                ->on('b_publishers')
-                ->onDelete('set null');
+            $table->unique(['name']);
         });
 
         /** Create the {@link Series} table. */
@@ -72,6 +64,8 @@ return new class extends Migration {
             $table->uuid('author_id')->comment('The author or editor unique ID');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the series was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the series was last updated');
+
+            $table->unique(['title', 'author_id']);
 
             $table->foreign('author_id')
                 ->references('author_id')
@@ -156,6 +150,8 @@ return new class extends Migration {
             $table->text('content')->comment('Content of the sentence');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the sentence was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the sentence was last updated');
+
+            $table->unique(['paragraph_id', 'sentence_number']);
 
             $table->foreign('paragraph_id')
                 ->references('paragraph_id')
