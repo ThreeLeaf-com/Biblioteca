@@ -23,7 +23,7 @@ class IndexFactory extends Factory
     {
         return [
             'term' => $this->faker->word(),
-            'page_number' => $this->faker->numberBetween(1, 1000),
+            'page_number' => $this->faker->unique()->numberBetween(1, 1000),
             'created_at' => now(),
             'updated_at' => now(),
         ];

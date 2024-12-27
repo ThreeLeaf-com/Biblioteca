@@ -42,7 +42,7 @@ class SentenceControllerTest extends TestCase
         $paragraph = Paragraph::factory()->create();
         $data = [
             'paragraph_id' => $paragraph->paragraph_id,
-            'sentence_number' => $this->faker->numberBetween(1, 100),
+            'sentence_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => $this->faker->sentence(),
         ];
 
@@ -82,7 +82,7 @@ class SentenceControllerTest extends TestCase
         $sentence = Sentence::factory()->create(['content' => 'Original Content']);
         $updatedData = [
             'paragraph_id' => $sentence->paragraph_id,
-            'sentence_number' => $this->faker->numberBetween(1, 100),
+            'sentence_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => 'Updated sentence content.',
         ];
 

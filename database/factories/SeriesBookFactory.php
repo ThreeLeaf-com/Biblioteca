@@ -26,7 +26,7 @@ class SeriesBookFactory extends Factory
         return [
             'series_id' => $series->series_id,
             'book_id' => $book->book_id,
-            'number' => $this->faker->numberBetween(1, 10),
+            'number' => $this->faker->unique()->numberBetween(1, 1000),
         ];
     }
 }

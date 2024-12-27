@@ -25,7 +25,7 @@ class SentenceFactory extends Factory
         $paragraph = Paragraph::factory()->create();
         return [
             'paragraph_id' => $paragraph->paragraph_id,
-            'sentence_number' => $this->faker->numberBetween(1, 100),
+            'sentence_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => $this->faker->sentence(),
         ];
     }

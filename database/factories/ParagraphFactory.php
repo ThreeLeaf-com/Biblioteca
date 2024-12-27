@@ -25,7 +25,7 @@ class ParagraphFactory extends Factory
         $chapter = Chapter::factory()->create();
         return [
             'chapter_id' => $chapter->chapter_id,
-            'paragraph_number' => $this->faker->numberBetween(1, 10000),
+            'paragraph_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => $this->faker->paragraph(),
         ];
     }

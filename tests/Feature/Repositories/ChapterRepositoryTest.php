@@ -137,7 +137,7 @@ class ChapterRepositoryTest extends TestCase
         $newData = [
             'title' => $this->faker->sentence(),
             'content' => $this->faker->paragraph(),
-            'chapter_number' => $this->faker->numberBetween(1, 10),
+            'chapter_number' => $this->faker->unique()->numberBetween(1, 1000),
             'book_id' => $chapter->book_id,
         ];
 
@@ -157,7 +157,7 @@ class ChapterRepositoryTest extends TestCase
             'book_id' => $book->book_id,
             'title' => $this->faker->sentence(),
             'content' => $this->faker->paragraph(),
-            'chapter_number' => $this->faker->numberBetween(1, 10),
+            'chapter_number' => $this->faker->unique()->numberBetween(1, 1000),
         ];
 
         $createdChapter = $this->chapterRepository->updateOrCreate($newChapterData);

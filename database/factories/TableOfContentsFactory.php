@@ -23,7 +23,7 @@ class TableOfContentsFactory extends Factory
     {
         return [
             'title' => $this->faker->sentence(),
-            'page_number' => $this->faker->numberBetween(1, 1000),
+            'page_number' => $this->faker->unique()->numberBetween(1, 1000),
         ];
     }
 }

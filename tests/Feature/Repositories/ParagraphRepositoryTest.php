@@ -26,7 +26,7 @@ class ParagraphRepositoryTest extends TestCase
     public function requireMissingChapterId()
     {
         $data = [
-            'paragraph_number' => $this->faker->numberBetween(1, 10),
+            'paragraph_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => $this->faker->paragraph(),
         ];
 
@@ -135,7 +135,7 @@ class ParagraphRepositoryTest extends TestCase
         $paragraph = Paragraph::factory()->create();
         $newData = [
             'content' => $this->faker->paragraph(),
-            'paragraph_number' => $this->faker->numberBetween(1, 10),
+            'paragraph_number' => $this->faker->unique()->numberBetween(1, 1000),
             'chapter_id' => $paragraph->chapter_id,
         ];
 

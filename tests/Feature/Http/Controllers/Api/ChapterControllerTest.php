@@ -43,7 +43,7 @@ class ChapterControllerTest extends TestCase
         $book = Book::factory()->create();
         $data = [
             'book_id' => $book->book_id,
-            'chapter_number' => $this->faker->numberBetween(1, 100),
+            'chapter_number' => $this->faker->unique()->numberBetween(1, 1000),
             'title' => $this->faker->sentence(),
             'summary' => $this->faker->paragraph(),
             'chapter_image_url' => $this->faker->url(),
@@ -85,7 +85,7 @@ class ChapterControllerTest extends TestCase
         $chapter = Chapter::factory()->create(['title' => 'Original Title']);
         $updatedData = [
             'book_id' => $chapter->book_id,
-            'chapter_number' => $this->faker->numberBetween(1, 100),
+            'chapter_number' => $this->faker->unique()->numberBetween(1, 1000),
             'title' => 'Updated Chapter Title',
             'summary' => 'Updated summary for the chapter.',
             'chapter_image_url' => $this->faker->url(),

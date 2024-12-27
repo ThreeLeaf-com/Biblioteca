@@ -42,7 +42,7 @@ class ParagraphControllerTest extends TestCase
         $chapter = Chapter::factory()->create();
         $data = [
             'chapter_id' => $chapter->chapter_id,
-            'paragraph_number' => $this->faker->numberBetween(1, 100),
+            'paragraph_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => $this->faker->paragraph(),
         ];
 
@@ -82,7 +82,7 @@ class ParagraphControllerTest extends TestCase
         $paragraph = Paragraph::factory()->create(['content' => 'Original content']);
         $updatedData = [
             'chapter_id' => $paragraph->chapter_id,
-            'paragraph_number' => $this->faker->numberBetween(1, 100),
+            'paragraph_number' => $this->faker->unique()->numberBetween(1, 1000),
             'content' => 'Updated paragraph content',
         ];
 
