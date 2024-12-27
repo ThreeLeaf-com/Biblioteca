@@ -45,7 +45,7 @@ return new class extends Migration {
         Schema::create('b_publishers', function (Blueprint $table) {
             $table->comment('Publishers associated with multiple books');
             $table->uuid('publisher_id')->primary()->comment('Primary key of the publisher in UUID format');
-            $table->string('name')->unique()->comment('Name of the publisher');
+            $table->string('name')->comment('Name of the publisher');
             $table->string('address')->nullable()->comment('Address of the publisher');
             $table->string('website')->nullable()->comment('Website of the publisher');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the publisher was created');
@@ -261,9 +261,11 @@ return new class extends Migration {
         Schema::create('b_tags', function (Blueprint $table) {
             $table->comment('Tags associated with multiple books');
             $table->uuid('tag_id')->primary()->comment('Primary key of the tag in UUID format');
-            $table->string('name')->unique()->comment('Name of the tag');
+            $table->string('name')->comment('Name of the tag');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the tag was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the tag was last updated');
+
+            $table->unique(['name']);
         });
 
         /** Create the pivot table for {@link Book}s and {@link Tag}s. */
@@ -277,12 +279,13 @@ return new class extends Migration {
 
             $table->primary(['book_id', 'tag_id']);
 
-            $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
-            $table->foreign('tag_id')->references('tag_id')->on('b_tags')->onDelete('cascade');
-
             $table->foreign('book_id')
                 ->references('book_id')
                 ->on('b_books')
+                ->onDelete('cascade');
+            $table->foreign('tag_id')
+                ->references('tag_id')
+                ->on('b_tags')
                 ->onDelete('cascade');
         });
 
@@ -297,12 +300,13 @@ return new class extends Migration {
 
             $table->primary(['book_id', 'genre_id']);
 
-            $table->foreign('book_id')->references('book_id')->on('b_books')->onDelete('cascade');
-            $table->foreign('genre_id')->references('genre_id')->on('b_genres')->onDelete('cascade');
-
             $table->foreign('book_id')
                 ->references('book_id')
                 ->on('b_books')
+                ->onDelete('cascade');
+            $table->foreign('genre_id')
+                ->references('genre_id')
+                ->on('b_genres')
                 ->onDelete('cascade');
         });
 
@@ -321,7 +325,6 @@ return new class extends Migration {
                 ->references('series_id')
                 ->on('b_series')
                 ->onDelete('cascade');
-
             $table->foreign('book_id')
                 ->references('book_id')
                 ->on('b_books')

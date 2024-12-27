@@ -113,9 +113,10 @@ class Series extends Model
      */
     public function attachBook(string $bookId): void
     {
-        $nextNumber = SeriesBook::getNextNumberForSeries($this->series_id);
-
-        $this->books()->attach($bookId, ['number' => $nextNumber]);
+        if (!$this->books()->where('b_series_books.book_id', $bookId)->exists()) {
+            $nextNumber = SeriesBook::getNextNumberForSeries($this->series_id);
+            $this->books()->attach($bookId, ['number' => $nextNumber]);
+        }
     }
 
     /**

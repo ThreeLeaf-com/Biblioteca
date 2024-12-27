@@ -111,5 +111,10 @@ class SeriesBookTest extends TestCase
         $series->attachBook($book->book_id);
 
         $this->assertTrue($series->books->contains($book));
+
+        /* Ensure does not attach twice */
+        $series->attachBook($book->book_id);
+
+        $this->assertTrue($series->books->contains($book));
     }
 }
