@@ -36,6 +36,11 @@ The Biblioteca Model library includes the following data models:
 - **Series**: Represents a series of books, linking to an author and the individual books in the series.
 - **Table of Contents (ToC)**: Represents a table of contents entry for a book, linking chapters and page numbers.
 
+## Requirements
+
+- **PHP**: >=8.2
+- **Laravel**: ^12.0
+
 ## Installation
 
 1. Install the package via Composer:
@@ -43,6 +48,8 @@ The Biblioteca Model library includes the following data models:
    ```bash
    composer require threeleaf/biblioteca
    ```
+   
+   **Note**: Version 2.0.0+ requires Laravel 12. For Laravel 10 compatibility, use version ^1.0.
 
 2. Publish the package configuration:
 
