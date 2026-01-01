@@ -26,7 +26,7 @@ trait Equals
      */
     public function equals(
         Model $other,
-        array $attributes = null,
+        ?array $attributes = null,
         bool  $includePrimaryKey = true,
     ): bool
     {
