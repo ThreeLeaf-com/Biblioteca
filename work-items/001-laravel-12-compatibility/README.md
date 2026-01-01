@@ -17,40 +17,51 @@ The Biblioteca package currently supports Laravel 10 (specified in `composer.jso
 ## Status
 
 - **In Progress** (2025-01-15)
-- **Current Phase**: Implementation complete - all tests passing
-- **Next Steps**: Commit changes, create release tag, and update Packagist
+- **Current Phase**: Implementation complete - all tests passing with PHP 8.2+ requirement
+- **Completed**: Laravel 12 dependencies updated, PHP 8.5 compatibility verified, all tests passing
+- **Next Steps**: Commit final changes, create release tag, and update Packagist
 
 ## Action Items
 
-- [ ] Update package version number in `composer.json` to `2.0.0` (from 1.0.0)
-- [ ] Update `composer.json` dependencies to Laravel 12:
-  - [ ] `illuminate/database: ^v10.0` → `^12.0`
-  - [ ] `illuminate/support: ^10.0` → `^12.0`
-  - [ ] Update `orchestra/testbench` to Laravel 12 compatible version
-  - [ ] Review and update `phpunit/phpunit` if needed
-  - [ ] Review and update `darkaonline/l5-swagger` if needed
-- [ ] Review Laravel 12 upgrade guide for breaking changes
-- [ ] Review and update service provider (`src/Providers/BibliotecaServiceProvider.php`) for compatibility
-- [ ] Review migrations for Laravel 12 compatibility
-- [ ] Run `composer update` and verify it completes successfully
-- [ ] Run `composer install` and verify it completes successfully
-- [ ] Run all tests and ensure they pass
+- [x] Update package version number in `composer.json` to `2.0.0` (from 1.0.0)
+- [x] Update `composer.json` dependencies to Laravel 12:
+  - [x] `illuminate/database: ^v10.0` → `^12.0`
+  - [x] `illuminate/support: ^10.0` → `^12.0`
+  - [x] Update `orchestra/testbench` to Laravel 12 compatible version (^10.0)
+  - [x] Review and update `phpunit/phpunit` if needed (^11.0)
+  - [x] Review and update `darkaonline/l5-swagger` if needed (^9.0)
+- [x] Review Laravel 12 upgrade guide for breaking changes
+- [x] Review and update service provider (`src/Providers/BibliotecaServiceProvider.php`) for compatibility (no changes needed)
+- [x] Review migrations for Laravel 12 compatibility (no changes needed)
+- [x] Run `composer update` and verify it completes successfully
+- [x] Run `composer install` and verify it completes successfully
+- [x] Run all tests and ensure they pass (187 tests, 434 assertions - all passing)
+- [x] Review codebase for PHP 8.5 compatibility and deprecations:
+  - [x] Check for backtick operators (deprecated in PHP 8.5) - none found
+  - [x] Check for non-canonical cast names (boolean, integer, double, binary) - none found
+  - [x] Check for deprecated magic methods (__sleep, __wakeup) - none found
+  - [x] Check for deprecated resource closing functions (curl_close, etc.) - none found
+  - [x] Check for case statements terminated with semicolons - none found (enums use correct syntax)
+  - [x] Check for implicitly nullable parameters (explicit nullable types required) - fixed in Equals.php
+  - [x] Update PHP version requirement in composer.json if needed (Laravel 12 requires PHP 8.2+) - updated to >=8.2
 - [ ] Update `README.md` to reflect Laravel 12 compatibility
-- [ ] Update `agents/.agent-config.json` metadata if applicable
+- [x] Update `agents/.agent-config.json` metadata if applicable
 - [ ] Create release tag `2.0.0` in Git
 - [ ] Push tag to remote repository
 - [ ] Verify Packagist auto-updates or manually trigger update at https://packagist.org/packages/threeleaf/biblioteca
 
 ## Acceptance Criteria
 
-- [ ] Package version number updated to `2.0.0` in `composer.json`
-- [ ] `composer.json` requires Laravel 12 packages (`illuminate/database: ^12.0`, `illuminate/support: ^12.0`)
-- [ ] All dependencies updated to Laravel 12 compatible versions
-- [ ] `composer update` runs successfully without errors
-- [ ] `composer install` runs successfully without errors
-- [ ] All existing tests pass with Laravel 12
+- [x] Package version number updated to `2.0.0` in `composer.json`
+- [x] `composer.json` requires Laravel 12 packages (`illuminate/database: ^12.0`, `illuminate/support: ^12.0`)
+- [x] All dependencies updated to Laravel 12 compatible versions
+- [x] `composer update` runs successfully without errors
+- [x] `composer install` runs successfully without errors
+- [x] All existing tests pass with Laravel 12 (187 tests, 434 assertions - all passing)
 - [ ] Documentation updated to reflect Laravel 12 compatibility
-- [ ] Service provider and migrations reviewed for compatibility
+- [x] Service provider and migrations reviewed for compatibility (no changes needed)
+- [x] PHP 8.2 minimum requirement set (Laravel 12 requirement)
+- [x] PHP 8.5 compatibility verified (no deprecated features found)
 - [ ] Release tag `2.0.0` created and pushed to repository
 - [ ] Packagist updated with version 2.0.0 (https://packagist.org/packages/threeleaf/biblioteca)
 
@@ -91,6 +102,17 @@ The Biblioteca package currently supports Laravel 10 (specified in `composer.jso
 - Run `composer install` to verify clean installation
 - Run full test suite: `./vendor/bin/pest` (or equivalent test command)
 - Verify all tests pass with Laravel 12
+
+**PHP Version Requirements**:
+- Laravel 12 requires PHP 8.2 minimum
+- Code should be optimized for PHP 8.5 (check for deprecated features)
+- PHP 8.5 deprecations to check:
+  - Backtick operators (deprecated)
+  - Non-canonical cast names (boolean, integer, double, binary)
+  - Magic methods __sleep/__wakeup (use __serialize/__unserialize instead)
+  - Manual resource closing functions (curl_close, etc.)
+  - Case statements terminated with semicolons (use colons)
+  - Implicitly nullable parameters (explicit nullable types required)
 
 **Potential Breaking Changes**:
 1. Laravel 12 may introduce breaking changes from Laravel 10
