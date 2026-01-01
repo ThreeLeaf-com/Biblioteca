@@ -45,9 +45,12 @@ abstract class TestCase extends OrchestraTestCase
      */
     protected function getPackageProviders($app): array
     {
-        return [
-            BibliotecaServiceProvider::class,
-        ];
+        return array_merge(
+            parent::getPackageProviders($app),
+            [
+                BibliotecaServiceProvider::class,
+            ]
+        );
     }
 
     /**
