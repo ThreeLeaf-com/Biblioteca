@@ -9,7 +9,6 @@
 
 # Build and cache directories
 .data/
-.github/
 .insomnia/
 .notes/
 .run/
