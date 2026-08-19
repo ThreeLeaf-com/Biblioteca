@@ -7,13 +7,15 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\BookGenre;
 use ThreeLeaf\Biblioteca\Models\Genre;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link BookGenre}. */
 class BookGenreTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Book::genres()} attach. */
+    /** {@link Book::genres()} attach. */
+    #[Test]
     public function attachGenres(): void
     {
         $book = Book::factory()->create();
@@ -26,7 +28,8 @@ class BookGenreTest extends TestCase
         $this->assertTrue($book->genres->contains($genre2));
     }
 
-    /** @test {@link Genre::books()}. */
+    /** {@link Genre::books()}. */
+    #[Test]
     public function genreBooks(): void
     {
         $book1 = Book::factory()->create();
@@ -39,7 +42,8 @@ class BookGenreTest extends TestCase
         $this->assertTrue($genre->books->contains($book2));
     }
 
-    /** @test {@link Book::genres()} detach. */
+    /** {@link Book::genres()} detach. */
+    #[Test]
     public function detachGenres(): void
     {
         $book = Book::factory()->create();
@@ -51,7 +55,8 @@ class BookGenreTest extends TestCase
         $this->assertFalse($book->genres->contains($genre));
     }
 
-    /** @test {@link Book::genres()} sync. */
+    /** {@link Book::genres()} sync. */
+    #[Test]
     public function syncGenres(): void
     {
         $book = Book::factory()->create();

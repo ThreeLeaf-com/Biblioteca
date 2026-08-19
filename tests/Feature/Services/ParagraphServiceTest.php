@@ -7,6 +7,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 use ThreeLeaf\Biblioteca\Services\ParagraphService;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ParagraphService} */
 class ParagraphServiceTest extends TestCase
@@ -16,7 +17,8 @@ class ParagraphServiceTest extends TestCase
     /** @var ParagraphService */
     protected ParagraphService $paragraphService;
 
-    /** @test {@link ParagraphService::parseParagraphContents()} parsing a paragraph into sentences and verifying round-trip integrity. */
+    /** {@link ParagraphService::parseParagraphContents()} parsing a paragraph into sentences and verifying round-trip integrity. */
+    #[Test]
     public function testParseParagraphToSentences()
     {
         $paragraph = Paragraph::factory()->create([
@@ -44,7 +46,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($paragraph->content, $combinedContent);
     }
 
-    /** @test {@link ParagraphService::parseParagraphContents()} parsing a simple paragraph into sentences. */
+    /** {@link ParagraphService::parseParagraphContents()} parsing a simple paragraph into sentences. */
+    #[Test]
     public function parseParagraphContents()
     {
         $paragraph = 'This is a sentence. Here is another one! And a question?';
@@ -61,7 +64,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($paragraph, $reconstitutedParagraph);
     }
 
-    /** @test {@link ParagraphService::parseParagraphContents()} parsing a paragraph with abbreviations. */
+    /** {@link ParagraphService::parseParagraphContents()} parsing a paragraph with abbreviations. */
+    #[Test]
     public function parseParagraphContentsAbbreviations()
     {
         $paragraph = 'Dr. Smith went to Washington. He arrived at 9 a.m. sharp. It was a great trip!';
@@ -80,7 +84,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($paragraph, $reconstitutedParagraph);
     }
 
-    /** @test {@link ParagraphService::parseParagraphContents()} parsing a paragraph with multiple spaces between sentences. */
+    /** {@link ParagraphService::parseParagraphContents()} parsing a paragraph with multiple spaces between sentences. */
+    #[Test]
     public function parseParagraphContentsSpaces()
     {
         $paragraph = 'This is the first sentence.    This is the second sentence.  And the third.';
@@ -94,7 +99,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    /** @test {@link ParagraphService::combineIntoParagraph()} combining sentences back into a paragraph. */
+    /** {@link ParagraphService::combineIntoParagraph()} combining sentences back into a paragraph. */
+    #[Test]
     public function combineIntoParagraph()
     {
         $sentences = [
@@ -108,7 +114,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    /** @test {@link ParagraphService::parseParagraphContents()} parsing and recombining a paragraph to ensure data integrity. */
+    /** {@link ParagraphService::parseParagraphContents()} parsing and recombining a paragraph to ensure data integrity. */
+    #[Test]
     public function parseParagraphContentsRoundTrip()
     {
         $paragraph = 'The quick brown fox jumps over the lazy dog. Mr. John Doe lives at 123 Elm St. Can you believe it?';
@@ -120,7 +127,8 @@ class ParagraphServiceTest extends TestCase
         $this->assertEquals($expected, $recombinedParagraph);
     }
 
-    /** @test {@link ParagraphService::parseParagraphContents()} handling of edge cases with trailing spaces. */
+    /** {@link ParagraphService::parseParagraphContents()} handling of edge cases with trailing spaces. */
+    #[Test]
     public function parseParagraphContentsTrailingSpaces()
     {
         $paragraph = 'This is a test.   ';

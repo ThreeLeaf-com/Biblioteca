@@ -7,13 +7,15 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link SeriesResource}. */
 class SeriesResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link SeriesResource::toArray()}. */
+    /** {@link SeriesResource::toArray()}. */
+    #[Test]
     public function toArray()
     {
         $series = Series::factory()->create();

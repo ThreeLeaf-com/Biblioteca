@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\ParagraphResource;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ParagraphController}. */
 class ParagraphControllerTest extends TestCase
@@ -17,9 +18,10 @@ class ParagraphControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link ParagraphController::index()}.
+     * {@link ParagraphController::index()}.
      * @see {@link ParagraphResource::collection()}
      */
+    #[Test]
     public function indexParagraph(): void
     {
         $paragraphs = Paragraph::factory()->count(3)->create();
@@ -33,10 +35,11 @@ class ParagraphControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ParagraphController::store()}.
+     * {@link ParagraphController::store()}.
      * @see {@link ParagraphRequest::rules()}
      * @see {@link ParagraphResource::toArray()}
      */
+    #[Test]
     public function storeParagraph(): void
     {
         $chapter = Chapter::factory()->create();
@@ -57,9 +60,10 @@ class ParagraphControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ParagraphController::show()}.
+     * {@link ParagraphController::show()}.
      * @see {@link ParagraphResource::toArray()}
      */
+    #[Test]
     public function showParagraph(): void
     {
         $paragraph = Paragraph::factory()->create();
@@ -73,10 +77,11 @@ class ParagraphControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ParagraphController::update()}.
+     * {@link ParagraphController::update()}.
      * @see {@link ParagraphRequest::rules()}
      * @see {@link ParagraphResource::toArray()}
      */
+    #[Test]
     public function updateParagraph(): void
     {
         $paragraph = Paragraph::factory()->create(['content' => 'Original content']);
@@ -97,8 +102,9 @@ class ParagraphControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ParagraphController::destroy()}.
+     * {@link ParagraphController::destroy()}.
      */
+    #[Test]
     public function destroyParagraph(): void
     {
         $paragraph = Paragraph::factory()->create();

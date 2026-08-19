@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\SentenceResource;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link SentenceController}. */
 class SentenceControllerTest extends TestCase
@@ -17,9 +18,10 @@ class SentenceControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link SentenceController::index()}.
+     * {@link SentenceController::index()}.
      * @see {@link SentenceResource::collection()}
      */
+    #[Test]
     public function indexSentence(): void
     {
         $sentences = Sentence::factory()->count(3)->create();
@@ -33,10 +35,11 @@ class SentenceControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SentenceController::store()}.
+     * {@link SentenceController::store()}.
      * @see {@link SentenceRequest::rules()}
      * @see {@link SentenceResource::toArray()}
      */
+    #[Test]
     public function storeSentence(): void
     {
         $paragraph = Paragraph::factory()->create();
@@ -57,9 +60,10 @@ class SentenceControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SentenceController::show()}.
+     * {@link SentenceController::show()}.
      * @see {@link SentenceResource::toArray()}
      */
+    #[Test]
     public function showSentence(): void
     {
         $sentence = Sentence::factory()->create();
@@ -73,10 +77,11 @@ class SentenceControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SentenceController::update()}.
+     * {@link SentenceController::update()}.
      * @see {@link SentenceRequest::rules()}
      * @see {@link SentenceResource::toArray()}
      */
+    #[Test]
     public function updateSentence(): void
     {
         $sentence = Sentence::factory()->create(['content' => 'Original Content']);
@@ -96,7 +101,8 @@ class SentenceControllerTest extends TestCase
         $this->assertDatabaseHas(Sentence::TABLE_NAME, $updatedData);
     }
 
-    /** @test {@link SentenceController::destroy()}. */
+    /** {@link SentenceController::destroy()}. */
+    #[Test]
     public function destroySentence(): void
     {
         $sentence = Sentence::factory()->create();

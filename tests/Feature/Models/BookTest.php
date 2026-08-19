@@ -11,13 +11,15 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 use ThreeLeaf\Biblioteca\Models\Series;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link Book}. */
 class BookTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Book::__construct()} */
+    /** {@link Book::__construct()} */
+    #[Test]
     public function construct(): void
     {
         $book = Book::factory()->create();
@@ -26,7 +28,8 @@ class BookTest extends TestCase
         $this->assertDatabaseHas(Book::TABLE_NAME, ['title' => $book->title]);
     }
 
-    /** @test {@link Book::create()}. */
+    /** {@link Book::create()}. */
+    #[Test]
     public function create(): void
     {
         Book::factory()->create([
@@ -41,7 +44,8 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test {@link Book::update()}. */
+    /** {@link Book::update()}. */
+    #[Test]
     public function update(): void
     {
         $book = Book::factory()->create(['title' => 'Old Title']);
@@ -53,7 +57,8 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test {@link Book::delete()}. */
+    /** {@link Book::delete()}. */
+    #[Test]
     public function testDelete(): void
     {
         $book = Book::factory()->create();
@@ -64,21 +69,24 @@ class BookTest extends TestCase
         ]);
     }
 
-    /** @test {@link Book::$author}. */
+    /** {@link Book::$author}. */
+    #[Test]
     public function bookAuthor(): void
     {
         $book = Book::factory()->create();
         $this->assertInstanceOf(Author::class, $book->author);
     }
 
-    /** @test {@link Book::$publisher}. */
+    /** {@link Book::$publisher}. */
+    #[Test]
     public function bookPublisher(): void
     {
         $book = Book::factory()->create();
         $this->assertInstanceOf(Publisher::class, $book->publisher);
     }
 
-    /** @test {@link Book::$chapters}. */
+    /** {@link Book::$chapters}. */
+    #[Test]
     public function bookChapters(): void
     {
         $book = Book::factory()->create();
@@ -87,7 +95,8 @@ class BookTest extends TestCase
         $this->assertCount(3, $book->chapters);
     }
 
-    /** @test {@link Book} required fields. */
+    /** {@link Book} required fields. */
+    #[Test]
     public function bookRequiredFields(): void
     {
         $this->expectException(QueryException::class);
@@ -95,7 +104,8 @@ class BookTest extends TestCase
         Book::factory()->create(['title' => null]); // Title is required
     }
 
-    /** @test {@link Book} attaches to {@link Series}. */
+    /** {@link Book} attaches to {@link Series}. */
+    #[Test]
     public function bookSeries(): void
     {
         $book = Book::factory()->create();

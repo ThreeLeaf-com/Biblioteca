@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\ChapterResource;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ChapterController}. */
 class ChapterControllerTest extends TestCase
@@ -17,9 +18,10 @@ class ChapterControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link ChapterController::index()}.
+     * {@link ChapterController::index()}.
      * @see {@link ChapterResource::collection()}
      */
+    #[Test]
     public function indexChapter(): void
     {
         $chapters = Chapter::factory()->count(3)->create();
@@ -34,10 +36,11 @@ class ChapterControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ChapterController::store()}.
+     * {@link ChapterController::store()}.
      * @see {@link ChapterRequest::rules()}
      * @see {@link ChapterResource::toArray()}
      */
+    #[Test]
     public function storeChapter(): void
     {
         $book = Book::factory()->create();
@@ -60,9 +63,10 @@ class ChapterControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ChapterController::show()}.
+     * {@link ChapterController::show()}.
      * @see {@link ChapterResource::toArray()}
      */
+    #[Test]
     public function showChapter(): void
     {
         $chapter = Chapter::factory()->create();
@@ -76,10 +80,11 @@ class ChapterControllerTest extends TestCase
     }
 
     /**
-     * @test {@link ChapterController::update()}.
+     * {@link ChapterController::update()}.
      * @see {@link ChapterRequest::rules()}
      * @see {@link ChapterResource::toArray()}
      */
+    #[Test]
     public function updateChapter(): void
     {
         $chapter = Chapter::factory()->create(['title' => 'Original Title']);
@@ -101,7 +106,8 @@ class ChapterControllerTest extends TestCase
         $this->assertDatabaseHas(Chapter::TABLE_NAME, $updatedData);
     }
 
-    /**  @test {@link ChapterController::destroy()}. */
+    /** {@link ChapterController::destroy()}. */
+    #[Test]
     public function destroyChapter(): void
     {
         $chapter = Chapter::factory()->create();

@@ -8,6 +8,7 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Services\ChapterService;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ChapterService}. */
 class ChapterServiceTest extends TestCase
@@ -17,7 +18,8 @@ class ChapterServiceTest extends TestCase
     /** @var ChapterService */
     protected ChapterService $chapterService;
 
-    /** @test {@link ChapterService::parseChapterContents()}. */
+    /** {@link ChapterService::parseChapterContents()}. */
+    #[Test]
     public function testParseChapterToParagraphs()
     {
         $chapter = Chapter::factory()->create([
@@ -46,7 +48,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals($expectedCombinedContent, $combinedContent);
     }
 
-    /** @test {@link ChapterService::assignChapterNumber()} defaults to 1. */
+    /** {@link ChapterService::assignChapterNumber()} defaults to 1. */
+    #[Test]
     public function assignChapterNumberDefault()
     {
         $data = ['book_id' => fake()->uuid()];
@@ -55,7 +58,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals(1, $result['chapter_number']);
     }
 
-    /** @test {@link ChapterService::assignChapterNumber()} replaces zero chapter number. */
+    /** {@link ChapterService::assignChapterNumber()} replaces zero chapter number. */
+    #[Test]
     public function assignChapterNumberZero()
     {
         $data = [
@@ -68,7 +72,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals(1, $result['chapter_number']);
     }
 
-    /** @test {@link ChapterService::assignChapterNumber()} replaces negative chapter number. */
+    /** {@link ChapterService::assignChapterNumber()} replaces negative chapter number. */
+    #[Test]
     public function assignChapterNumberNegative()
     {
         $data = [
@@ -81,7 +86,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals(1, $result['chapter_number']);
     }
 
-    /** @test {@link ChapterService::assignChapterNumber()} replaces non-numeric chapter number. */
+    /** {@link ChapterService::assignChapterNumber()} replaces non-numeric chapter number. */
+    #[Test]
     public function assignChapterNumberNaN()
     {
         $data = [
@@ -94,7 +100,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals(1, $result['chapter_number']);
     }
 
-    /** @test {@link ChapterService::assignChapterNumber()} increments last chapter number. */
+    /** {@link ChapterService::assignChapterNumber()} increments last chapter number. */
+    #[Test]
     public function assignChapterNumberIncrement()
     {
         $chapterService = app(ChapterService::class);
@@ -110,7 +117,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals(11, $result['chapter_number']);
     }
 
-    /** @test {@link ChapterService::updateOrCreate()} creates new chapter. */
+    /** {@link ChapterService::updateOrCreate()} creates new chapter. */
+    #[Test]
     public function updateOrCreateNew()
     {
         $book = Book::factory()->create();
@@ -142,7 +150,8 @@ class ChapterServiceTest extends TestCase
         $this->assertEquals($expectedCombinedContent, $combinedContent);
     }
 
-    /** @test {@link ChapterService::updateOrCreate()} updates existing chapter. */
+    /** {@link ChapterService::updateOrCreate()} updates existing chapter. */
+    #[Test]
     public function updateOrCreateExisting()
     {
         $chapter = Chapter::factory()->create();

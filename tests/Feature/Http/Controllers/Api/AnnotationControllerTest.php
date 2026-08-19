@@ -9,6 +9,7 @@ use ThreeLeaf\Biblioteca\Http\Controllers\Api\AnnotationController;
 use ThreeLeaf\Biblioteca\Http\Resources\AnnotationResource;
 use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link AnnotationController}. */
 class AnnotationControllerTest extends TestCase
@@ -16,9 +17,10 @@ class AnnotationControllerTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @test {@link AnnotationController::show()}.
+     * {@link AnnotationController::show()}.
      * @see {@link AnnotationResource::toArray()}
      */
+    #[Test]
     public function showAnnotation(): void
     {
         $annotation = Annotation::factory()->create();
@@ -32,9 +34,10 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AnnotationController::index()}.
+     * {@link AnnotationController::index()}.
      * @see {@link AnnotationResource::collection()}
      */
+    #[Test]
     public function indexAnnotation(): void
     {
         $annotations = Annotation::factory()->count(3)->create();
@@ -48,10 +51,11 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AnnotationController::store()}.
+     * {@link AnnotationController::store()}.
      * @see {@link AnnotationRequest::rules()}
      * @see {@link AnnotationResource::toArray()}
      */
+    #[Test]
     public function storeAnnotation(): void
     {
         $paragraph = Paragraph::factory()->create();
@@ -78,10 +82,11 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AnnotationController::update()}.
+     * {@link AnnotationController::update()}.
      * @see {@link AnnotationRequest::rules()}
      * @see {@link AnnotationResource::toArray()}
      */
+    #[Test]
     public function updateAnnotation(): void
     {
         $paragraph = Paragraph::factory()->create();
@@ -113,7 +118,8 @@ class AnnotationControllerTest extends TestCase
         ]);
     }
 
-    /** @test {@link AnnotationController::destroy()}. */
+    /** {@link AnnotationController::destroy()}. */
+    #[Test]
     public function destroyAnnotation(): void
     {
         $paragraph = Paragraph::factory()->create();

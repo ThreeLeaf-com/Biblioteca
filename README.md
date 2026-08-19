@@ -39,7 +39,7 @@ The Biblioteca Model library includes the following data models:
 ## Requirements
 
 - **PHP**: >=8.2
-- **Laravel**: ^12.0
+- **Laravel**: ^12.0 || ^13.0
 
 ## Installation
 
@@ -49,7 +49,8 @@ The Biblioteca Model library includes the following data models:
    composer require threeleaf/biblioteca
    ```
    
-   **Note**: Version 2.0.0+ requires Laravel 12. For Laravel 10 compatibility, use version ^1.0.
+   **Note**: Version 2.1.0+ supports Laravel 12 and 13. Version 2.0.0 supports Laravel 12 only.
+   For Laravel 10 compatibility, use version ^1.0.
 
 2. Publish the package configuration:
 
