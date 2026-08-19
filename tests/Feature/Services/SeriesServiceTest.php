@@ -8,6 +8,7 @@ use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Services\SeriesService;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link SeriesService}. */
 class SeriesServiceTest extends TestCase
@@ -17,7 +18,8 @@ class SeriesServiceTest extends TestCase
     /** @var SeriesService */
     protected SeriesService $seriesService;
 
-    /** @test {@link SeriesService::create()} with book IDs. */
+    /** {@link SeriesService::create()} with book IDs. */
+    #[Test]
     public function testCreateSeriesWithBookIds()
     {
         $author = Author::factory()->create();
@@ -34,7 +36,8 @@ class SeriesServiceTest extends TestCase
         $this->assertEquals($books->count(), $series->books->count());
     }
 
-    /** @test {@link SeriesService::create()} without book IDs. */
+    /** {@link SeriesService::create()} without book IDs. */
+    #[Test]
     public function createNoBooks()
     {
         $author = Author::factory()->create();
@@ -50,7 +53,8 @@ class SeriesServiceTest extends TestCase
         $this->assertEmpty($series->books);
     }
 
-    /** @test {@link SeriesService::update()} with book IDs. */
+    /** {@link SeriesService::update()} with book IDs. */
+    #[Test]
     public function updateWithBookIds()
     {
         $author = Author::factory()->create();

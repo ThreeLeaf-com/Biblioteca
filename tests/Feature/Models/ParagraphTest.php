@@ -8,13 +8,15 @@ use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link Paragraph}. */
 class ParagraphTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Paragraph::create()}. */
+    /** {@link Paragraph::create()}. */
+    #[Test]
     public function testParagraphCreation()
     {
         $paragraph = Paragraph::factory()->create();
@@ -25,7 +27,8 @@ class ParagraphTest extends TestCase
         ]);
     }
 
-    /** @test {@link Paragraph::$sentences()}. */
+    /** {@link Paragraph::$sentences()}. */
+    #[Test]
     public function testParagraphRelationships()
     {
         $paragraph = Paragraph::factory()->create();
@@ -35,7 +38,8 @@ class ParagraphTest extends TestCase
         $this->assertCount(3, $paragraph->sentences);
     }
 
-    /** @test {@link Paragraph::update()}. */
+    /** {@link Paragraph::update()}. */
+    #[Test]
     public function update()
     {
         $paragraph = Paragraph::factory()->create(['content' => 'Old content.']);
@@ -48,7 +52,8 @@ class ParagraphTest extends TestCase
         ]);
     }
 
-    /** @test {@link Paragraph::delete()}. */
+    /** {@link Paragraph::delete()}. */
+    #[Test]
     public function testDelete()
     {
         $paragraph = Paragraph::factory()->create();
@@ -60,7 +65,8 @@ class ParagraphTest extends TestCase
         ]);
     }
 
-    /** @test {@link Paragraph::annotations()}. */
+    /** {@link Paragraph::annotations()}. */
+    #[Test]
     public function annotation()
     {
         $paragraph = Paragraph::factory()->create();

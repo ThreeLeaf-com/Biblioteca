@@ -5,11 +5,13 @@ namespace Tests\Unit\Utils;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link UuidUtil}. */
 class UuidUtilTest extends TestCase
 {
-    /** @test {@link UuidUtil::generateDnsUuid()}. */
+    /** {@link UuidUtil::generateDnsUuid()}. */
+    #[Test]
     public function generateDnsUuid()
     {
         $hostname = 'threeleaf.com';
@@ -20,7 +22,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateDnsUuid()} with special characters. */
+    /** {@link UuidUtil::generateDnsUuid()} with special characters. */
+    #[Test]
     public function generateDnsUuidSpecialCharacters()
     {
         $hostname = 'sub-domain.threeleaf.com';
@@ -31,7 +34,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateDnsUuid()} case insensitive. */
+    /** {@link UuidUtil::generateDnsUuid()} case insensitive. */
+    #[Test]
     public function generateDnsUuidCaseInsensitive()
     {
         $hostname1 = 'THREELEAF.COM';
@@ -45,7 +49,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid2);
     }
 
-    /** @test {@link UuidUtil::generateDnsUuid()} with special characters. */
+    /** {@link UuidUtil::generateDnsUuid()} with special characters. */
+    #[Test]
     public function generateDnsUuidTrailingSpaces()
     {
         $hostnameWithSpaces = '  threeleaf.com  ';
@@ -56,7 +61,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateUrlUuid()} special characters. */
+    /** {@link UuidUtil::generateUrlUuid()} special characters. */
+    #[Test]
     public function generateUrlUuidSpecialCharacters()
     {
         $url = 'https://threeleaf.com/blog?page=2#section1';
@@ -67,7 +73,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateOidUuid()} case insensitive. */
+    /** {@link UuidUtil::generateOidUuid()} case insensitive. */
+    #[Test]
     public function generateUrlUuidCaseInsensitive()
     {
         $url1 = 'https://ThreeLeaf.com/blog?page=2#section1';
@@ -81,7 +88,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid2);
     }
 
-    /** @test {@link UuidUtil::generateUrlUuid()} special characters. */
+    /** {@link UuidUtil::generateUrlUuid()} special characters. */
+    #[Test]
     public function generateUrlUuidTrailingSpaces()
     {
         $url = '   https://threeleaf.com/blog?page=2#section1  ';
@@ -92,7 +100,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateOidUuid()}. */
+    /** {@link UuidUtil::generateOidUuid()}. */
+    #[Test]
     public function generateOidUuidSpecialCharacters()
     {
         $oid = '1.2.3.4.5';
@@ -103,7 +112,8 @@ class UuidUtilTest extends TestCase
         $this->assertEquals($expectedUuid, $actualUuid);
     }
 
-    /** @test {@link UuidUtil::generateDnsUuid()} with invalid hostname. */
+    /** {@link UuidUtil::generateDnsUuid()} with invalid hostname. */
+    #[Test]
     public function generateDnsUuidInvalidHostname()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -112,7 +122,8 @@ class UuidUtilTest extends TestCase
         UuidUtil::generateDnsUuid('invalid_hostname');
     }
 
-    /** @test {@link UuidUtil::generateUrlUuid()} with invalid URL. */
+    /** {@link UuidUtil::generateUrlUuid()} with invalid URL. */
+    #[Test]
     public function generateUrlUuidInvalidUrl()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -121,7 +132,8 @@ class UuidUtilTest extends TestCase
         UuidUtil::generateUrlUuid('invalid_url');
     }
 
-    /** @test {@link UuidUtil::generateOidUuid()} with invalid OID. */
+    /** {@link UuidUtil::generateOidUuid()} with invalid OID. */
+    #[Test]
     public function generateOidUuidInvalidOid()
     {
         $this->expectException(InvalidArgumentException::class);

@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\PublisherResource;
 use ThreeLeaf\Biblioteca\Models\Publisher;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link PublisherController}. */
 class PublisherControllerTest extends TestCase
@@ -16,9 +17,10 @@ class PublisherControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link PublisherController::index()}.
+     * {@link PublisherController::index()}.
      * @see {@link PublisherResource::collection()}
      */
+    #[Test]
     public function indexPublisher(): void
     {
         $publishers = Publisher::factory()->count(3)->create();
@@ -32,10 +34,11 @@ class PublisherControllerTest extends TestCase
     }
 
     /**
-     * @test {@link PublisherController::store()}.
+     * {@link PublisherController::store()}.
      * @see {@link PublisherRequest::rules()}
      * @see {@link PublisherResource::toArray()}
      */
+    #[Test]
     public function storePublisher(): void
     {
         $data = [
@@ -55,9 +58,10 @@ class PublisherControllerTest extends TestCase
     }
 
     /**
-     * @test {@link PublisherController::show()}.
+     * {@link PublisherController::show()}.
      * @see {@link PublisherResource::toArray()}
      */
+    #[Test]
     public function showPublisher(): void
     {
         $publisher = Publisher::factory()->create();
@@ -71,10 +75,11 @@ class PublisherControllerTest extends TestCase
     }
 
     /**
-     * @test {@link PublisherController::update()}.
+     * {@link PublisherController::update()}.
      * @see {@link PublisherRequest::rules()}
      * @see {@link PublisherResource::toArray()}
      */
+    #[Test]
     public function updatePublisher(): void
     {
         $publisher = Publisher::factory()->create(['name' => 'Original Name']);
@@ -95,8 +100,9 @@ class PublisherControllerTest extends TestCase
     }
 
     /**
-     * @test {@link PublisherController::destroy()}.
+     * {@link PublisherController::destroy()}.
      */
+    #[Test]
     public function destroyPublisher(): void
     {
         $publisher = Publisher::factory()->create();

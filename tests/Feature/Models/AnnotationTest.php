@@ -21,13 +21,15 @@ use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
 use ThreeLeaf\Biblioteca\Models\TableOfContents;
 use ThreeLeaf\Biblioteca\Models\Tag;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test several models at once. */
 class AnnotationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test the creation of all related models. */
+    /** the creation of all related models. */
+    #[Test]
     public function attachTagToBook()
     {
         $book = Book::factory()
@@ -44,7 +46,8 @@ class AnnotationTest extends TestCase
         $this->assertTrue($book->tags->contains($tag));
     }
 
-    /** @test the creation of all related models. */
+    /** the creation of all related models. */
+    #[Test]
     public function allModelFactories()
     {
         $publisher = Publisher::factory()->create();
@@ -96,7 +99,8 @@ class AnnotationTest extends TestCase
         $this->assertDatabaseHas(Tag::TABLE_NAME, ['tag_id' => $tag->tag_id]);
     }
 
-    /** @test the creation of all related models. */
+    /** the creation of all related models. */
+    #[Test]
     public function attachAnnotationToParagraph()
     {
         $paragraph = Paragraph::factory()->create();
@@ -115,7 +119,8 @@ class AnnotationTest extends TestCase
         $this->assertTrue($annotation->reference()->is($paragraph));
     }
 
-    /** @test the creation of all related models. */
+    /** the creation of all related models. */
+    #[Test]
     public function attachAnnotationToSentence()
     {
         $sentence = Sentence::factory()->create();
@@ -133,7 +138,8 @@ class AnnotationTest extends TestCase
         $this->assertTrue($annotation->reference()->is($sentence));
     }
 
-    /** @test attach Bibliography to Book. */
+    /** attach Bibliography to Book. */
+    #[Test]
     public function attachBibliographyToBook()
     {
         $author = Author::factory()->create();
@@ -152,7 +158,8 @@ class AnnotationTest extends TestCase
         ]);
     }
 
-    /** @test README examples. */
+    /** README examples. */
+    #[Test]
     public function readmeExamples()
     {
         $author = Author::create([

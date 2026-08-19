@@ -8,13 +8,15 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link SeriesBook}. */
 class SeriesBookTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**  @test {@link SeriesBook::create()}. */
+    /** {@link SeriesBook::create()}. */
+    #[Test]
     public function create(): void
     {
         $series = Series::factory()->create();
@@ -38,7 +40,8 @@ class SeriesBookTest extends TestCase
         $this->assertEquals($book->title, $seriesBook->book->title);
     }
 
-    /**  @test {@link SeriesBook::create()} relationship. */
+    /** {@link SeriesBook::create()} relationship. */
+    #[Test]
     public function createRelationship(): void
     {
         $seriesBook = SeriesBook::factory()->create();
@@ -47,7 +50,8 @@ class SeriesBookTest extends TestCase
         $this->assertInstanceOf(Book::class, $seriesBook->book);
     }
 
-    /**  @test {@link SeriesBook::update()}. */
+    /** {@link SeriesBook::update()}. */
+    #[Test]
     public function update(): void
     {
         $seriesBook = SeriesBook::factory()->create(['number' => 1]);
@@ -61,7 +65,8 @@ class SeriesBookTest extends TestCase
         ]);
     }
 
-    /**  @test {@link SeriesBook::delete()}. */
+    /** {@link SeriesBook::delete()}. */
+    #[Test]
     public function testDelete(): void
     {
         $seriesBook = SeriesBook::factory()->create();
@@ -74,7 +79,8 @@ class SeriesBookTest extends TestCase
         ]);
     }
 
-    /**  @test {@link SeriesBook::create()} unique. */
+    /** {@link SeriesBook::create()} unique. */
+    #[Test]
     public function createUnique(): void
     {
         $this->expectException(QueryException::class);
@@ -94,7 +100,8 @@ class SeriesBookTest extends TestCase
         ]);
     }
 
-    /**  @test {@link SeriesBook::create()} required fields. */
+    /** {@link SeriesBook::create()} required fields. */
+    #[Test]
     public function createRequired(): void
     {
         $this->expectException(QueryException::class);
@@ -102,7 +109,8 @@ class SeriesBookTest extends TestCase
         SeriesBook::factory()->create(['series_id' => null, 'book_id' => null]);
     }
 
-    /** @test {@link Series::attachBook()}. */
+    /** {@link Series::attachBook()}. */
+    #[Test]
     public function attachBookToSeries(): void
     {
         $book = Book::factory()->create();

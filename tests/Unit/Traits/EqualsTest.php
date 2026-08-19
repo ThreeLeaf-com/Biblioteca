@@ -5,11 +5,13 @@ namespace Tests\Unit\Traits;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\TestCase;
 use ThreeLeaf\Biblioteca\Traits\Equals;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link Equals}. */
 class EqualsTest extends TestCase
 {
-    /** @test {@link Equals::equals()}. */
+    /** {@link Equals::equals()}. */
+    #[Test]
     public function equals()
     {
         $model1 = new Model1();
@@ -19,7 +21,8 @@ class EqualsTest extends TestCase
         $this->assertTrue($model1->equals($model2));
     }
 
-    /** @test {@link Equals::equals()} when models not equal. */
+    /** {@link Equals::equals()} when models not equal. */
+    #[Test]
     public function equalsFalse()
     {
         $model1 = new Model1([
@@ -33,7 +36,8 @@ class EqualsTest extends TestCase
         $this->assertFalse($model1->equals($model2));
     }
 
-    /** @test {@link Equals::equals()} test against specific values only. */
+    /** {@link Equals::equals()} test against specific values only. */
+    #[Test]
     public function equalsSpecificAttributeOnly()
     {
         $model1 = new Model1([
@@ -49,7 +53,8 @@ class EqualsTest extends TestCase
         $this->assertTrue($model1->equals($model2, ['attribute2']));
     }
 
-    /** @test {@link Equals::equals()} test against specific values fails. */
+    /** {@link Equals::equals()} test against specific values fails. */
+    #[Test]
     public function equalsSpecificAttributeFalse()
     {
         $model1 = new Model1([
@@ -65,7 +70,8 @@ class EqualsTest extends TestCase
         $this->assertFalse($model1->equals($model2, ['attribute2']));
     }
 
-    /** @test {@link Equals::equals()} when keys not equal. */
+    /** {@link Equals::equals()} when keys not equal. */
+    #[Test]
     public function equalsKeyFalse()
     {
         $model1 = new Model1([
@@ -79,7 +85,8 @@ class EqualsTest extends TestCase
         $this->assertTrue($model1->equals($model2));
     }
 
-    /** @test {@link Equals::equals()} ignoring keys. */
+    /** {@link Equals::equals()} ignoring keys. */
+    #[Test]
     public function equalsNotKey()
     {
         $model1 = new Model1([
@@ -93,7 +100,8 @@ class EqualsTest extends TestCase
         $this->assertTrue($model1->equals($model2, null, false));
     }
 
-    /** @test {@link Equals::equals()} for different models. */
+    /** {@link Equals::equals()} for different models. */
+    #[Test]
     public function equalsDifferentModels()
     {
         $model1 = new Model1();

@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Series;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link SeriesController}. */
 class SeriesControllerTest extends TestCase
@@ -17,9 +18,10 @@ class SeriesControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link SeriesController::index()}.
+     * {@link SeriesController::index()}.
      * @see {@link SeriesResource::collection()}
      */
+    #[Test]
     public function indexSeries(): void
     {
         $seriesCollection = Series::factory()->count(3)->create();
@@ -33,10 +35,11 @@ class SeriesControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SeriesController::store()}.
+     * {@link SeriesController::store()}.
      * @see {@link SeriesRequest::rules()}
      * @see {@link SeriesResource::toArray()}
      */
+    #[Test]
     public function storeSeries(): void
     {
         $author = Author::factory()->create();
@@ -58,9 +61,10 @@ class SeriesControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SeriesController::show()}.
+     * {@link SeriesController::show()}.
      * @see {@link SeriesResource::toArray()}
      */
+    #[Test]
     public function showSeries(): void
     {
         $series = Series::factory()->create();
@@ -74,10 +78,11 @@ class SeriesControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SeriesController::update()}.
+     * {@link SeriesController::update()}.
      * @see {@link SeriesRequest::rules()}
      * @see {@link SeriesResource::toArray()}
      */
+    #[Test]
     public function updateSeries(): void
     {
         $series = Series::factory()->create(['title' => 'Original Title']);
@@ -99,8 +104,9 @@ class SeriesControllerTest extends TestCase
     }
 
     /**
-     * @test {@link SeriesController::destroy()}.
+     * {@link SeriesController::destroy()}.
      */
+    #[Test]
     public function destroySeries(): void
     {
         $series = Series::factory()->create();

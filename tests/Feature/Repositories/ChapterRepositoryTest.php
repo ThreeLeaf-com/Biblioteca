@@ -12,6 +12,7 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Repositories\ChapterRepository;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ChapterRepository}. */
 class ChapterRepositoryTest extends TestCase
@@ -22,7 +23,8 @@ class ChapterRepositoryTest extends TestCase
     /** @var ChapterRepository The test repository. */
     private ChapterRepository $chapterRepository;
 
-    /** @test {@link ChapterRepository::create()} with missing book ID. */
+    /** {@link ChapterRepository::create()} with missing book ID. */
+    #[Test]
     public function requireMissingBookId()
     {
         $data = [
@@ -34,7 +36,8 @@ class ChapterRepositoryTest extends TestCase
         $this->chapterRepository->create($data);
     }
 
-    /** @test {@link ChapterRepository::create()} does not allow duplicate chapter number. */
+    /** {@link ChapterRepository::create()} does not allow duplicate chapter number. */
+    #[Test]
     public function disallowDuplicateChapterNumber()
     {
         $chapter1 = Chapter::factory()->create(['chapter_number' => 1]);
@@ -55,7 +58,8 @@ class ChapterRepositoryTest extends TestCase
         $this->chapterRepository->create($newChapterData);
     }
 
-    /** @test {@link ChapterRepository::read()}. */
+    /** {@link ChapterRepository::read()}. */
+    #[Test]
     public function read()
     {
         $chapter = Chapter::factory()->create();
@@ -65,7 +69,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertTrue($chapter->equals($chapterRetrieved));
     }
 
-    /** @test {@link ChapterRepository::read()} non-existent. */
+    /** {@link ChapterRepository::read()} non-existent. */
+    #[Test]
     public function readNonExistentChapterId()
     {
         $nonExistentChapterId = 'non-existent-chapter-id';
@@ -75,7 +80,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertNull($chapter);
     }
 
-    /** @test {@link ChapterRepository::readOrFail()} non-existent. */
+    /** {@link ChapterRepository::readOrFail()} non-existent. */
+    #[Test]
     public function readOrFail()
     {
         $chapter = Chapter::factory()->create();
@@ -85,7 +91,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertTrue($chapter->equals($retrievedChapter));
     }
 
-    /** @test {@link ChapterRepository::readOrFail()} non-existent. */
+    /** {@link ChapterRepository::readOrFail()} non-existent. */
+    #[Test]
     public function readOrFailDoesNotExist()
     {
         $nonExistentChapterId = 'non-existent-chapter-id';
@@ -95,7 +102,8 @@ class ChapterRepositoryTest extends TestCase
         $this->chapterRepository->readOrFail($nonExistentChapterId);
     }
 
-    /** @test {@link ChapterRepository::readAll()} */
+    /** {@link ChapterRepository::readAll()} */
+    #[Test]
     public function readAll()
     {
         $numberOfChapters = $this->faker->numberBetween(1, 10);
@@ -106,13 +114,15 @@ class ChapterRepositoryTest extends TestCase
         $this->assertCount($numberOfChapters, $chapters);
     }
 
-    /** @test {@link ChapterRepository::readAll()} no chapters. */
+    /** {@link ChapterRepository::readAll()} no chapters. */
+    #[Test]
     public function readAllNoChapters()
     {
         $this->assertEmpty($this->chapterRepository->readAll());
     }
 
-    /** @test {@link ChapterRepository::readAll()} with Book::$id. */
+    /** {@link ChapterRepository::readAll()} with Book::$id. */
+    #[Test]
     public function readAllBookId()
     {
         $book1 = Book::factory()->create();
@@ -130,7 +140,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEquals($chapterIdsForBook1Database, $chapterIdsForBook1);
     }
 
-    /** @test {@link ChapterRepository::update()} no chapters. */
+    /** {@link ChapterRepository::update()} no chapters. */
+    #[Test]
     public function update()
     {
         $chapter = Chapter::factory()->create();
@@ -149,7 +160,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEquals($newData, $chapter->only(['title', 'content', 'chapter_number', 'book_id']));
     }
 
-    /** @test {@link ChapterRepository::updateOrCreate()}. */
+    /** {@link ChapterRepository::updateOrCreate()}. */
+    #[Test]
     public function updateOrCreateNew()
     {
         $book = Book::factory()->create();
@@ -169,7 +181,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEquals($newChapterData['chapter_number'], $createdChapter->chapter_number);
     }
 
-    /** @test {@link ChapterRepository::updateOrCreate()} existing. */
+    /** {@link ChapterRepository::updateOrCreate()} existing. */
+    #[Test]
     public function updateOrCreateExisting()
     {
         $chapter = Chapter::factory()->create();
@@ -189,7 +202,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertEquals($newData['content'], $updatedChapter->content);
     }
 
-    /** @test {@link ChapterRepository::delete()}. */
+    /** {@link ChapterRepository::delete()}. */
+    #[Test]
     public function deleteChapterId()
     {
         $chapter = Chapter::factory()->create();
@@ -197,7 +211,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertTrue($this->chapterRepository->delete($chapter->chapter_id));
     }
 
-    /** @test {@link ChapterRepository::delete()} non-existent. */
+    /** {@link ChapterRepository::delete()} non-existent. */
+    #[Test]
     public function deleteChapterDoesNotExist()
     {
         $nonExistentChapterId = 'non-existent-chapter-id';
@@ -205,7 +220,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertFalse($this->chapterRepository->delete($nonExistentChapterId));
     }
 
-    /** @test {@link ChapterRepository::deleteAllParagraphs()}. */
+    /** {@link ChapterRepository::deleteAllParagraphs()}. */
+    #[Test]
     public function deleteAllParagraphs()
     {
         $chapter = Chapter::factory()->create();
@@ -218,7 +234,8 @@ class ChapterRepositoryTest extends TestCase
         $this->assertCount(0, Chapter::find($chapter->chapter_id)->paragraphs);
     }
 
-    /** @test {@link ChapterRepository::addParagraphs()}. */
+    /** {@link ChapterRepository::addParagraphs()}. */
+    #[Test]
     public function addParagraphs()
     {
         $chapter = Chapter::factory()->create();

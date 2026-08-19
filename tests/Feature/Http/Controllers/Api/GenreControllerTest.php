@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\GenreResource;
 use ThreeLeaf\Biblioteca\Models\Genre;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link GenreController}. */
 class GenreControllerTest extends TestCase
@@ -16,9 +17,10 @@ class GenreControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link GenreController::index()}.
+     * {@link GenreController::index()}.
      * @see {@link GenreResource::collection()}
      */
+    #[Test]
     public function indexGenre(): void
     {
         $genres = Genre::factory()->count(3)->create();
@@ -32,10 +34,11 @@ class GenreControllerTest extends TestCase
     }
 
     /**
-     * @test {@link GenreController::store()}.
+     * {@link GenreController::store()}.
      * @see {@link GenreRequest::rules()}
      * @see {@link GenreResource::toArray()}
      */
+    #[Test]
     public function storeGenre(): void
     {
         $data = [
@@ -54,9 +57,10 @@ class GenreControllerTest extends TestCase
     }
 
     /**
-     * @test {@link GenreController::show()}.
+     * {@link GenreController::show()}.
      * @see {@link GenreResource::toArray()}
      */
+    #[Test]
     public function showGenre(): void
     {
         $genre = Genre::factory()->create();
@@ -70,10 +74,11 @@ class GenreControllerTest extends TestCase
     }
 
     /**
-     * @test {@link GenreController::update()}.
+     * {@link GenreController::update()}.
      * @see {@link GenreRequest::rules()}
      * @see {@link GenreResource::toArray()}
      */
+    #[Test]
     public function updateGenre(): void
     {
         $genre = Genre::factory()->create(['name' => 'Original Genre']);
@@ -93,8 +98,9 @@ class GenreControllerTest extends TestCase
     }
 
     /**
-     * @test {@link GenreController::destroy()}.
+     * {@link GenreController::destroy()}.
      */
+    #[Test]
     public function destroyGenre(): void
     {
         $genre = Genre::factory()->create();

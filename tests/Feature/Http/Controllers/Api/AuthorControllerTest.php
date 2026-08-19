@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\AuthorResource;
 use ThreeLeaf\Biblioteca\Models\Author;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link AuthorController}. */
 class AuthorControllerTest extends TestCase
@@ -16,9 +17,10 @@ class AuthorControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link AuthorController::index()}.
+     * {@link AuthorController::index()}.
      * @see {@link AuthorResource::collection()}
      */
+    #[Test]
     public function indexAuthor(): void
     {
         $authors = Author::factory()->count(3)->create();
@@ -40,10 +42,11 @@ class AuthorControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AuthorController::store()}.
+     * {@link AuthorController::store()}.
      * @see {@link AuthorRequest::rules()}
      * @see {@link AuthorResource::toArray()}
      */
+    #[Test]
     public function storeAuthor(): void
     {
         $data = [
@@ -64,9 +67,10 @@ class AuthorControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AuthorController::show()}.
+     * {@link AuthorController::show()}.
      * @see {@link AuthorResource::toArray()}
      */
+    #[Test]
     public function showAuthor(): void
     {
         $author = Author::factory()->create();
@@ -80,10 +84,11 @@ class AuthorControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AuthorController::update()}.
+     * {@link AuthorController::update()}.
      * @see {@link AuthorRequest::rules()}
      * @see {@link AuthorResource::toArray()}
      */
+    #[Test]
     public function updateAuthor(): void
     {
         $author = Author::factory()->create();
@@ -106,8 +111,9 @@ class AuthorControllerTest extends TestCase
     }
 
     /**
-     * @test {@link AuthorController::destroy()}.
+     * {@link AuthorController::destroy()}.
      */
+    #[Test]
     public function destroyAuthor(): void
     {
         $author = Author::factory()->create();

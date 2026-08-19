@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\TagResource;
 use ThreeLeaf\Biblioteca\Models\Tag;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link TagController}. */
 class TagControllerTest extends TestCase
@@ -16,9 +17,10 @@ class TagControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link TagController::index()}.
+     * {@link TagController::index()}.
      * @see {@link TagResource::collection()}
      */
+    #[Test]
     public function indexTag(): void
     {
         $tags = Tag::factory()->count(3)->create();
@@ -32,10 +34,11 @@ class TagControllerTest extends TestCase
     }
 
     /**
-     * @test {@link TagController::store()}.
+     * {@link TagController::store()}.
      * @see {@link TagRequest::rules()}
      * @see {@link TagResource::toArray()}
      */
+    #[Test]
     public function storeTag(): void
     {
         $data = [
@@ -53,9 +56,10 @@ class TagControllerTest extends TestCase
     }
 
     /**
-     * @test {@link TagController::show()}.
+     * {@link TagController::show()}.
      * @see {@link TagResource::toArray()}
      */
+    #[Test]
     public function showTag(): void
     {
         $tag = Tag::factory()->create();
@@ -69,10 +73,11 @@ class TagControllerTest extends TestCase
     }
 
     /**
-     * @test {@link TagController::update()}.
+     * {@link TagController::update()}.
      * @see {@link TagRequest::rules()}
      * @see {@link TagResource::toArray()}
      */
+    #[Test]
     public function updateTag(): void
     {
         $tag = Tag::factory()->create(['name' => 'Original Tag']);
@@ -90,7 +95,8 @@ class TagControllerTest extends TestCase
         $this->assertDatabaseHas(Tag::TABLE_NAME, $updatedData);
     }
 
-    /**  @test {@link TagController::destroy()}. */
+    /** {@link TagController::destroy()}. */
+    #[Test]
     public function destroyTag(): void
     {
         $tag = Tag::factory()->create();

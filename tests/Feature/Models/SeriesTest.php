@@ -8,12 +8,14 @@ use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
+use PHPUnit\Framework\Attributes\Test;
 
 class SeriesTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Series::create()}. */
+    /** {@link Series::create()}. */
+    #[Test]
     public function createSeries()
     {
         $series = Series::factory()->create();
@@ -25,7 +27,8 @@ class SeriesTest extends TestCase
         ]);
     }
 
-    /** @test {@link Series::book()}. */
+    /** {@link Series::book()}. */
+    #[Test]
     public function books()
     {
         /** @var Series $series */
@@ -37,7 +40,8 @@ class SeriesTest extends TestCase
         $this->assertCount(3, $series->books);
     }
 
-    /** @test {@link Series::update()}. */
+    /** {@link Series::update()}. */
+    #[Test]
     public function updateSeries()
     {
         $series = Series::factory()->create(['title' => 'Old Title']);
@@ -50,7 +54,8 @@ class SeriesTest extends TestCase
         ]);
     }
 
-    /** @test {@link Series::delete()}. */
+    /** {@link Series::delete()}. */
+    #[Test]
     public function deleteSeries()
     {
         $series = Series::factory()->create();
@@ -62,7 +67,8 @@ class SeriesTest extends TestCase
         ]);
     }
 
-    /** @test {@link Series::reorderBooks()}. */
+    /** {@link Series::reorderBooks()}. */
+    #[Test]
     public function reorderBooks(): void
     {
         /* Create a series and attach books in initial order */
@@ -91,7 +97,8 @@ class SeriesTest extends TestCase
         $this->assertEquals(3, $series->books->find($book2->book_id)->pivot->number);
     }
 
-    /** @test {@link Series::books} in numerical order. */
+    /** {@link Series::books} in numerical order. */
+    #[Test]
     public function testBooksAreOrderedByNumber()
     {
         $series = Series::factory()->create();

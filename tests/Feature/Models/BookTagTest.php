@@ -6,13 +6,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Tag;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link BookTag}. */
 class BookTagTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Book::tags()} attach. */
+    /** {@link Book::tags()} attach. */
+    #[Test]
     public function attachTags(): void
     {
         $book = Book::factory()->create();
@@ -25,7 +27,8 @@ class BookTagTest extends TestCase
         $this->assertTrue($book->tags->contains($tag2));
     }
 
-    /** @test {@link Tag::books()}. */
+    /** {@link Tag::books()}. */
+    #[Test]
     public function tagBooks(): void
     {
         $book1 = Book::factory()->create();
@@ -38,7 +41,8 @@ class BookTagTest extends TestCase
         $this->assertTrue($tag->books->contains($book2));
     }
 
-    /** @test {@link Book::tags()} detach. */
+    /** {@link Book::tags()} detach. */
+    #[Test]
     public function detachTags(): void
     {
         $book = Book::factory()->create();
@@ -50,7 +54,8 @@ class BookTagTest extends TestCase
         $this->assertFalse($book->tags->contains($tag));
     }
 
-    /** @test {@link Book::tags()} sync. */
+    /** {@link Book::tags()} sync. */
+    #[Test]
     public function syncTags(): void
     {
         $book = Book::factory()->create();

@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\FigureResource;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Figure;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link FigureController}. */
 class FigureControllerTest extends TestCase
@@ -17,9 +18,10 @@ class FigureControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link FigureController::index()}.
+     * {@link FigureController::index()}.
      * @see {@link FigureResource::collection()}
      */
+    #[Test]
     public function indexFigure(): void
     {
         $figures = Figure::factory()->count(3)->create();
@@ -33,10 +35,11 @@ class FigureControllerTest extends TestCase
     }
 
     /**
-     * @test {@link FigureController::store()}.
+     * {@link FigureController::store()}.
      * @see {@link FigureRequest::rules()}
      * @see {@link FigureResource::toArray()}
      */
+    #[Test]
     public function storeFigure(): void
     {
         $chapter = Chapter::factory()->create();
@@ -59,9 +62,10 @@ class FigureControllerTest extends TestCase
     }
 
     /**
-     * @test {@link FigureController::show()}.
+     * {@link FigureController::show()}.
      * @see {@link FigureResource::toArray()}
      */
+    #[Test]
     public function showFigure(): void
     {
         $figure = Figure::factory()->create();
@@ -75,10 +79,11 @@ class FigureControllerTest extends TestCase
     }
 
     /**
-     * @test {@link FigureController::update()}.
+     * {@link FigureController::update()}.
      * @see {@link FigureRequest::rules()}
      * @see {@link FigureResource::toArray()}
      */
+    #[Test]
     public function updateFigure(): void
     {
         $figure = Figure::factory()->create(['caption' => 'Original Caption']);
@@ -101,8 +106,9 @@ class FigureControllerTest extends TestCase
     }
 
     /**
-     * @test {@link FigureController::destroy()}.
+     * {@link FigureController::destroy()}.
      */
+    #[Test]
     public function destroyFigure(): void
     {
         $figure = Figure::factory()->create();

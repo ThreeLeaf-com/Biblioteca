@@ -7,13 +7,15 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link LibraryController}. */
 class LibraryControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link LibraryController::index()}. */
+    /** {@link LibraryController::index()}. */
+    #[Test]
     public function indexReturnsSeriesAndBookIds(): void
     {
         $series = Series::factory()->count(2)->create();

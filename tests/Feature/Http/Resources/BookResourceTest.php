@@ -9,13 +9,15 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Genre;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\Tag;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link BookResource}. */
 class BookResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link BookResource::toArray()}. */
+    /** {@link BookResource::toArray()}. */
+    #[Test]
     public function showBookResource()
     {
         $book = Book::factory()->create();
@@ -71,7 +73,8 @@ class BookResourceTest extends TestCase
         $this->assertEquals($series->series_id, $response->json('data.series.0.series_id'));
     }
 
-    /** @test {@link BookResource::$published_date)}. */
+    /** {@link BookResource::$published_date)}. */
+    #[Test]
     public function publishedDateFormatPositive()
     {
         $book = Book::factory()->create([
@@ -93,7 +96,8 @@ class BookResourceTest extends TestCase
             ]);
     }
 
-    /** @test {@link BookResource::$published_date)}. */
+    /** {@link BookResource::$published_date)}. */
+    #[Test]
     public function publishedDateFormatNull()
     {
         $book = Book::factory()->create([

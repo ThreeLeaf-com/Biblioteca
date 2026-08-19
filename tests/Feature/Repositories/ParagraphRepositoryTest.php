@@ -12,6 +12,7 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 use ThreeLeaf\Biblioteca\Repositories\ParagraphRepository;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ParagraphRepository}. */
 class ParagraphRepositoryTest extends TestCase
@@ -22,7 +23,8 @@ class ParagraphRepositoryTest extends TestCase
     /** @var ParagraphRepository The test repository. */
     private ParagraphRepository $paragraphRepository;
 
-    /** @test {@link ParagraphRepository::create()} with missing chapter ID. */
+    /** {@link ParagraphRepository::create()} with missing chapter ID. */
+    #[Test]
     public function requireMissingChapterId()
     {
         $data = [
@@ -34,7 +36,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->paragraphRepository->create($data);
     }
 
-    /** @test {@link ParagraphRepository::create()} does not allow duplicate paragraph number. */
+    /** {@link ParagraphRepository::create()} does not allow duplicate paragraph number. */
+    #[Test]
     public function disallowDuplicateParagraphNumber()
     {
         $paragraph1 = Paragraph::factory()->create(['paragraph_number' => 1]);
@@ -54,7 +57,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->paragraphRepository->create($newParagraphData);
     }
 
-    /** @test {@link ParagraphRepository::read()}. */
+    /** {@link ParagraphRepository::read()}. */
+    #[Test]
     public function read()
     {
         $paragraph = Paragraph::factory()->create();
@@ -64,7 +68,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertTrue($paragraph->is($paragraphRetrieved));
     }
 
-    /** @test {@link ParagraphRepository::read()} non-existent. */
+    /** {@link ParagraphRepository::read()} non-existent. */
+    #[Test]
     public function readNonExistentParagraphId()
     {
         $nonExistentParagraphId = 'non-existent-paragraph-id';
@@ -74,7 +79,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertNull($paragraph);
     }
 
-    /** @test {@link ParagraphRepository::readOrFail()} non-existent. */
+    /** {@link ParagraphRepository::readOrFail()} non-existent. */
+    #[Test]
     public function readOrFail()
     {
         $paragraph = Paragraph::factory()->create();
@@ -84,7 +90,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertTrue($paragraph->is($retrievedParagraph));
     }
 
-    /** @test {@link ParagraphRepository::readOrFail()} non-existent. */
+    /** {@link ParagraphRepository::readOrFail()} non-existent. */
+    #[Test]
     public function readOrFailDoesNotExist()
     {
         $nonExistentParagraphId = 'non-existent-paragraph-id';
@@ -94,7 +101,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->paragraphRepository->readOrFail($nonExistentParagraphId);
     }
 
-    /** @test {@link ParagraphRepository::readAll()} */
+    /** {@link ParagraphRepository::readAll()} */
+    #[Test]
     public function readAll()
     {
         $numberOfParagraphs = $this->faker->numberBetween(1, 10);
@@ -105,13 +113,15 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertCount($numberOfParagraphs, $paragraphs);
     }
 
-    /** @test {@link ParagraphRepository::readAll()} no paragraphs. */
+    /** {@link ParagraphRepository::readAll()} no paragraphs. */
+    #[Test]
     public function readAllNoParagraphs()
     {
         $this->assertEmpty($this->paragraphRepository->readAll());
     }
 
-    /** @test {@link ParagraphRepository::readAll()} with Chapter::$id. */
+    /** {@link ParagraphRepository::readAll()} with Chapter::$id. */
+    #[Test]
     public function readAllChapterId()
     {
         $chapter1 = Chapter::factory()->create();
@@ -129,7 +139,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertEquals($paragraphIdsForChapter1Database, $paragraphIdsForChapter1);
     }
 
-    /** @test {@link ParagraphRepository::update()} no paragraphs. */
+    /** {@link ParagraphRepository::update()} no paragraphs. */
+    #[Test]
     public function update()
     {
         $paragraph = Paragraph::factory()->create();
@@ -147,7 +158,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertEquals($newData, $paragraph->only(['content', 'paragraph_number', 'chapter_id']));
     }
 
-    /** @test {@link ParagraphRepository::delete()}. */
+    /** {@link ParagraphRepository::delete()}. */
+    #[Test]
     public function deleteParagraphId()
     {
         $paragraph = Paragraph::factory()->create();
@@ -155,7 +167,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertTrue($this->paragraphRepository->delete($paragraph->paragraph_id));
     }
 
-    /** @test {@link ParagraphRepository::updateOrCreate()}. */
+    /** {@link ParagraphRepository::updateOrCreate()}. */
+    #[Test]
     public function updateOrCreateNew()
     {
         $chapterId = Chapter::factory()->create()->chapter_id;
@@ -180,7 +193,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertEquals($content, $paragraph->content);
     }
 
-    /** @test {@link ParagraphRepository::updateOrCreate()} for existing paragraph. */
+    /** {@link ParagraphRepository::updateOrCreate()} for existing paragraph. */
+    #[Test]
     public function updateOrCreateExisting()
     {
         $existingParagraph = Paragraph::factory()->create();
@@ -201,7 +215,8 @@ class ParagraphRepositoryTest extends TestCase
         ]);
     }
 
-    /** @test {@link ParagraphRepository::delete()} non-existent. */
+    /** {@link ParagraphRepository::delete()} non-existent. */
+    #[Test]
     public function deleteParagraphDoesNotExist()
     {
         $nonExistentParagraphId = 'non-existent-paragraph-id';
@@ -209,7 +224,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertFalse($this->paragraphRepository->delete($nonExistentParagraphId));
     }
 
-    /** @test {@link ParagraphRepository::deleteAllSentences()}. */
+    /** {@link ParagraphRepository::deleteAllSentences()}. */
+    #[Test]
     public function deleteAllSentences()
     {
         $paragraph = Paragraph::factory()->create();
@@ -222,7 +238,8 @@ class ParagraphRepositoryTest extends TestCase
         $this->assertCount(0, Paragraph::find($paragraph->paragraph_id)->sentences);
     }
 
-    /** @test {@link ParagraphRepository::addSentences()}. */
+    /** {@link ParagraphRepository::addSentences()}. */
+    #[Test]
     public function addSentences()
     {
         $paragraph = Paragraph::factory()->create();

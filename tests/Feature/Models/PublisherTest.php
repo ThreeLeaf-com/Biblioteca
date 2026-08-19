@@ -6,13 +6,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Publisher;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link Publisher}. */
 class PublisherTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test {@link Publisher::create()}. */
+    /** {@link Publisher::create()}. */
+    #[Test]
     public function createPublisher(): void
     {
         $publisher = Publisher::factory()->create(['name' => 'Penguin Books']);
@@ -23,7 +25,8 @@ class PublisherTest extends TestCase
         ]);
     }
 
-    /** @test {@link Publisher::update()}. */
+    /** {@link Publisher::update()}. */
+    #[Test]
     public function updatePublisher(): void
     {
         $publisher = Publisher::factory()->create(['name' => 'Old Name']);
@@ -36,7 +39,8 @@ class PublisherTest extends TestCase
         ]);
     }
 
-    /** @test {@link Publisher::delete()}. */
+    /** {@link Publisher::delete()}. */
+    #[Test]
     public function deletePublisher(): void
     {
         $publisher = Publisher::factory()->create();
@@ -48,7 +52,8 @@ class PublisherTest extends TestCase
         ]);
     }
 
-    /** @test {@link Publisher::books()}. */
+    /** {@link Publisher::books()}. */
+    #[Test]
     public function it_retrieves_books_associated_with_a_publisher(): void
     {
         /* Create a Publisher and associate multiple books */

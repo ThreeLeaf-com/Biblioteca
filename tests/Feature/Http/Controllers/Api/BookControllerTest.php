@@ -12,6 +12,7 @@ use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Genre;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 use ThreeLeaf\Biblioteca\Models\Tag;
+use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link BookController}. */
 class BookControllerTest extends TestCase
@@ -20,9 +21,10 @@ class BookControllerTest extends TestCase
     use WithFaker;
 
     /**
-     * @test {@link BookController::index()}.
+     * {@link BookController::index()}.
      * @see {@link BookResource::collection()}
      */
+    #[Test]
     public function indexBook(): void
     {
         $books = Book::factory()->count(3)->create();
@@ -36,10 +38,11 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * @test {@link BookController::store()}.
+     * {@link BookController::store()}.
      * @see {@link BookRequest::rules()}
      * @see {@link BookResource::toArray()}
      */
+    #[Test]
     public function storeBook(): void
     {
         $author = Author::factory()->create();
@@ -63,9 +66,10 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * @test {@link BookController::show()}.
+     * {@link BookController::show()}.
      * @see {@link BookResource::toArray()}
      */
+    #[Test]
     public function showBook(): void
     {
         $book = Book::factory()->create();
@@ -79,10 +83,11 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * @test {@link BookController::update()}.
+     * {@link BookController::update()}.
      * @see {@link BookRequest::rules()}
      * @see {@link BookResource::toArray()}
      */
+    #[Test]
     public function updateBook(): void
     {
         $book = Book::factory()->create();
@@ -105,8 +110,9 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * @test {@link BookController::destroy()}.
+     * {@link BookController::destroy()}.
      */
+    #[Test]
     public function destroyBook(): void
     {
         $book = Book::factory()->create();
@@ -124,7 +130,8 @@ class BookControllerTest extends TestCase
         $response->assertStatus(HttpCodes::HTTP_NOT_FOUND);
     }
 
-    /** @test {@link BookController::addTags()}. */
+    /** {@link BookController::addTags()}. */
+    #[Test]
     public function addTagsToBook(): void
     {
         $book = Book::factory()->create();
@@ -140,7 +147,8 @@ class BookControllerTest extends TestCase
         }
     }
 
-    /** @test {@link BookController::removeTag()}. */
+    /** {@link BookController::removeTag()}. */
+    #[Test]
     public function removeTagFromBook(): void
     {
         $book = Book::factory()->create();
@@ -153,7 +161,8 @@ class BookControllerTest extends TestCase
         $this->assertFalse($book->tags()->where('b_book_tags.tag_id', $tag->tag_id)->exists());
     }
 
-    /** @test {@link BookController::addGenres()}. */
+    /** {@link BookController::addGenres()}. */
+    #[Test]
     public function addGenresToBook(): void
     {
         $book = Book::factory()->create();
@@ -169,7 +178,8 @@ class BookControllerTest extends TestCase
         }
     }
 
-    /** @test {@link BookController::removeGenre()}. */
+    /** {@link BookController::removeGenre()}. */
+    #[Test]
     public function removeGenreFromBook(): void
     {
         $book = Book::factory()->create();
