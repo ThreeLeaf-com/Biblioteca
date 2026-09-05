@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Models\HostParagraph;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Annotation;
+use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 
@@ -290,6 +291,25 @@ class AliasAnnotationReferenceTypesTest extends TestCase
 
         $this->assertSame('paragraph', $this->storedReferenceType($annotationId));
         $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /**
+     * Rows are left alone when a host has displaced the package's alias.
+     *
+     * With `b_paragraphs` claimed by another model, 3.0.0 writes the class name, and those
+     * rows already match. Rewriting them to `b_paragraphs` would drop them out of the
+     * relation and make them raise on read — breaking rows that worked before the upgrade.
+     */
+    #[Test]
+    public function upLeavesRowsAloneWhenTheAliasIsDisplaced(): void
+    {
+        Relation::morphMap([Paragraph::TABLE_NAME => Book::class]);
+
+        $annotationId = $this->plantAnnotation(Paragraph::class);
+
+        $this->migration()->up();
+
+        $this->assertSame(Paragraph::class, $this->storedReferenceType($annotationId));
     }
 
     /** An aliased row is readable through the model once the migration has run. */

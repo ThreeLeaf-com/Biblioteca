@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use ReflectionClass;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Exceptions\InvalidReferenceTypeException;
 use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
@@ -113,10 +114,15 @@ class Annotation extends Model
      * most engines, so storing anything else would leave the annotation readable through its
      * own <code>reference</code> yet missing from <code>$paragraph->annotations()</code>.
      *
-     * {@link Relation::getMorphAlias()} is used in preference to instantiating the class and
-     * calling <code>getMorphClass()</code> on it. The two return the same value, but this
-     * path runs no constructor — and a host subclass's constructor would otherwise run
-     * during validation of an unauthenticated request.
+     * The value is read from an instance created without its constructor.
+     * {@link Model::getMorphClass()} needs no constructed state, and a host subclass's
+     * constructor would otherwise run during validation of an unauthenticated request.
+     * {@link Relation::getMorphAlias()} would avoid the instance entirely but is not
+     * equivalent: it consults the morph map alone, so a subclass that sets its discriminator
+     * by overriding <code>getMorphClass()</code> — a supported Laravel technique, and one
+     * this package's subclass support invites — would have that override ignored and its
+     * class name stored instead, leaving the annotation absent from
+     * <code>$paragraph->annotations()</code>.
      *
      * When the process has registered no morph map at all, this returns the class name, and
      * that is deliberate: {@link MorphOneOrMany} constrains on the same lookup, so it also
@@ -134,7 +140,9 @@ class Annotation extends Model
      */
     public static function assertReferenceType(string $referenceType): string
     {
-        return Relation::getMorphAlias(self::resolveReferenceType($referenceType));
+        $resolved = self::resolveReferenceType($referenceType);
+
+        return (new ReflectionClass($resolved))->newInstanceWithoutConstructor()->getMorphClass();
     }
 
     /**

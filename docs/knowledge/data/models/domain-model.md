@@ -87,12 +87,17 @@ the first match — so the last registration wins, and package providers boot
 first. A host registering from `register()` or `bootstrap/app.php` runs before
 this package and is overridden by it.
 
-`Annotation` therefore stores `Relation::getMorphAlias()` of the resolved class
-rather than reading `REFERENCE_TYPES` directly, so the stored value always
-matches what `MorphMany` constrains on. Where no map is registered at all that
-yields the class name, which is also what `MorphMany` constrains on in that
-process — the two agree, which matters more than the column keeping its 3.0.0
-shape.
+`Annotation` therefore stores the resolved class's own `getMorphClass()` rather
+than reading `REFERENCE_TYPES` directly, so the stored value always matches what
+`MorphMany` constrains on. Where no map is registered at all that yields the
+class name, which is also what `MorphMany` constrains on in that process — the
+two agree, which matters more than the column keeping its 3.0.0 shape.
+
+The instance is created without its constructor, so nothing of the host's runs
+during a write. Reading the morph map directly through
+`Relation::getMorphAlias()` would be cheaper still, but a subclass may set its
+discriminator by overriding `getMorphClass()` instead of by registering an
+alias, and the map cannot see that.
 
 The corollary is that a host claiming `b_paragraphs` or `b_sentences` for one of
 its own models silently repoints the alias, and Laravel reports no conflict.

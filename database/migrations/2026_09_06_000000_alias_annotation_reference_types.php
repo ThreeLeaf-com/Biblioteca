@@ -48,7 +48,7 @@ return new class extends Migration {
     {
         DB::transaction(function (): void {
             foreach (self::LEGACY_CLASSES as $class => $alias) {
-                $this->rewrite($class, $this->aliasFor($class, $alias));
+                $this->rewrite($class, $this->aliasFor($class));
             }
         });
     }
@@ -82,26 +82,25 @@ return new class extends Migration {
     /**
      * Decide which alias a class should be rewritten to.
      *
-     * The application's morph map is preferred over the frozen alias, because a host that
-     * registers an alias of its own for one of these models has that alias written by
-     * ordinary model writes and constrained on by `$paragraph->annotations()`. Writing the
-     * package alias to a host like that would split the column across two discriminators and
-     * lose every pre-upgrade row from the relation — the failure this migration exists to
-     * prevent.
+     * The answer is whatever the application's morph map says, which is the same lookup
+     * `$paragraph->annotations()` constrains on and the same one ordinary model writes
+     * store. A host that registers an alias of its own for one of these models therefore
+     * gets its own alias written, rather than a column split across two discriminators.
      *
-     * The frozen alias is the fallback for a process with no morph map registered at all,
-     * which is what 3.0.0 will read those rows as.
+     * When the map holds no alias for the class, this returns the class name and the rewrite
+     * becomes a no-op. That is deliberate. It happens when a host has claimed one of this
+     * package's alias names for a model of its own, displacing the package's entry — and in
+     * that state 3.0.0 writes the class name too, so leaving the rows alone keeps them
+     * matching. Substituting the frozen alias here would convert working rows into rows that
+     * both fall out of the relation and raise on read.
      *
      * @param string $class The class name stored by earlier releases.
-     * @param string $alias The alias this package registers for that class.
      *
-     * @return string The value to store.
+     * @return string The value to store, or the class itself when nothing aliases it.
      */
-    private function aliasFor(string $class, string $alias): string
+    private function aliasFor(string $class): string
     {
-        $registered = Relation::getMorphAlias($class);
-
-        return $registered === $class ? $alias : $registered;
+        return Relation::getMorphAlias($class);
     }
 
     /**
@@ -123,6 +122,10 @@ return new class extends Migration {
      */
     private function rewrite(string $from, string $to): void
     {
+        if ($from === $to) {
+            return;
+        }
+
         DB::table(self::TABLE)
             ->whereRaw('LOWER(reference_type) IN (?, ?)', [
                 strtolower($from),

@@ -18,6 +18,21 @@ class HostParagraph extends Paragraph
 {
 }
 
+/** A host subclass that sets its discriminator by overriding the accessor, not by aliasing. */
+class OverridingParagraph extends Paragraph
+{
+
+    /**
+     * Report a discriminator of the subclass's own choosing.
+     *
+     * @return string The morph class.
+     */
+    public function getMorphClass(): string
+    {
+        return 'overriding_paragraph';
+    }
+}
+
 /**
  * Test the {@link Annotation} reference type allow-list.
  *
@@ -557,6 +572,33 @@ class AnnotationReferenceTypeTest extends TestCase
         ]);
 
         $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /**
+     * A subclass that overrides getMorphClass() has that override stored.
+     *
+     * Overriding the accessor is the other way a host sets a discriminator, and it is
+     * invisible to the morph map. The parent relation constrains on the same method, so
+     * storing anything else would leave the annotation out of
+     * <code>$paragraph->annotations()</code>.
+     */
+    #[Test]
+    public function subclassMorphClassOverrideIsStored(): void
+    {
+        $paragraph = OverridingParagraph::find(Paragraph::factory()->create()->paragraph_id);
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => OverridingParagraph::class,
+            'content' => 'On a subclass that overrides its morph class.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => 'overriding_paragraph',
+        ]);
+
         $this->assertCount(1, $paragraph->annotations);
     }
 

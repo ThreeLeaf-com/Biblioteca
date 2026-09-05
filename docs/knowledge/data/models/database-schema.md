@@ -90,7 +90,10 @@ constant cannot retroactively alter what a 2.x upgrade writes.
 The target alias is read from the morph map, so a host that registers its own
 alias for one of these models has that alias written rather than the package's —
 otherwise the migrated rows would not match the relation the host's own
-`getMorphClass()` constrains on.
+`getMorphClass()` constrains on. Where the map holds no alias for the class, the
+rewrite is skipped rather than forced to the package alias: that state means a
+host has displaced the package's entry, and 3.0.0 stores the class name there
+too, so the untouched rows keep matching.
 
 `down()` restores the class names, in canonical letter case, and is intended for
 a downgrade to 2.x. It is less conservative than `up()`: it rewrites the

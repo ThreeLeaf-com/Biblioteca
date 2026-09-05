@@ -98,9 +98,11 @@ morph map rather than from `REFERENCE_TYPES` is what makes the host's map
 authoritative when the two disagree — including in the degenerate case where no
 map is registered and both sides fall back to the class name.
 
-The alias is read without instantiating the model. `getMorphClass()` on a fresh
-instance returns the same value, but constructing the class would run a host
-subclass's constructor during validation of an unauthenticated request.
+The value is read from an instance built without its constructor, so no host
+subclass constructor runs during validation of an unauthenticated request.
+`Relation::getMorphAlias()` would avoid the instance altogether but is not
+equivalent: it consults the morph map alone, and a subclass may instead set its
+discriminator by overriding `getMorphClass()`, which the map cannot see.
 
 The map is registered with `Relation::morphMap()`, never
 `Relation::enforceMorphMap()`. The latter also sets `requireMorphMap()`, a
