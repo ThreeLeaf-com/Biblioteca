@@ -53,6 +53,8 @@ Thumbs.db
 
 # AI
 .agent-config.json
+scripts/okf_validate.py
+docs/devops/
 .cursorignore
 .cursorrules
 AGENTS.md
@@ -76,3 +78,7 @@ auth.json
 hot
 production.*
 staging.*
+
+# Python bytecode
+__pycache__/
+*.py[cod]
