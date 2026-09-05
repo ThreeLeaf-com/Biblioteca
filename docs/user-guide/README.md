@@ -164,11 +164,11 @@ If `chapter_number` is omitted, the service assigns the next one for that book.
 > directly to a `Paragraph` or `Sentence` row is discarded on the next chapter
 > update. Treat the chapter's `content` as the authority.
 >
-> The replace is atomic as of 2.3.0: the old rows are deleted before the new
+> The replace is atomic as of 2.2.1: the old rows are deleted before the new
 > ones are written, but both happen in one transaction, so a failure in between
-> restores what was there. On 2.2.0 and earlier it was not, and such a failure
-> left the rows deleted — wrap your own `ChapterService` calls in
-> `DB::transaction()` on those releases. See
+> rolls the delete back and your existing rows are never lost. On 2.2.0 and
+> earlier it was not, and such a failure left the rows deleted — wrap your own
+> `ChapterService` calls in `DB::transaction()` on those releases. See
 > [Chapter Text Parsing](../knowledge/features/chapter-text-parsing.md).
 
 Writing a `Paragraph` directly does **not** re-parse its sentences — only a

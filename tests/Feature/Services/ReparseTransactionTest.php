@@ -8,6 +8,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
+use ThreeLeaf\Biblioteca\Repositories\ChapterRepository;
 use ThreeLeaf\Biblioteca\Repositories\ParagraphRepository;
 use ThreeLeaf\Biblioteca\Services\ChapterService;
 use ThreeLeaf\Biblioteca\Services\ParagraphService;
@@ -93,7 +94,7 @@ class ReparseTransactionTest extends TestCase
         $this->assertCount(3, $before);
 
         $service = new ChapterService(
-            app(\ThreeLeaf\Biblioteca\Repositories\ChapterRepository::class),
+            app(ChapterRepository::class),
             app(FailingParagraphService::class),
         );
 
@@ -126,12 +127,13 @@ class ReparseTransactionTest extends TestCase
         $this->assertGreaterThan(0, $before);
 
         $service = new ChapterService(
-            app(\ThreeLeaf\Biblioteca\Repositories\ChapterRepository::class),
+            app(ChapterRepository::class),
             app(FailingParagraphService::class),
         );
 
         try {
             $service->parseChapterContents($chapter);
+            $this->fail('The re-parse was expected to fail.');
         } catch (RuntimeException) {
             /* Expected. */
         }
@@ -184,9 +186,13 @@ class ReparseTransactionTest extends TestCase
         app(ChapterService::class)->parseChapterContents($chapter);
         $this->assertSame(3, Paragraph::where('chapter_id', $chapter->chapter_id)->count());
 
-        $chapter->update(['content' => "Only one paragraph now. With two sentences."]);
+        $chapter->update(['content' => 'Only one paragraph now. With two sentences.']);
         app(ChapterService::class)->parseChapterContents($chapter);
 
-        $this->assertSame(1, Paragraph::where('chapter_id', $chapter->chapter_id)->count());
+        $paragraphIds = Paragraph::where('chapter_id', $chapter->chapter_id)->pluck('paragraph_id');
+        $this->assertCount(1, $paragraphIds);
+
+        /* Without this the paragraph rebuild could pass while sentence parsing did nothing. */
+        $this->assertSame(2, Sentence::whereIn('paragraph_id', $paragraphIds)->count());
     }
 }
