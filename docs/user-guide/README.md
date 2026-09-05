@@ -221,9 +221,9 @@ $annotation = $paragraph->annotations()->create([
 ```
 
 The value has to denote `Paragraph` or `Sentence`. Their class names work in any
-letter case, as does a subclass of either, and so does a morph alias if you have
-registered one — the package reads `getMorphClass()` like any other Eloquent
-relation. Anything else throws `InvalidReferenceTypeException`, and the API
+letter case — a mis-cased name is stored in its canonical form so the parent's
+`annotations()` still finds it — as does a subclass of either, and so does a
+morph alias if you have registered one, which is kept exactly as you wrote it. Anything else throws `InvalidReferenceTypeException`, and the API
 returns `422` for the same values. The API also rejects a `reference_id` that is
 not a real row in the matching table.
 

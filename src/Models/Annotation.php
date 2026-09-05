@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
@@ -28,7 +29,7 @@ use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
  *     description="An annotation applied to a paragraph or sentence",
  *     @OA\Property(property="annotation_id", type="string", description="Unique identifier for the annotation in UUID format"),
  *     @OA\Property(property="reference_id", type="string", description="Reference UUID for the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", enum={"ThreeLeaf\Biblioteca\Models\Paragraph", "ThreeLeaf\Biblioteca\Models\Sentence"}, example="ThreeLeaf\Biblioteca\Models\Sentence", description="The class of the referenced entity. Only Paragraph and Sentence are permitted"),
+ *     @OA\Property(property="reference_type", type="string", example="ThreeLeaf\Biblioteca\Models\Sentence", description="The referenced entity: the canonical class name of a Paragraph or Sentence, a subclass of one, or a morph alias the host application has registered"),
  *     @OA\Property(property="content", type="string", description="The content of the annotation"),
  *     @OA\Property(
  *         property="reference",
@@ -95,8 +96,12 @@ class Annotation extends Model
      * {@link Paragraph} or {@link Sentence} keeps working: Eloquent writes
      * <code>getMorphClass()</code>, which is the alias under such a map.
      *
-     * The value is returned in the form it should be stored — the alias when one was
-     * given — so this method never rewrites a host's discriminator.
+     * A morph alias is stored exactly as given, because it is the host's own discriminator
+     * and {@link Model::getMorphClass()} writes that same alias. Anything else is stored in
+     * its canonical form: {@link MorphOneOrMany} constrains on `getMorphClass()` with a
+     * case-sensitive comparison on most engines, so storing a case variant would leave the
+     * annotation readable through its own `reference` yet missing from
+     * `$paragraph->annotations()`.
      *
      * @param string $referenceType The reference type to check.
      *
@@ -107,10 +112,10 @@ class Annotation extends Model
     public static function assertReferenceType(string $referenceType): string
     {
         $normalized = ltrim($referenceType, '\\');
+        $isAlias = Relation::getMorphedModel($normalized) !== null;
+        $resolved = self::resolveReferenceType($normalized);
 
-        self::resolveReferenceType($normalized);
-
-        return $normalized;
+        return $isAlias ? $normalized : $resolved;
     }
 
     /**

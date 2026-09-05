@@ -71,6 +71,13 @@ value is accepted when it *denotes* one of them:
 
 A morph map can *alias* a permitted model. It cannot widen the set.
 
+What is *stored* is canonical: a morph alias is kept as given, since that is what
+`getMorphClass()` writes, and anything else is written in its canonical class
+form. `MorphOneOrMany` constrains on `getMorphClass()` with a case-sensitive
+comparison on most engines, so storing a submitted case variant verbatim would
+leave the annotation readable through its own `reference` yet missing from
+`$paragraph->annotations()`.
+
 **At the HTTP boundary**, `AnnotationRequest` validates `reference_type` through
 the same resolver the model uses — not a literal `Rule::in` list, which would
 reject aliases, subclasses and case variants and leave a morph-map host with no
@@ -99,8 +106,11 @@ override on `Annotation` never runs there.
 
 Eloquent does not run mutators when hydrating from the database, nor for writes
 that skip the model's attribute pipeline. `Annotation::insert()`,
-`Annotation::upsert()`, `Annotation::query()->update()` and a direct `INSERT`
-all store whatever they are given.
+`Annotation::upsert()`, `Annotation::query()->update()`,
+`setRawAttributes()` followed by `save()`, and a direct `INSERT` all store
+whatever they are given. Treat that as the shape of the gap rather than a closed
+list: any API that writes an attribute without passing through the mutator
+belongs to it.
 
 Reads have an equivalent gap. The relationship-existence family — `has()`,
 `doesntHave()`, `whereHasMorph()` and their `or`/`Not` variants — reads
@@ -116,7 +126,7 @@ left to the operator rather than done by migration: an automatic sweep cannot
 tell an attacker's row from a legitimate one whose morph map simply is not
 registered in the migration process, and clearing the second is data loss.
 
-## What this control does not do## What this control does not do
+## What this control does not do
 
 `authorize()` returns `true` in all eleven form requests. **Validation is not
 authorization.** A request can be perfectly well-formed and still come from
@@ -145,8 +155,9 @@ Nor does validation cover:
 # Citations
 
 - Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` lists
-  `Paragraph::class` and `Sentence::class`; `AnnotationRequest::rules()` applies
-  `Rule::in(Annotation::REFERENCE_TYPES)`.
+  `Paragraph::class` and `Sentence::class`; `AnnotationRequest::rules()` resolves
+  the submitted type through `Annotation::resolveReferenceType()` rather than a
+  literal `Rule::in` list.
 - Verified 2026-09-05 by execution — `Annotation::create()`,
   `$annotation->reference`, `Annotation::with('reference')` and
   `->load('reference')` each raise `InvalidReferenceTypeException` for an

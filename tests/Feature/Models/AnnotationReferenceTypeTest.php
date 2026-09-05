@@ -263,6 +263,55 @@ class AnnotationReferenceTypeTest extends TestCase
         $this->assertTrue(Annotation::find($annotationId)->reference->is($paragraph));
     }
 
+    /**
+     * A mis-cased class name is stored canonically, so the parent relation still finds it.
+     *
+     * {@link \Illuminate\Database\Eloquent\Relations\MorphOneOrMany} constrains on the
+     * parent's `getMorphClass()`, and that comparison is case-sensitive on most engines.
+     * Storing the submitted case would leave the annotation readable through its own
+     * `reference` yet absent from `$paragraph->annotations()`.
+     */
+    #[Test]
+    public function misCasedClassNameIsStoredCanonically(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => strtolower(Paragraph::class),
+            'content' => 'Written with a mis-cased class name.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => Paragraph::class,
+        ]);
+
+        $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /** A subclass is stored as itself, so its own relation still finds it. */
+    #[Test]
+    public function subclassIsStoredAsItself(): void
+    {
+        $paragraph = HostParagraph::find(Paragraph::factory()->create()->paragraph_id);
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => HostParagraph::class,
+            'content' => 'On a host subclass.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => HostParagraph::class,
+        ]);
+
+        $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
     /** A host subclass of a permitted model is accepted. */
     #[Test]
     public function hostSubclassIsAccepted(): void

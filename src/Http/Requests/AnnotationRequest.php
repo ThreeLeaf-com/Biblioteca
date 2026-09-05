@@ -60,45 +60,71 @@ class AnnotationRequest extends FormRequest
      * <code>reference_id</code> is then checked against the table that type resolves to, so
      * an annotation cannot be attached to a row that does not exist.
      *
+     * The type is resolved once here and both rules are built from the result, rather than
+     * each rule resolving it again. Resolution can reach the autoloader for an unrecognised
+     * name, and these requests are unauthenticated by default.
+     *
      * This is the HTTP half of the constraint. {@link Annotation} applies the same check to
-     * every model write and to its own read paths, so a caller that bypasses the API is
+     * ordinary model writes and to its own read paths, so a caller that bypasses the API is
      * held to it too.
      *
      * @return array<string, array<int, Closure|Stringable|string>> The validation rules for the annotation request.
      */
     public function rules(): array
     {
+        $modelClass = $this->resolvedReferenceType();
+
         return [
-            'reference_id' => $this->referenceIdRules(),
-            'reference_type' => ['bail', 'required', 'string', $this->referenceTypeRule()],
+            'reference_id' => $this->referenceIdRules($modelClass),
+            'reference_type' => ['bail', 'required', 'string', $this->referenceTypeRule($modelClass)],
             'content' => ['required', 'string'],
         ];
     }
 
     /**
+     * Resolve the submitted reference type to a permitted model class.
+     *
+     * @return class-string<\Illuminate\Database\Eloquent\Model>|null The resolved class, or null when the value does not denote one.
+     */
+    private function resolvedReferenceType(): ?string
+    {
+        $referenceType = $this->input('reference_type');
+
+        if (!is_string($referenceType)) {
+            return null;
+        }
+
+        try {
+            return Annotation::resolveReferenceType($referenceType);
+        } catch (InvalidReferenceTypeException) {
+            return null;
+        }
+    }
+
+    /**
      * Build the <code>reference_type</code> rule.
      *
-     * This defers to {@link Annotation::resolveReferenceType()} rather than listing the
-     * permitted classes with <code>Rule::in()</code>, so the API accepts exactly what the
-     * model accepts: a morph alias the host has registered, a subclass, or a class name in
-     * any letter case. A literal list would reject all three and leave a morph-map host
-     * with no working API path.
+     * This reports the outcome of {@link Annotation::resolveReferenceType()} rather than
+     * listing the permitted classes with <code>Rule::in()</code>, so the API accepts exactly
+     * what the model accepts: a morph alias the host has registered, a subclass, or a class
+     * name in any letter case. A literal list would reject all three and leave a morph-map
+     * host with no working API path.
+     *
+     * @param string|null $modelClass The resolved model class, or null when resolution failed.
      *
      * @return Closure The reference type rule.
      */
-    private function referenceTypeRule(): Closure
+    private function referenceTypeRule(?string $modelClass): Closure
     {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            try {
-                Annotation::resolveReferenceType((string) $value);
-            } catch (InvalidReferenceTypeException) {
+        return function (string $attribute, mixed $value, Closure $fail) use ($modelClass): void {
+            if ($modelClass === null) {
                 $fail('The :attribute must reference a paragraph or a sentence.');
             }
         };
     }
 
     /**
-     * Build the <code>reference_id</code> rules for the submitted reference type.
+     * Build the <code>reference_id</code> rules for the resolved reference type.
      *
      * The <code>exists</code> rule can only be added once the reference type is known to
      * denote a permitted model. When it does not, the rule is omitted and the
@@ -107,21 +133,17 @@ class AnnotationRequest extends FormRequest
      * {@link \Illuminate\Validation\Rules\DatabaseRule::resolveTableName()} reads the
      * model's connection only when it is given a class name.
      *
+     * @param string|null $modelClass The resolved model class, or null when resolution failed.
+     *
      * @return array<int, Stringable|string> The rules for the reference identifier.
      */
-    private function referenceIdRules(): array
+    private function referenceIdRules(?string $modelClass): array
     {
         $rules = ['bail', 'required', 'uuid'];
-        $referenceType = $this->input('reference_type');
 
-        if (is_string($referenceType)) {
-            try {
-                $modelClass = Annotation::resolveReferenceType($referenceType);
-                /* The class, not the table name, so the rule follows the model's own connection. */
-                $rules[] = Rule::exists($modelClass, (new $modelClass())->getKeyName());
-            } catch (InvalidReferenceTypeException) {
-                /* Reported by the reference_type rule; nothing to add here. */
-            }
+        if ($modelClass !== null) {
+            /* The class, not the table name, so the rule follows the model's own connection. */
+            $rules[] = Rule::exists($modelClass, (new $modelClass())->getKeyName());
         }
 
         return $rules;
