@@ -164,7 +164,7 @@ If `chapter_number` is omitted, the service assigns the next one for that book.
 > directly to a `Paragraph` or `Sentence` row is discarded on the next chapter
 > update. Treat the chapter's `content` as the authority.
 >
-> The replace is atomic as of 2.2.1: the old rows are deleted before the new
+> The replace is atomic as of 2.3.0: the old rows are deleted before the new
 > ones are written, but both happen in one transaction, so a failure in between
 > rolls the delete back and your existing rows are never lost. On 2.2.0 and
 > earlier it was not, and such a failure left the rows deleted — wrap your own
@@ -293,9 +293,10 @@ returns `true`.
 Combined with cascading deletes, an exposed `DELETE authors/{author_id}` will
 remove an author's entire library.
 
-Every write route in the example file now routes its input through a form
-request. That is validation, not authorization — a well-formed payload from an
-anonymous caller is still accepted.
+Validation is not authorization: a well-formed payload from an anonymous caller
+is still accepted. And validation covers request *bodies* — the routes that take
+only path parameters resolve them with `findOrFail()`, which reports a missing
+row but nothing about who asked.
 
 Before exposing any of these routes:
 

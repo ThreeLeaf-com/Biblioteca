@@ -4,7 +4,7 @@ title: REST Endpoints
 description: The example API route file, the resource endpoints it declares, and the request and response contracts behind them.
 resource: routes/api.php
 tags: [api, rest, routes, openapi]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T12:00:00Z
 ---
 
 # REST Endpoints
@@ -61,14 +61,24 @@ or `ResourceCollection` from
 [`src/Http/Resources/`](../../../src/Http/Resources) — see
 [Input Validation](/security/input-validation.md).
 
-**The five non-resource routes do neither.** `library.index`, `books.addTags`,
-`books.removeTag`, `books.addGenres`, and `books.removeGenre` return a plain
-`response()->json([...])` rather than a resource.
+**The five non-resource routes return no resource.** `library.index`,
+`books.addTags`, `books.removeTag`, `books.addGenres`, and `books.removeGenre`
+return a plain `response()->json([...])`. Two of them — `books.addTags` and
+`books.addGenres` — do validate through a `FormRequest` as of 2.3.0.
 
-None of the four book-pivot routes uses a form request, so their input is not
-validated the way the resource routes' input is: a non-existent tag or genre id
-surfaces as a database foreign-key error rather than a 422. Validate these
-payloads in the host application. See
+Since 2.3.0 the two book-pivot routes that take a body do use a form request:
+`books.addTags` takes `BookTagRequest` and `books.addGenres` takes
+`BookGenreRequest`, each requiring an array whose every element is a UUID
+present in the referenced table. A batch containing one unknown identifier
+attaches none of it.
+
+`books.removeTag` and `books.removeGenre` carry no body, so they take no request
+object, but they resolve their path identifier with `findOrFail()` — an unknown
+one is a 404 rather than the silent 200 it used to be.
+
+Before 2.3.0 none of the four validated anything, and an unknown identifier
+surfaced as a database foreign-key error rather than a 422. See
+[Input Validation](/security/input-validation.md) and
 [Authorization Boundary](/security/authorization-boundary.md).
 
 Controllers return `Illuminate\Http\JsonResponse` and use
@@ -84,6 +94,10 @@ annotations. The generated OpenAPI document is the authoritative contract — se
 a host application's specification.
 
 # Citations
+
+- Verified 2026-09-05 against git HEAD — `BookController::addTags()` and
+  `addGenres()` accept `BookTagRequest` / `BookGenreRequest`; `removeTag()` and
+  `removeGenre()` call `Tag::findOrFail()` / `Genre::findOrFail()`.
 
 - Verified 2026-09-04 against git HEAD — every route, route name, and path
   parameter enumerated from `routes/api.php`.

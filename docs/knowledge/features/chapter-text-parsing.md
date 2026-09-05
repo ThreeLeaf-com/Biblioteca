@@ -49,7 +49,7 @@ The consequence is that **any edit made directly to a paragraph or sentence row
 is lost the next time its chapter is updated through the service.** Treat
 chapter `content` as the authority and the derived rows as a cache.
 
-**The delete-then-rebuild sequence is transactional** as of 2.2.1. Both
+**The delete-then-rebuild sequence is transactional** as of 2.3.0. Both
 `parseChapterContents()` and `parseParagraphContents()` wrap their work in
 `DB::transaction()`, so a rebuild that fails part-way — a constraint violation, a
 lost connection, a PHP error — rolls the delete back and leaves the existing
@@ -57,7 +57,7 @@ paragraphs and sentences in place. Chapter parsing calls paragraph parsing, and
 Laravel nests the inner transaction as a savepoint, so the sentences written
 during a chapter rebuild cannot commit independently of it.
 
-Before 2.2.1 neither did, and such a failure left the chapter with its
+Before 2.3.0 neither did, and such a failure left the chapter with its
 paragraphs and sentences gone and not restored. The workaround on those releases
 is to wrap your own `ChapterService` calls in `DB::transaction()`.
 

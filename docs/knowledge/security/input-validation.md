@@ -9,13 +9,13 @@ timestamp: 2026-09-05T12:00:00Z
 
 # Input Validation
 
-Validation is the one protection the package implements itself. Eleven
+Validation is the one protection the package implements itself. Thirteen
 `FormRequest` classes live in
 [`src/Http/Requests/`](../../../src/Http/Requests), one per entity that has an
 HTTP surface. Laravel resolves them before the controller method runs, so on the
 routes that use them an invalid payload does not reach a model.
 
-Since 2.2.1 that includes the four book-pivot routes, which previously
+Since 2.3.0 that includes the four book-pivot routes, which previously
 validated nothing. `books.addTags` and `books.addGenres` now take
 `BookTagRequest` and `BookGenreRequest`, each requiring an array whose every
 element is a UUID present in the referenced table. `books.removeTag` and
@@ -134,7 +134,7 @@ registered in the migration process, and clearing the second is data loss.
 
 ## What this control does not do
 
-`authorize()` returns `true` in all eleven form requests. **Validation is not
+`authorize()` returns `true` in all thirteen form requests. **Validation is not
 authorization.** A request can be perfectly well-formed and still come from
 someone with no right to make it. See
 [Authorization Boundary](/security/authorization-boundary.md).
@@ -182,14 +182,14 @@ Nor does validation cover:
   `HasRelationships::morphInstanceTo()` calls
   `static::getActualClassNameForMorph()` while `MorphTo::createModelByType()`
   calls `Model::getActualClassNameForMorph()`.
-- Verified 2026-09-04 against git HEAD — all 11 files in `src/Http/Requests/`
+- Verified 2026-09-04 against git HEAD — all 13 files in `src/Http/Requests/`
   implement `authorize(): bool` returning `true`.
 - Verified 2026-09-05 against git HEAD — `addTags()` and `addGenres()` accept
   `BookTagRequest` / `BookGenreRequest`; `removeTag()` and `removeGenre()` call
   `Tag::findOrFail()` / `Genre::findOrFail()` before detaching.
-- Verified 2026-09-05 by execution — against the pre-2.2.1 controller, five
+- Verified 2026-09-05 by execution — against the pre-2.3.0 controller, five
   tests covering malformed, non-UUID, unknown and partially valid identifiers
-  all fail; against 2.2.1 they pass.
+  all fail; against 2.3.0 they pass.
 - Verified 2026-09-04 against git HEAD — `BookRequest::rules()` uses
   `'exists:' . Author::TABLE_NAME . ',author_id'`.
 - Verified 2026-09-04 against git HEAD — `AuthorRequest::rules()` uses

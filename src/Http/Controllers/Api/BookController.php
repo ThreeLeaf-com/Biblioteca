@@ -276,14 +276,19 @@ class BookController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Invalid request"
-     *     ),
-     *     @OA\Response(
      *         response=404,
      *         description="Book not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed"
      *     )
      * )
+     *
+     * @param BookGenreRequest $request The validated request containing the genre identifiers.
+     * @param string           $book_id The book to attach the genres to.
+     *
+     * @return JsonResponse Confirmation that the genres were attached.
      */
     public function addGenres(BookGenreRequest $request, $book_id): JsonResponse
     {

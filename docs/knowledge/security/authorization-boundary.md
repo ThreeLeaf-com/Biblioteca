@@ -4,7 +4,7 @@ title: Authorization Boundary
 description: The package ships no authentication or authorization, and what the host application must add before exposing its routes.
 resource: routes/api.php
 tags: [security, authorization, laravel]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T12:00:00Z
 ---
 
 # Authorization Boundary
@@ -68,8 +68,8 @@ destructive ones.
   `Route::middleware(...)` call; the quoted example is its header comment.
 - Verified 2026-09-04 against git HEAD — `AuthorRequest::authorize()` returns
   `true`; the same pattern holds across `src/Http/Requests/`.
-- Verified 2026-09-04 against git HEAD — `ChapterService::parseChapterContents()`
-  contains no `DB::transaction()` call.
+- Verified 2026-09-05 against git HEAD — `ChapterService::parseChapterContents()`
+  wraps its body in `DB::transaction()` as of 2.3.0.
 - Verified 2026-09-04 against git HEAD — foreign keys in
   `database/migrations/2024_10_07_000000_create_bibliotecha_tables.php` use
   `onDelete('cascade')` except `b_books.publisher_id`.

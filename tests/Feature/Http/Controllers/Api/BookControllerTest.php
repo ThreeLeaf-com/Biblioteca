@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
@@ -304,5 +305,74 @@ class BookControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_OK);
         $this->assertSame(1, $book->tags()->count());
+    }
+
+    /**
+     * The element rules reject a value that trims to empty, without relying on middleware.
+     *
+     * Laravel skips an element's whole rule set when the value trims to empty and no
+     * implicit rule is present, so `['"'"''"'"']` would pass through unvalidated. The stock
+     * `ConvertEmptyStringsToNull` middleware masks this over HTTP, which is why this is
+     * asserted against the rules directly — the guarantee has to come from the rules, not
+     * from the host's middleware stack.
+     */
+    #[Test]
+    public function elementRulesRejectEmptyAndWhitespaceIdentifiers(): void
+    {
+        $tag = Tag::factory()->create();
+        $genre = Genre::factory()->create();
+
+        foreach ([
+            [new \ThreeLeaf\Biblioteca\Http\Requests\BookTagRequest(), 'tag_ids', $tag->tag_id],
+            [new \ThreeLeaf\Biblioteca\Http\Requests\BookGenreRequest(), 'genre_ids', $genre->genre_id],
+        ] as [$request, $field, $validId]) {
+            $rules = $request->rules();
+
+            foreach (['', ' ', "\t"] as $value) {
+                $this->assertTrue(
+                    Validator::make([$field => [$value]], $rules)->fails(),
+                    "$field accepted a value that trims to empty.",
+                );
+            }
+
+            $this->assertFalse(
+                Validator::make([$field => [$validId]], $rules)->fails(),
+                "$field rejected a valid identifier.",
+            );
+        }
+    }
+
+    /** Removing a genre that exists but is not attached is still a success. */
+    #[Test]
+    public function removeGenreThatIsNotAttachedSucceeds(): void
+    {
+        $book = Book::factory()->create();
+        $attached = Genre::factory()->create();
+        $unattached = Genre::factory()->create();
+        $book->genres()->attach($attached);
+
+        $response = $this->deleteJson(
+            route('books.removeGenre', ['book_id' => $book->book_id, 'genre_id' => $unattached->genre_id])
+        );
+
+        $response->assertStatus(HttpCodes::HTTP_OK);
+        $this->assertSame(1, $book->genres()->count());
+    }
+
+    /** An empty or absent identifier list is rejected rather than silently doing nothing. */
+    #[Test]
+    public function addTagsRejectsAnEmptyList(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([[], ['tag_ids' => []], ['tag_ids' => null]] as $payload) {
+            $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), $payload)
+                ->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        foreach ([[], ['genre_ids' => []], ['genre_ids' => null]] as $payload) {
+            $this->postJson(route('books.addGenres', ['book_id' => $book->book_id]), $payload)
+                ->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 }

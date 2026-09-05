@@ -40,9 +40,14 @@ class BookGenreRequest extends FormRequest
      *
      * Each identifier is checked against the genres table, so an unknown one is reported as a
      * validation error rather than reaching the pivot insert and surfacing as a foreign-key
-     * failure. The rule is built from the model class rather than its table name, because
-     * {@link \Illuminate\Validation\Rules\DatabaseRule::resolveTableName()} reads the
-     * model's connection only when it is given a class name.
+     * failure.
+     *
+     * <code>required</code> on the element is not redundant. Without an implicit rule
+     * present, Laravel skips the whole element rule set for a value that trims to empty, so
+     * <code>[""]</code> and <code>[" "]</code> would pass the array through unvalidated and
+     * reach the database. The stock <code>ConvertEmptyStringsToNull</code> middleware
+     * happens to turn those into <code>null</code>, but that is the host's middleware
+     * stack, not this rule's guarantee.
      *
      * @return array<string, array<int, ValidationRule|string>> The validation rules for the request.
      */
@@ -50,7 +55,7 @@ class BookGenreRequest extends FormRequest
     {
         return [
             'genre_ids' => ['required', 'array'],
-            'genre_ids.*' => ['bail', 'uuid', Rule::exists(Genre::class, 'genre_id')],
+            'genre_ids.*' => ['bail', 'required', 'uuid', Rule::exists(Genre::class, 'genre_id')],
         ];
     }
 }
