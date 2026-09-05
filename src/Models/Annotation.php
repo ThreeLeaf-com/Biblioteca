@@ -18,7 +18,7 @@ use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
  *
  * @property string                  $annotation_id   Unique identifier for the annotation in UUID format.
  * @property string                  $reference_id    Reference UUID for the associated paragraph or sentence.
- * @property string                  $reference_type  The type/class of the referenced entity (paragraph or sentence).
+ * @property string                  $reference_type  The morph alias of the referenced entity (paragraph or sentence).
  * @property string                  $content         The content of the annotation.
  * @property-read Paragraph|Sentence $reference       Reference to the paragraph or sentence associated with this annotation.
  *
@@ -29,7 +29,7 @@ use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
  *     description="An annotation applied to a paragraph or sentence",
  *     @OA\Property(property="annotation_id", type="string", description="Unique identifier for the annotation in UUID format"),
  *     @OA\Property(property="reference_id", type="string", description="Reference UUID for the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="ThreeLeaf\Biblioteca\Models\Sentence", description="The referenced entity: the canonical class name of a Paragraph or Sentence, a subclass of one, or a morph alias the host application has registered"),
+ *     @OA\Property(property="reference_type", type="string", example="b_sentences", description="The morph alias of the referenced entity: b_paragraphs or b_sentences, or the alias of a host subclass of one of them"),
  *     @OA\Property(property="content", type="string", description="The content of the annotation"),
  *     @OA\Property(
  *         property="reference",
@@ -50,7 +50,7 @@ class Annotation extends Model
     public const TABLE_NAME = BibliotecaConstants::TABLE_PREFIX . 'annotations';
 
     /**
-     * The only classes an annotation may reference.
+     * The only classes an annotation may reference, keyed by their morph alias.
      *
      * <code>reference_type</code> is the class Eloquent resolves when the polymorphic
      * reference is read, so the column decides what gets instantiated. Restricting it here
@@ -58,11 +58,16 @@ class Annotation extends Model
      * covers writes that never touch HTTP — <code>Annotation::create()</code> in host code,
      * for one — and rows written by a release that did not constrain the column.
      *
-     * @var array<int, class-string<Model>>
+     * The keys are the aliases {@link \ThreeLeaf\Biblioteca\Providers\BibliotecaServiceProvider}
+     * registers with {@link Relation::morphMap()}, and are what the column stores as of
+     * 3.0.0. Declaring the allow-list and the morph map in one place keeps them from
+     * drifting apart.
+     *
+     * @var array<string, class-string<Model>>
      */
     public const REFERENCE_TYPES = [
-        Paragraph::class,
-        Sentence::class,
+        Paragraph::TABLE_NAME => Paragraph::class,
+        Sentence::TABLE_NAME => Sentence::class,
     ];
 
     public $timestamps = false;
@@ -90,18 +95,28 @@ class Annotation extends Model
     /**
      * Reject a reference type that does not denote a permitted model.
      *
-     * A leading backslash is accepted and stripped, because <code>\Foo\Bar</code> and
-     * <code>Foo\Bar</code> name the same class. The value is then resolved through the
-     * application's morph map before it is checked, so a host that has aliased
-     * {@link Paragraph} or {@link Sentence} keeps working: Eloquent writes
-     * <code>getMorphClass()</code>, which is the alias under such a map.
+     * The value is first resolved to the class it denotes — a leading backslash is accepted
+     * and stripped, because <code>\Foo\Bar</code> and <code>Foo\Bar</code> name the same
+     * class — and the class is then written back as its morph alias. A caller that still
+     * submits <code>ThreeLeaf\Biblioteca\Models\Paragraph</code>, as every client of 2.x
+     * did, therefore keeps working and has its value normalized to
+     * <code>b_paragraphs</code> on the way in.
      *
-     * A morph alias is stored exactly as given, because it is the host's own discriminator
-     * and {@link Model::getMorphClass()} writes that same alias. Anything else is stored in
-     * its canonical form: {@link MorphOneOrMany} constrains on `getMorphClass()` with a
-     * case-sensitive comparison on most engines, so storing a case variant would leave the
-     * annotation readable through its own `reference` yet missing from
-     * `$paragraph->annotations()`.
+     * The stored form is always {@link Model::getMorphClass()} of the resolved class, which
+     * under this package's map is <code>b_paragraphs</code> or <code>b_sentences</code>.
+     * Deferring to the model rather than reading {@link Annotation::REFERENCE_TYPES}
+     * directly is what keeps a host application's own aliasing working:
+     * {@link Relation::morphMap()} merges as <code>$map + static::$morphMap</code> and
+     * application providers boot after package providers, so a host that also aliases
+     * {@link Paragraph} takes precedence and <code>getMorphClass()</code> returns the host's
+     * alias. {@link MorphOneOrMany} constrains on that same method with a case-sensitive
+     * comparison on most engines, so storing anything else would leave the annotation
+     * readable through its own <code>reference</code> yet missing from
+     * <code>$paragraph->annotations()</code>.
+     *
+     * A host's own subclass of {@link Paragraph} or {@link Sentence} is stored the same way,
+     * under whatever alias the host registered for it, or under its class name when it
+     * registered none.
      *
      * @param string $referenceType The reference type to check.
      *
@@ -111,11 +126,9 @@ class Annotation extends Model
      */
     public static function assertReferenceType(string $referenceType): string
     {
-        $normalized = ltrim($referenceType, '\\');
-        $isAlias = Relation::getMorphedModel($normalized) !== null;
-        $resolved = self::resolveReferenceType($normalized);
+        $resolved = self::resolveReferenceType($referenceType);
 
-        return $isAlias ? $normalized : $resolved;
+        return (new $resolved())->getMorphClass();
     }
 
     /**
@@ -125,7 +138,7 @@ class Annotation extends Model
      * returns a class name rather than the stored discriminator, so callers instantiate a
      * class this model permits rather than re-resolving the raw string.
      *
-     * Matching is deliberately tolerant in two ways that cost nothing in safety, because
+     * Matching is deliberately tolerant in three ways that cost nothing in safety, because
      * the value must still denote {@link Paragraph} or {@link Sentence} either way:
      *
      * - **Case-insensitive**, since PHP resolves class names case-insensitively. A row
@@ -133,6 +146,10 @@ class Annotation extends Model
      *   names the same class.
      * - **Subclasses are accepted**, so a host that extends {@link Paragraph} or
      *   {@link Sentence} can annotate its own model.
+     * - **The package's own aliases resolve without the morph map**, so a process that
+     *   boots no service providers — a migration run through a bare kernel, for one — still
+     *   reads rows written by 3.0.0. The application's morph map is consulted first, so a
+     *   host that has repointed an alias keeps control of it.
      *
      * The case-insensitive comparison runs first and never autoloads, so the ordinary
      * values resolve without touching the autoloader at all. Only an unrecognised name
@@ -149,7 +166,9 @@ class Annotation extends Model
     public static function resolveReferenceType(string $referenceType): string
     {
         $normalized = ltrim($referenceType, '\\');
-        $resolved = Relation::getMorphedModel($normalized) ?? $normalized;
+        $resolved = Relation::getMorphedModel($normalized)
+            ?? self::aliasedReferenceType($normalized)
+            ?? $normalized;
 
         foreach (self::REFERENCE_TYPES as $permitted) {
             if (strcasecmp($resolved, $permitted) === 0) {
@@ -164,6 +183,28 @@ class Annotation extends Model
         }
 
         throw new InvalidReferenceTypeException($referenceType);
+    }
+
+    /**
+     * Look a value up among the aliases this package registers.
+     *
+     * This is the fallback {@link Annotation::resolveReferenceType()} uses when the
+     * application's morph map does not answer, so the package's own rows resolve in a
+     * process where the morph map was never registered.
+     *
+     * @param string $referenceType The stored reference type.
+     *
+     * @return class-string<Model>|null The aliased class, or null when the value is not one of the package's aliases.
+     */
+    private static function aliasedReferenceType(string $referenceType): ?string
+    {
+        foreach (self::REFERENCE_TYPES as $alias => $permitted) {
+            if (strcasecmp($referenceType, $alias) === 0) {
+                return $permitted;
+            }
+        }
+
+        return null;
     }
 
     /**

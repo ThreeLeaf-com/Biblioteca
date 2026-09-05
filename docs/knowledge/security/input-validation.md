@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-09-05T12:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Input Validation
@@ -62,27 +62,44 @@ default `$guarded = ['*']`. See [Domain Model](/data/models/domain-model.md).
 
 ## Polymorphic reference constraint
 
-`Annotation` is polymorphic: `reference_type` names the class Eloquent resolves
+`Annotation` is polymorphic: `reference_type` decides the class Eloquent resolves
 when the reference is read. An unconstrained value there is a class lookup
 driven by stored data, so the column is constrained in two layers.
 
-`Annotation::REFERENCE_TYPES` is the allow-list — `Paragraph` and `Sentence`. A
-value is accepted when it *denotes* one of them:
+`Annotation::REFERENCE_TYPES` is the allow-list, and as of 3.0.0 it is an
+`alias => class` map: `b_paragraphs => Paragraph`, `b_sentences => Sentence`.
+`BibliotecaServiceProvider::boot()` registers exactly that map with
+`Relation::morphMap()`, so the allow-list and the morph map cannot drift apart.
+A value is accepted when it *denotes* one of the two models:
 
 - resolved through the application's morph map first, so a host that has aliased
   either model keeps working (Eloquent writes `getMorphClass()`, which is the
   alias under such a map);
+- then through this package's own aliases, so rows written by 3.0.0 still resolve
+  in a process where the morph map was never registered;
 - compared case-insensitively, since PHP resolves class names that way;
 - satisfied by a subclass, so a host may annotate its own `Paragraph` subclass.
 
-A morph map can *alias* a permitted model. It cannot widen the set.
+A morph map can *alias* a permitted model. It cannot widen the set: an alias
+pointing at any other class is rejected exactly as the class name would be.
 
-What is *stored* is canonical: a morph alias is kept as given, since that is what
-`getMorphClass()` writes, and anything else is written in its canonical class
-form. `MorphOneOrMany` constrains on `getMorphClass()` with a case-sensitive
-comparison on most engines, so storing a submitted case variant verbatim would
-leave the annotation readable through its own `reference` yet missing from
-`$paragraph->annotations()`.
+What is *stored* is the resolved model's `getMorphClass()` — the alias under the
+package's map, or the host's own alias where the host has registered one, or the
+class name for a subclass with no alias. `MorphOneOrMany` constrains on that same
+method with a case-sensitive comparison on most engines, so storing anything else
+would leave the annotation readable through its own `reference` yet missing from
+`$paragraph->annotations()`. Reading it from the model rather than from
+`REFERENCE_TYPES` is what makes the host's map authoritative when the two
+disagree.
+
+The map is registered with `Relation::morphMap()`, never
+`Relation::enforceMorphMap()`. The latter also sets `requireMorphMap()`, a
+process-global flag that would make every unmapped morph in the *host*
+application throw — a package must not impose that on the application that
+installs it. The trade-off is that the package cannot detect a host claiming
+`b_paragraphs` or `b_sentences` for one of its own models, which would silently
+repoint the alias; nor a host calling `morphMap($map, false)`, which removes
+these entries entirely. Laravel reports neither.
 
 **At the HTTP boundary**, `AnnotationRequest` validates `reference_type` through
 the same resolver the model uses — not a literal `Rule::in` list, which would
@@ -160,10 +177,15 @@ Nor does validation cover:
 
 # Citations
 
-- Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` lists
-  `Paragraph::class` and `Sentence::class`; `AnnotationRequest::rules()` resolves
-  the submitted type through `Annotation::resolveReferenceType()` rather than a
+- Verified 2026-09-06 against git HEAD — `Annotation::REFERENCE_TYPES` maps
+  `Paragraph::TABLE_NAME` to `Paragraph::class` and `Sentence::TABLE_NAME` to
+  `Sentence::class`, and `BibliotecaServiceProvider::boot()` passes that same
+  constant to `Relation::morphMap()`; `AnnotationRequest::rules()` resolves the
+  submitted type through `Annotation::resolveReferenceType()` rather than a
   literal `Rule::in` list.
+- Verified 2026-09-06 by execution — `Relation::requiresMorphMap()` is `false`
+  after the provider boots, and a host alias registered for `Paragraph` after
+  boot is the value stored by `Annotation::create()`.
 - Verified 2026-09-05 by execution — `Annotation::create()`,
   `$annotation->reference`, `Annotation::with('reference')` and
   `->load('reference')` each raise `InvalidReferenceTypeException` for an

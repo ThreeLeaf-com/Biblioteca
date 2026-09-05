@@ -336,7 +336,7 @@ return new class extends Migration {
             $table->comment('Annotations for paragraphs and sentences');
             $table->uuid('annotation_id')->primary()->comment('Primary key of the annotation in UUID format');
             $table->uuid('reference_id')->comment('Reference UUID pointing to either a paragraph or a sentence');
-            $table->string('reference_type')->comment('The reference type / class');
+            $table->string('reference_type')->comment('The morph alias of the reference type');
             $table->text('content')->comment('The textual content of the annotation');
             $table->timestamp(Model::CREATED_AT)->useCurrent()->comment('The timestamp of when the annotation was created');
             $table->timestamp(Model::UPDATED_AT)->useCurrent()->useCurrentOnUpdate()->comment('The timestamp of when the annotation was last updated');

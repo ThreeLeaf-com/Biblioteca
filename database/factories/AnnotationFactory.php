@@ -77,6 +77,12 @@ class AnnotationFactory extends Factory
     /**
      * Helper method to generate annotation data for a specific reference type.
      *
+     * The stored <code>reference_type</code> is the model's morph alias, not its class name,
+     * which is what {@link Annotation::assertReferenceType()} writes and what the column has
+     * held since 3.0.0. It is read from the model itself rather than from
+     * {@link Annotation::REFERENCE_TYPES}, so generated rows follow a host application's own
+     * morph map exactly as application writes do.
+     *
      * @param class-string<Sentence|Paragraph> $referenceType
      *
      * @return array<string, mixed>
@@ -85,7 +91,7 @@ class AnnotationFactory extends Factory
     {
         return [
             'reference_id' => $referenceType::factory(),
-            'reference_type' => $referenceType,
+            'reference_type' => (new $referenceType())->getMorphClass(),
             'content' => $referenceType === Sentence::class
                 ? $this->faker->sentence()
                 : $this->faker->paragraph(),

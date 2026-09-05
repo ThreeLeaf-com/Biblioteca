@@ -4,7 +4,7 @@ title: Database Schema
 description: The b_-prefixed tables created by the package migration, their keys, unique constraints, and foreign-key cascade behaviour.
 resource: database/migrations/2024_10_07_000000_create_bibliotecha_tables.php
 tags: [data, schema, migrations]
-timestamp: 2026-09-05T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Database Schema
@@ -71,10 +71,18 @@ rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
 
 `reference_type` is a plain `string` column, so the database does not constrain
-which class it names. `Annotation` constrains ordinary model writes and its own
-read paths; writes that skip the attribute pipeline, and the
+what it holds. Since 3.0.0 it stores a morph alias — `b_paragraphs` or
+`b_sentences` — rather than a class name. `Annotation` constrains ordinary model
+writes and its own read paths; writes that skip the attribute pipeline, and the
 relationship-existence query family, are not covered. See
 [Input Validation](/security/input-validation.md).
+
+A second migration,
+`2026_09_06_000000_alias_annotation_reference_types.php`, rewrites rows written
+by earlier releases from the class name to the alias, matching case-insensitively
+because PHP resolves class names that way. It is reversible: `down()` restores the
+class names. Rows holding a value the package never wrote are left untouched in
+both directions.
 
 ## Composite primary keys
 

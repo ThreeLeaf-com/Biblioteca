@@ -5,6 +5,48 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-09-06
+
+### Changed
+
+- **BREAKING: `Annotation.reference_type` stores a morph alias, not a class
+  name.** The package now registers a morph map for the two models an
+  annotation can reference, so the column holds `b_paragraphs` or
+  `b_sentences` where it previously held
+  `ThreeLeaf\Biblioteca\Models\Paragraph` or
+  `ThreeLeaf\Biblioteca\Models\Sentence`. The persisted discriminator no longer
+  names a PHP class, and the API no longer publishes the package's internal
+  namespace.
+
+  **This breaks silently.** Host code that compares `reference_type` to a class
+  name, or queries on one, still runs and simply stops matching. Audit for
+  `where('reference_type', ...)`, `$annotation->reference_type === Foo::class`,
+  and any client asserting on the API response before upgrading. Convert such
+  code to `Annotation::REFERENCE_TYPES`, which is now an `alias => class` map,
+  or to `$model->getMorphClass()`.
+
+  Writes are compatible: a submitted class name — in any letter case, with or
+  without a leading backslash — is still accepted and is normalized to the
+  alias, so an existing API client keeps working without a change.
+
+  A data migration rewrites existing rows. Rows holding a value the package
+  never wrote are left untouched: they cannot be distinguished from a host
+  application's own discriminator, and the model already refuses to resolve an
+  impermissible one. Auditing them is the operator's decision.
+
+  The map is registered with `Relation::morphMap()`, not
+  `Relation::enforceMorphMap()`, so no `requireMorphMap()` flag is imposed on
+  the host application. The package claims the `b_paragraphs` and `b_sentences`
+  aliases; a host that registers either for one of its own models will repoint
+  it, and Laravel reports no conflict.
+
+  This is the second half of the work begun in
+  [#13](https://github.com/ThreeLeaf-com/Biblioteca/issues/13). The security
+  fix itself shipped in 2.2.0 with no shape change, so `^2.0` consumers receive
+  it on a routine update; only this cosmetic and structural change requires the
+  major bump.
+  ([#14](https://github.com/ThreeLeaf-com/Biblioteca/issues/14))
+
 ## [2.3.0] - 2026-09-05
 
 ### Fixed

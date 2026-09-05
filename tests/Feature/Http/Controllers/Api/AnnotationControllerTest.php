@@ -93,7 +93,7 @@ class AnnotationControllerTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
             'content' => 'This is a test annotation',
         ]);
     }
@@ -130,7 +130,7 @@ class AnnotationControllerTest extends TestCase
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
             'content' => 'Updated annotation content',
         ]);
     }
@@ -153,7 +153,7 @@ class AnnotationControllerTest extends TestCase
         $this->assertDatabaseMissing(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
             'content' => 'Content to be deleted',
         ]);
 
@@ -266,7 +266,7 @@ class AnnotationControllerTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
             'content' => 'Original content',
         ]);
     }
@@ -291,7 +291,7 @@ class AnnotationControllerTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'reference_id' => $sentence->sentence_id,
-            'reference_type' => Sentence::class,
+            'reference_type' => Sentence::TABLE_NAME,
             'content' => 'Posted with a leading backslash',
         ]);
     }
@@ -377,5 +377,52 @@ class AnnotationControllerTest extends TestCase
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_CREATED);
+    }
+
+    /**
+     * The API accepts the package's own alias and returns it.
+     *
+     * This is the 3.0.0 shape: no request or response carries the package's class names.
+     */
+    #[Test]
+    public function storeAcceptsAndReturnsThePackageAlias(): void
+    {
+        $sentence = Sentence::factory()->create();
+
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => Sentence::TABLE_NAME,
+            'content' => 'Posted with the package alias',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.reference_type', Sentence::TABLE_NAME);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => Sentence::TABLE_NAME,
+            'content' => 'Posted with the package alias',
+        ]);
+    }
+
+    /**
+     * A 2.x client submitting a class name still succeeds, and is answered with the alias.
+     *
+     * Writes stay compatible across the major bump; only the returned and stored value
+     * changes.
+     */
+    #[Test]
+    public function storeAnswersALegacyClassNameWithTheAlias(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => Paragraph::class,
+            'content' => 'Posted by a 2.x client',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.reference_type', Paragraph::TABLE_NAME);
     }
 }
