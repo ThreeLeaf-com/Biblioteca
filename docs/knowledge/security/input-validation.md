@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 ---
 
 # Input Validation
@@ -54,17 +54,84 @@ key that passes validation but is not fillable is dropped at the model boundary.
 `BookTag` and `BookGenre` declare none; they are protected instead by Eloquent's
 default `$guarded = ['*']`. See [Domain Model](/data/models/domain-model.md).
 
+## Polymorphic reference constraint
+
+`Annotation` is polymorphic: `reference_type` names the class Eloquent resolves
+when the reference is read. An unconstrained value there is a class lookup
+driven by stored data, so the column is constrained in two layers.
+
+`Annotation::REFERENCE_TYPES` is the allow-list — `Paragraph` and `Sentence`. A
+value is accepted when it *denotes* one of them:
+
+- resolved through the application's morph map first, so a host that has aliased
+  either model keeps working (Eloquent writes `getMorphClass()`, which is the
+  alias under such a map);
+- compared case-insensitively, since PHP resolves class names that way;
+- satisfied by a subclass, so a host may annotate its own `Paragraph` subclass.
+
+A morph map can *alias* a permitted model. It cannot widen the set.
+
+What is *stored* is canonical: a morph alias is kept as given, since that is what
+`getMorphClass()` writes, and anything else is written in its canonical class
+form. `MorphOneOrMany` constrains on `getMorphClass()` with a case-sensitive
+comparison on most engines, so storing a submitted case variant verbatim would
+leave the annotation readable through its own `reference` yet missing from
+`$paragraph->annotations()`.
+
+**At the HTTP boundary**, `AnnotationRequest` validates `reference_type` through
+the same resolver the model uses — not a literal `Rule::in` list, which would
+reject aliases, subclasses and case variants and leave a morph-map host with no
+working route. `reference_id` is then checked with `Rule::exists()` against the
+table the resolved class names.
+
+**At the model boundary**, the same check applies to ordinary model writes and
+to the model's own read paths:
+
+| Path                                                           | Guard                                       |
+| -------------------------------------------------------------- | ------------------------------------------- |
+| `Annotation::create()`, `fill()`, `$a->reference_type = …`      | `setReferenceTypeAttribute()`               |
+| `$annotation->reference` (lazy)                                | `Annotation::getActualClassNameForMorph()`  |
+| `Annotation::with('reference')`, `->load()` (eager)            | `ReferenceMorphTo::createModelByType()`     |
+
+All three raise `InvalidReferenceTypeException`.
+
+The lazy and eager paths need separate guards because they resolve differently.
+`HasRelationships::morphInstanceTo()` calls
+`static::getActualClassNameForMorph()`, which late static binding routes to
+`Annotation`. `MorphTo::createModelByType()` calls
+`Model::getActualClassNameForMorph()` — statically, on the base class — so an
+override on `Annotation` never runs there.
+
+### What these guards do not cover
+
+Eloquent does not run mutators when hydrating from the database, nor for writes
+that skip the model's attribute pipeline. `Annotation::insert()`,
+`Annotation::upsert()`, `Annotation::query()->update()`,
+`setRawAttributes()` followed by `save()`, and a direct `INSERT` all store
+whatever they are given. Treat that as the shape of the gap rather than a closed
+list: any API that writes an attribute without passing through the mutator
+belongs to it.
+
+Reads have an equivalent gap. The relationship-existence family — `has()`,
+`doesntHave()`, `whereHasMorph()` and their `or`/`Not` variants — reads
+`reference_type` values straight from the table and instantiates them without
+going through `Annotation` at all. A row holding an impermissible class is
+therefore still constructed by those queries.
+
+Both gaps require a row that this package will not write. They matter to one
+population: an installation that ran a release without these guards and may have
+had such a row stored through the then-unvalidated API. **If you are upgrading,
+audit the column** — the user guide has the query. Remediation is deliberately
+left to the operator rather than done by migration: an automatic sweep cannot
+tell an attacker's row from a legitimate one whose morph map simply is not
+registered in the migration process, and clearing the second is data loss.
+
 ## What this control does not do
 
 `authorize()` returns `true` in all eleven form requests. **Validation is not
 authorization.** A request can be perfectly well-formed and still come from
 someone with no right to make it. See
 [Authorization Boundary](/security/authorization-boundary.md).
-
-`Annotation` is polymorphic, and polymorphic columns deserve application-level
-handling regardless of what a package does: register
-`Relation::enforceMorphMap()` and constrain `reference_type` to the types your
-application actually accepts.
 
 Nor does validation cover:
 
@@ -87,6 +154,28 @@ Nor does validation cover:
 
 # Citations
 
+- Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` lists
+  `Paragraph::class` and `Sentence::class`; `AnnotationRequest::rules()` resolves
+  the submitted type through `Annotation::resolveReferenceType()` rather than a
+  literal `Rule::in` list.
+- Verified 2026-09-05 by execution — `Annotation::create()`,
+  `$annotation->reference`, `Annotation::with('reference')` and
+  `->load('reference')` each raise `InvalidReferenceTypeException` for an
+  unpermitted type, including for a row inserted through the query builder.
+- Verified 2026-09-05 by execution — `has()`, `doesntHave()` and
+  `whereHasMorph()` each construct a canary class planted through
+  `DB::table()->insert()`, confirming the documented read gap.
+- Verified 2026-09-05 by execution — `Annotation::insert()` stores an
+  impermissible reference type, confirming the documented write gap.
+- Verified 2026-09-05 by execution — with `Relation::morphMap(['paragraph' =>
+  Paragraph::class])` registered, `$paragraph->annotations()->create()` stores
+  `'paragraph'`, both read paths resolve it back to `Paragraph`, and
+  `POST /annotations` with `'paragraph'` returns 201 and is returned by
+  `$paragraph->annotations()`.
+- Verified 2026-09-05 against Laravel 12/13 —
+  `HasRelationships::morphInstanceTo()` calls
+  `static::getActualClassNameForMorph()` while `MorphTo::createModelByType()`
+  calls `Model::getActualClassNameForMorph()`.
 - Verified 2026-09-04 against git HEAD — all 11 files in `src/Http/Requests/`
   implement `authorize(): bool` returning `true`.
 - Verified 2026-09-04 against git HEAD — `BookRequest::rules()` uses

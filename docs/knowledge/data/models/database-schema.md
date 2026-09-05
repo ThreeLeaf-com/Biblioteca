@@ -4,7 +4,7 @@ title: Database Schema
 description: The b_-prefixed tables created by the package migration, their keys, unique constraints, and foreign-key cascade behaviour.
 resource: database/migrations/2024_10_07_000000_create_bibliotecha_tables.php
 tags: [data, schema, migrations]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 ---
 
 # Database Schema
@@ -69,6 +69,12 @@ large, irreversible operation.
 polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
 rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
+
+`reference_type` is a plain `string` column, so the database does not constrain
+which class it names. `Annotation` constrains ordinary model writes and its own
+read paths; writes that skip the attribute pipeline, and the
+relationship-existence query family, are not covered. See
+[Input Validation](/security/input-validation.md).
 
 ## Composite primary keys
 

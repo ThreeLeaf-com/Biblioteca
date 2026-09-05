@@ -199,6 +199,64 @@ Annotations are the exception to the cascade: they carry no foreign key, so
 deleting a paragraph or a sentence leaves its annotations behind. Clean them up
 yourself if that matters to you.
 
+### Annotations attach only to paragraphs and sentences
+
+An annotation attaches to either a paragraph or a sentence, and `reference_type`
+says which:
+
+```php
+$annotation = Annotation::create([
+    'reference_id' => $paragraph->paragraph_id,
+    'reference_type' => Paragraph::class,
+    'content' => 'The date here is disputed.',
+]);
+```
+
+Or let the relation set it for you, which is less to get wrong:
+
+```php
+$annotation = $paragraph->annotations()->create([
+    'content' => 'The date here is disputed.',
+]);
+```
+
+The value has to denote `Paragraph` or `Sentence`. Their class names work in any
+letter case — a mis-cased name is stored in its canonical form so the parent's
+`annotations()` still finds it — as does a subclass of either, and so does a
+morph alias if you have registered one, which is kept exactly as you wrote it. Anything else throws `InvalidReferenceTypeException`, and the API
+returns `422` for the same values. The API also rejects a `reference_id` that is
+not a real row in the matching table.
+
+The check runs when the reference is *read* as well as written, so a row holding
+something impermissible raises rather than resolving.
+
+### Upgrading from 2.1.0 or earlier
+
+Earlier releases did not constrain `reference_type`, so the annotation endpoints
+accepted any value there. If those endpoints were reachable, audit the column
+before you upgrade:
+
+```sql
+SELECT reference_type, COUNT(*) AS total
+  FROM b_annotations
+ GROUP BY reference_type;
+```
+
+Every row should name `Paragraph` or `Sentence` — or an alias or subclass you
+recognise. Anything else was not written by this package.
+
+Nothing is cleaned up for you. That is deliberate: an automatic sweep cannot
+distinguish a hostile row from a legitimate one whose morph map simply is not
+registered in the process running migrations, and clearing the second would
+destroy real data. Decide what those rows are and remove them yourself.
+
+Until you do, be aware of two gaps the guards cannot close. Writes that skip
+Eloquent's attribute pipeline — `Annotation::insert()`, `upsert()`,
+`query()->update()`, and raw SQL — are not checked. And relationship-existence
+queries (`has()`, `doesntHave()`, `whereHasMorph()`) read the column directly, so
+they will still instantiate whatever an impermissible row names. Both need a row
+this package will not write; neither is reachable through its API.
+
 ## Using the API routes
 
 The package ships an example route file at
