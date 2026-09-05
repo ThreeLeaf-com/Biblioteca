@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Chapter and paragraph re-parse is now atomic.**
+  `ChapterService::parseChapterContents()` and
+  `ParagraphService::parseParagraphContents()` delete every child row before
+  writing replacements, because the child tables are unique on their position
+  columns. That sequence was not wrapped in a transaction, so a failure
+  part-way through left the paragraphs, and their sentences, deleted and not
+  restored. Both now run in `DB::transaction()`. Advisory:
+  [GHSA-f6xp-r5g7-8wq7](https://github.com/ThreeLeaf-com/Biblioteca/security/advisories/GHSA-f6xp-r5g7-8wq7).
+
 ## [2.2.0] - 2026-09-05
 
 ### Security

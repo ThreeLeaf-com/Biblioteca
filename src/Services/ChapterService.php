@@ -2,6 +2,7 @@
 
 namespace ThreeLeaf\Biblioteca\Services;
 
+use Illuminate\Support\Facades\DB;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Repositories\ChapterRepository;
@@ -98,34 +99,42 @@ class ChapterService
     /**
      * Parses a {@link Chapter} into a {@link Paragraph} array.
      *
+     * The existing paragraphs are deleted before the replacements are written, because
+     * <code>b_paragraphs</code> is unique on <code>(chapter_id, paragraph_number)</code> and
+     * appending would collide. The delete and the rebuild therefore run in one transaction:
+     * a failure part-way through would otherwise leave the chapter with its paragraphs, and
+     * their sentences, deleted and not restored.
+     *
      * @param Chapter $chapter The chapter to parse.
      *
      * @return Paragraph[] The paragraphs
      */
     public function parseChapterContents(Chapter $chapter): array
     {
-        $paragraphs = [];
-        $this->chapterRepository->deleteAllParagraphs($chapter);
+        return DB::transaction(function () use ($chapter) {
+            $paragraphs = [];
+            $this->chapterRepository->deleteAllParagraphs($chapter);
 
-        if ($chapter->content) {
-            $content = $this->normalizeContent($chapter->content);
-            $paragraphStrings = $this->parseToParagraphs($content);
+            if ($chapter->content) {
+                $content = $this->normalizeContent($chapter->content);
+                $paragraphStrings = $this->parseToParagraphs($content);
 
-            foreach ($paragraphStrings as $paragraphString) {
-                $paragraph = Paragraph::create([
-                    'chapter_id' => $chapter->chapter_id,
-                    'paragraph_number' => count($paragraphs) + 1,
-                    'content' => $paragraphString,
-                ]);
-                $paragraphs[] = $paragraph;
-                $this->paragraphService->parseParagraphContents($paragraph);
+                foreach ($paragraphStrings as $paragraphString) {
+                    $paragraph = Paragraph::create([
+                        'chapter_id' => $chapter->chapter_id,
+                        'paragraph_number' => count($paragraphs) + 1,
+                        'content' => $paragraphString,
+                    ]);
+                    $paragraphs[] = $paragraph;
+                    $this->paragraphService->parseParagraphContents($paragraph);
+                }
+
+                $this->chapterRepository->addParagraphs($chapter, $paragraphs);
+                $chapter->refresh();
             }
 
-            $this->chapterRepository->addParagraphs($chapter, $paragraphs);
-            $chapter->refresh();
-        }
-
-        return $paragraphs;
+            return $paragraphs;
+        });
     }
 
     /**
