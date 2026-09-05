@@ -226,19 +226,28 @@ own. The API returns `422` for the same values, and rejects a `reference_id`
 that is not a real row in the matching table.
 
 The check also runs when the reference is *read*, so a row written before this
-version raises rather than resolving. If you upgrade and start seeing
-`InvalidReferenceTypeException` on existing data, those rows hold a
-`reference_type` this package never wrote. Inspect them before deciding what to
-do with them:
+version raises rather than resolving.
+
+If a host application registers its own morph map for `Paragraph` or `Sentence`,
+that keeps working — Eloquent stores the alias and it resolves back to the same
+model. A morph map cannot add a model to the permitted set, only rename one.
+
+**Upgrading.** The package migrations now clear any `reference_type` this
+package could not have written, keeping the annotation's `content` but leaving
+its reference empty. That is deliberate: those values name classes Biblioteca
+never points at, and several Eloquent query paths would otherwise instantiate
+them. The migration writes a warning to your log naming what it cleared.
+
+To see what you have before upgrading:
 
 ```sql
-SELECT annotation_id, reference_type, COUNT(*)
+SELECT reference_type, COUNT(*) AS total
   FROM b_annotations
- WHERE reference_type NOT IN (
-       'ThreeLeaf\Biblioteca\Models\Paragraph',
-       'ThreeLeaf\Biblioteca\Models\Sentence')
  GROUP BY reference_type;
 ```
+
+Anything other than the two `ThreeLeaf\Biblioteca\Models\…` values, or an
+alias you registered yourself, is a row the migration will clear.
 
 ## Using the API routes
 

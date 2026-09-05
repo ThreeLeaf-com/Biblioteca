@@ -62,9 +62,11 @@ class, which already handles a two-column key, so they use neither the trait nor
 `annotations()`. This lets one annotation table serve both text levels without a
 second table or a nullable-column-per-target design.
 
-`reference_type` holds a class name, and `Annotation::REFERENCE_TYPES` is the
-only set of class names the model accepts or resolves. A value outside it raises
-`InvalidReferenceTypeException` on write and on resolution alike. See
+`reference_type` holds a class name, or an alias for one when the host
+application registers a morph map. `Annotation::REFERENCE_TYPES` is the only set
+of models it may denote; a value outside it raises
+`InvalidReferenceTypeException` on write and on resolution alike, and stored
+values naming anything else are cleared by migration. See
 [Input Validation](/security/input-validation.md).
 
 ## Enumerations

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Exceptions\InvalidReferenceTypeException;
 use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
@@ -86,42 +87,72 @@ class Annotation extends Model
     }
 
     /**
-     * Normalize a reference type and reject anything outside {@link Annotation::REFERENCE_TYPES}.
+     * Reject a reference type that does not denote a permitted model.
      *
      * A leading backslash is accepted and stripped, because <code>\Foo\Bar</code> and
-     * <code>Foo\Bar</code> name the same class. The comparison is otherwise exact: PHP
-     * resolves class names case-insensitively, but this does not, so a mis-cased value
-     * fails closed rather than being stored in a form the allow-list would not match again.
+     * <code>Foo\Bar</code> name the same class. The value is then resolved through the
+     * application's morph map before it is checked, so a host that has aliased
+     * {@link Paragraph} or {@link Sentence} keeps working: Eloquent writes
+     * <code>getMorphClass()</code>, which is the alias under such a map.
+     *
+     * The value is returned in the form it should be stored — the alias when one was
+     * given — so this method never rewrites a host's discriminator.
      *
      * @param string $referenceType The reference type to check.
      *
-     * @return class-string<Model> The normalized reference type.
+     * @return string The reference type as it should be stored.
      *
-     * @throws InvalidReferenceTypeException If the type is not permitted.
+     * @throws InvalidReferenceTypeException If the type does not denote a permitted model.
      */
     public static function assertReferenceType(string $referenceType): string
     {
         $normalized = ltrim($referenceType, '\\');
 
-        if (!in_array($normalized, self::REFERENCE_TYPES, true)) {
-            throw new InvalidReferenceTypeException($referenceType);
-        }
+        self::resolveReferenceType($normalized);
 
         return $normalized;
     }
 
     /**
+     * Resolve a reference type to the class it denotes, rejecting anything impermissible.
+     *
+     * This is the read-side counterpart of {@link Annotation::assertReferenceType()}: it
+     * returns the class name rather than the stored discriminator, so callers instantiate
+     * a class this model permits rather than re-resolving the raw string.
+     *
+     * The comparison against {@link Annotation::REFERENCE_TYPES} is exact. PHP resolves
+     * class names case-insensitively, but this does not, so a mis-cased value fails closed.
+     *
+     * @param string $referenceType The stored reference type.
+     *
+     * @return class-string<Model> The class the reference type denotes.
+     *
+     * @throws InvalidReferenceTypeException If the type does not denote a permitted model.
+     */
+    public static function resolveReferenceType(string $referenceType): string
+    {
+        $normalized = ltrim($referenceType, '\\');
+        $resolved = Relation::getMorphedModel($normalized) ?? $normalized;
+
+        if (!in_array($resolved, self::REFERENCE_TYPES, true)) {
+            throw new InvalidReferenceTypeException($referenceType);
+        }
+
+        return $resolved;
+    }
+
+    /**
      * Reject an impermissible reference type as it is written.
      *
-     * Eloquent does not run mutators when it hydrates a model from the database, so this
-     * guards writes only. Reads are guarded by
-     * {@link Annotation::getActualClassNameForMorph()} and {@link ReferenceMorphTo}.
+     * Eloquent does not run mutators when it hydrates a model from the database, nor when
+     * a write is issued through the query builder, so this guards model writes only. See
+     * the security concept for what covers the rest.
      *
      * @param string|null $value The reference type being assigned.
      *
      * @return void
      *
-     * @throws InvalidReferenceTypeException If the type is not permitted.
+     * @throws InvalidReferenceTypeException If the type does not denote a permitted model.
      */
     public function setReferenceTypeAttribute(?string $value): void
     {
@@ -134,8 +165,7 @@ class Annotation extends Model
      * Resolve a stored reference type to a class, for the lazy-loading path.
      *
      * Called through {@link \Illuminate\Database\Eloquent\Concerns\HasRelationships::morphInstanceTo()}
-     * when <code>$annotation-&gt;reference</code> is read. A row written by a release that
-     * did not constrain the column is rejected here rather than instantiated.
+     * when <code>$annotation-&gt;reference</code> is read.
      *
      * @param string $class The stored reference type.
      *
@@ -145,7 +175,7 @@ class Annotation extends Model
      */
     public static function getActualClassNameForMorph($class): string
     {
-        return self::assertReferenceType($class);
+        return self::resolveReferenceType($class);
     }
 
     /**

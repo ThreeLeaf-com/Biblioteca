@@ -70,8 +70,11 @@ polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
 rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
 
-`reference_type` is a plain `string` column, so the database does not constrain
-which class it names. `Annotation` does, on write and on resolution — see
+`reference_type` is a plain `string` column, nullable since
+`2026_09_05_000000_neutralize_invalid_annotation_reference_types.php`, so the
+database does not constrain which class it names. `Annotation` constrains model
+writes and its own read paths, and that migration clears stored values naming
+anything else — a null `reference_type` reads as no reference. See
 [Input Validation](/security/input-validation.md).
 
 ## Composite primary keys

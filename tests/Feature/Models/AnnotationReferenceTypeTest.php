@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Feature\TestCase;
@@ -22,6 +23,22 @@ class AnnotationReferenceTypeTest extends TestCase
 {
 
     use RefreshDatabase;
+
+    /**
+     * Clear the morph map between tests.
+     *
+     * {@link Relation::morphMap()} writes to a static, so a test that registers one would
+     * otherwise change how every later test in the process resolves its polymorphic
+     * relations.
+     *
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        Relation::morphMap([], false);
+
+        parent::tearDown();
+    }
 
     /**
      * Insert an annotation row directly, bypassing the model.
@@ -232,5 +249,56 @@ class AnnotationReferenceTypeTest extends TestCase
         $this->expectException(InvalidReferenceTypeException::class);
 
         Annotation::assertReferenceType(strtolower(Paragraph::class));
+    }
+
+    /**
+     * A host that aliases the permitted models through a morph map keeps working.
+     *
+     * Eloquent writes <code>getMorphClass()</code>, which is the alias under such a map, so
+     * a guard that compared class names literally would break the relation.
+     */
+    #[Test]
+    public function hostMorphMapIsHonoured(): void
+    {
+        Relation::morphMap(['paragraph' => Paragraph::class]);
+
+        $paragraph = Paragraph::factory()->create();
+        $annotation = $paragraph->annotations()->create(['content' => 'Under a host morph map.']);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => 'paragraph',
+        ]);
+
+        $this->assertTrue(Annotation::find($annotation->annotation_id)->reference->is($paragraph));
+
+        $eager = Annotation::with('reference')->find($annotation->annotation_id);
+        $this->assertTrue($eager->reference->is($paragraph));
+    }
+
+    /** An alias that maps to a model outside the allow-list is still rejected. */
+    #[Test]
+    public function hostMorphMapCannotWidenTheAllowList(): void
+    {
+        Relation::morphMap(['book' => Book::class]);
+
+        $this->expectException(InvalidReferenceTypeException::class);
+
+        Annotation::assertReferenceType('book');
+    }
+
+    /** A null reference type is permitted, and reads as no reference. */
+    #[Test]
+    public function nullReferenceTypeResolvesToNoReference(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+        $annotationId = $this->plantAnnotation($paragraph->paragraph_id, Paragraph::class);
+
+        DB::table(Annotation::TABLE_NAME)
+            ->where('annotation_id', $annotationId)
+            ->update(['reference_type' => null]);
+
+        $this->assertNull(Annotation::find($annotationId)->reference);
+        $this->assertNull(Annotation::with('reference')->find($annotationId)->reference);
     }
 }
