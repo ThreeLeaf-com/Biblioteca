@@ -62,11 +62,9 @@ class, which already handles a two-column key, so they use neither the trait nor
 `annotations()`. This lets one annotation table serve both text levels without a
 second table or a nullable-column-per-target design.
 
-`reference_type` holds a morph alias, not a class name.
-`BibliotecaServiceProvider::boot()` registers `b_paragraphs` for `Paragraph` and
-`b_sentences` for `Sentence`, and `AnnotationRequest` accepts no other value.
-Releases up to 2.1.0 stored the fully-qualified class name; those values are
-still accepted on input and are rewritten by a data migration. See
+`reference_type` holds a class name, and `Annotation::REFERENCE_TYPES` is the
+only set of class names the model accepts or resolves. A value outside it raises
+`InvalidReferenceTypeException` on write and on resolution alike. See
 [Input Validation](/security/input-validation.md).
 
 ## Enumerations
@@ -100,8 +98,8 @@ For the physical tables and their cascade rules, see
 
 # Citations
 
-- Verified 2026-09-05 against git HEAD — `BibliotecaServiceProvider::MORPH_MAP`
-  keys `Paragraph::TABLE_NAME` and `Sentence::TABLE_NAME`.
+- Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` contains
+  `Paragraph::class` and `Sentence::class`.
 
 - Verified 2026-09-04 against git HEAD — relationship methods enumerated from
   `src/Models/*.php`; `Annotation::reference()` is `MorphTo`, and

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
@@ -108,13 +107,13 @@ class AnnotationTest extends TestCase
 
         $annotation = Annotation::factory()->create([
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
         ]);
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
         ]);
 
         $this->assertTrue($annotation->reference()->is($paragraph));
@@ -127,46 +126,16 @@ class AnnotationTest extends TestCase
         $sentence = Sentence::factory()->create();
         $annotation = Annotation::factory()->create([
             'reference_id' => $sentence->sentence_id,
-            'reference_type' => Sentence::TABLE_NAME,
+            'reference_type' => Sentence::class,
         ]);
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $sentence->sentence_id,
-            'reference_type' => Sentence::TABLE_NAME,
+            'reference_type' => Sentence::class,
         ]);
 
         $this->assertTrue($annotation->reference()->is($sentence));
-    }
-
-    /** the registered morph map resolves the aliases, and nothing else. */
-    #[Test]
-    public function morphMapResolvesOnlyRegisteredAliases()
-    {
-        $this->assertSame(Paragraph::class, Relation::getMorphedModel(Paragraph::TABLE_NAME));
-        $this->assertSame(Sentence::class, Relation::getMorphedModel(Sentence::TABLE_NAME));
-
-        $this->assertNull(Relation::getMorphedModel(Paragraph::class));
-        $this->assertNull(Relation::getMorphedModel(Book::class));
-        $this->assertNull(Relation::getMorphedModel('App\\Models\\User'));
-    }
-
-    /** a paragraph reports its morph alias rather than its class name. */
-    #[Test]
-    public function paragraphReportsMorphAlias()
-    {
-        $paragraph = Paragraph::factory()->create();
-
-        $this->assertSame(Paragraph::TABLE_NAME, $paragraph->getMorphClass());
-
-        $annotation = $paragraph->annotations()->create([
-            'content' => 'Written through the morphMany relation.',
-        ]);
-
-        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
-            'annotation_id' => $annotation->annotation_id,
-            'reference_type' => Paragraph::TABLE_NAME,
-        ]);
     }
 
     /** attach Bibliography to Book. */

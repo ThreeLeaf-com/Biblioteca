@@ -63,7 +63,7 @@ class AnnotationControllerTest extends TestCase
 
         $data = [
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'This is a test annotation',
         ];
 
@@ -77,7 +77,7 @@ class AnnotationControllerTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'This is a test annotation',
         ]);
     }
@@ -93,13 +93,13 @@ class AnnotationControllerTest extends TestCase
         $paragraph = Paragraph::factory()->create();
         $annotation = Annotation::factory()->create([
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Original content',
         ]);
 
         $updatedData = [
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Updated annotation content',
         ];
 
@@ -114,7 +114,7 @@ class AnnotationControllerTest extends TestCase
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Updated annotation content',
         ]);
     }
@@ -126,7 +126,7 @@ class AnnotationControllerTest extends TestCase
         $paragraph = Paragraph::factory()->create();
         $annotation = Annotation::factory()->create([
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Content to be deleted',
         ]);
 
@@ -137,7 +137,7 @@ class AnnotationControllerTest extends TestCase
         $this->assertDatabaseMissing(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Content to be deleted',
         ]);
 
@@ -147,16 +147,23 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * An unregistered reference_type is rejected rather than stored and later resolved.
+     * An impermissible reference_type is rejected rather than stored and later resolved.
      *
-     * @see {@link AnnotationRequest::rules()}
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest::rules()}
      */
     #[Test]
-    public function storeRejectsUnregisteredReferenceType(): void
+    public function storeRejectsUnpermittedReferenceType(): void
     {
         $paragraph = Paragraph::factory()->create();
+        $referenceTypes = [
+            'Illuminate\\Foundation\\Auth\\User',
+            Annotation::class,
+            'ThreeLeaf\\Biblioteca\\Models\\Book',
+            'not-a-class',
+            '',
+        ];
 
-        foreach (['App\\Models\\User', Annotation::class, 'b_books', '', 'not-a-class'] as $referenceType) {
+        foreach ($referenceTypes as $referenceType) {
             $response = $this->postJson(route('annotations.store'), [
                 'reference_id' => $paragraph->paragraph_id,
                 'reference_type' => $referenceType,
@@ -175,14 +182,14 @@ class AnnotationControllerTest extends TestCase
     /**
      * A reference_id that does not exist in the referenced table is rejected.
      *
-     * @see {@link AnnotationRequest::rules()}
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest::rules()}
      */
     #[Test]
     public function storeRejectsUnknownReferenceId(): void
     {
         $response = $this->postJson(route('annotations.store'), [
             'reference_id' => fake()->uuid(),
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'This annotation should never be stored',
         ]);
 
@@ -195,12 +202,12 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * A reference_id belonging to the other mapped model is rejected.
+     * A reference_id belonging to the other permitted model is rejected.
      *
      * The identifier is a real UUID, but it is not a row in the table the submitted
-     * reference_type resolves to.
+     * reference_type names.
      *
-     * @see {@link AnnotationRequest::rules()}
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest::rules()}
      */
     #[Test]
     public function storeRejectsReferenceIdFromTheWrongTable(): void
@@ -209,7 +216,7 @@ class AnnotationControllerTest extends TestCase
 
         $response = $this->postJson(route('annotations.store'), [
             'reference_id' => $sentence->sentence_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'This annotation should never be stored',
         ]);
 
@@ -218,23 +225,23 @@ class AnnotationControllerTest extends TestCase
     }
 
     /**
-     * An unregistered reference_type is rejected on update as well as on store.
+     * An impermissible reference_type is rejected on update as well as on store.
      *
-     * @see {@link AnnotationRequest::rules()}
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest::rules()}
      */
     #[Test]
-    public function updateRejectsUnregisteredReferenceType(): void
+    public function updateRejectsUnpermittedReferenceType(): void
     {
         $paragraph = Paragraph::factory()->create();
         $annotation = Annotation::factory()->create([
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Original content',
         ]);
 
         $response = $this->putJson(route('annotations.update', $annotation), [
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => 'App\\Models\\User',
+            'reference_type' => 'Illuminate\\Foundation\\Auth\\User',
             'content' => 'Updated annotation content',
         ]);
 
@@ -243,37 +250,51 @@ class AnnotationControllerTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
-            'reference_type' => Paragraph::TABLE_NAME,
+            'reference_type' => Paragraph::class,
             'content' => 'Original content',
         ]);
     }
 
     /**
-     * The legacy fully-qualified class name is still accepted and stored as its alias.
+     * A leading backslash on the class name is accepted and stripped.
      *
-     * @see {@link AnnotationRequest::prepareForValidation()}
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\AnnotationRequest::prepareForValidation()}
      */
     #[Test]
-    public function storeAcceptsLegacyClassNameAndStoresTheAlias(): void
+    public function storeAcceptsLeadingBackslash(): void
     {
         $sentence = Sentence::factory()->create();
 
-        foreach ([Sentence::class, '\\' . Sentence::class] as $index => $referenceType) {
-            $content = "Posted with a legacy class name $index";
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => '\\' . Sentence::class,
+            'content' => 'Posted with a leading backslash',
+        ]);
 
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => Sentence::class,
+            'content' => 'Posted with a leading backslash',
+        ]);
+    }
+
+    /** A non-string reference_type is rejected rather than raising a type error. */
+    #[Test]
+    public function storeRejectsNonStringReferenceType(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+
+        foreach ([['array'], 42, null] as $referenceType) {
             $response = $this->postJson(route('annotations.store'), [
-                'reference_id' => $sentence->sentence_id,
+                'reference_id' => $paragraph->paragraph_id,
                 'reference_type' => $referenceType,
-                'content' => $content,
+                'content' => 'This annotation should never be stored',
             ]);
 
-            $response->assertStatus(HttpCodes::HTTP_CREATED);
-
-            $this->assertDatabaseHas(Annotation::TABLE_NAME, [
-                'reference_id' => $sentence->sentence_id,
-                'reference_type' => Sentence::TABLE_NAME,
-                'content' => $content,
-            ]);
+            $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+                ->assertJsonValidationErrors('reference_type');
         }
     }
 }

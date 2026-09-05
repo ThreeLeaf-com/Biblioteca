@@ -199,20 +199,16 @@ Annotations are the exception to the cascade: they carry no foreign key, so
 deleting a paragraph or a sentence leaves its annotations behind. Clean them up
 yourself if that matters to you.
 
-### Annotations name their target by alias
+### Annotations attach only to paragraphs and sentences
 
 An annotation attaches to either a paragraph or a sentence, and `reference_type`
-says which. It takes one of two values:
-
-| `reference_type` | Attaches to |
-| ---------------- | ----------- |
-| `b_paragraphs`   | a paragraph |
-| `b_sentences`    | a sentence  |
+says which. `Paragraph::class` and `Sentence::class` are the only two values
+accepted:
 
 ```php
 $annotation = Annotation::create([
     'reference_id' => $paragraph->paragraph_id,
-    'reference_type' => Paragraph::TABLE_NAME,
+    'reference_type' => Paragraph::class,
     'content' => 'The date here is disputed.',
 ]);
 ```
@@ -225,16 +221,24 @@ $annotation = $paragraph->annotations()->create([
 ]);
 ```
 
-The API rejects any other `reference_type`, and rejects a `reference_id` that is
-not a real row in the matching table.
+Anything else throws `InvalidReferenceTypeException` — including a class of your
+own. The API returns `422` for the same values, and rejects a `reference_id`
+that is not a real row in the matching table.
 
-**Upgrading from 2.1.0 or earlier.** Those releases stored `reference_type` as a
-fully-qualified class name such as `ThreeLeaf\Biblioteca\Models\Paragraph`.
-Running the package migrations rewrites existing rows to the aliases above. API
-clients that still send the class name keep working — it is translated to the
-alias — but the value read back, and the value stored, is now the alias. Update
-any code that compares `reference_type` against a class name, and any query that
-filters on one.
+The check also runs when the reference is *read*, so a row written before this
+version raises rather than resolving. If you upgrade and start seeing
+`InvalidReferenceTypeException` on existing data, those rows hold a
+`reference_type` this package never wrote. Inspect them before deciding what to
+do with them:
+
+```sql
+SELECT annotation_id, reference_type, COUNT(*)
+  FROM b_annotations
+ WHERE reference_type NOT IN (
+       'ThreeLeaf\Biblioteca\Models\Paragraph',
+       'ThreeLeaf\Biblioteca\Models\Sentence')
+ GROUP BY reference_type;
+```
 
 ## Using the API routes
 

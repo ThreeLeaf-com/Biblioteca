@@ -70,11 +70,8 @@ polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
 rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
 
-`reference_type` stores the morph alias — the target table name, `b_paragraphs`
-or `b_sentences` — rather than a class name. The database does not enforce this;
-`AnnotationRequest` does. Rows written by releases up to 2.1.0 hold the
-fully-qualified class name and are rewritten by
-`2026_09_05_000000_map_annotation_reference_types.php`. See
+`reference_type` is a plain `string` column, so the database does not constrain
+which class it names. `Annotation` does, on write and on resolution — see
 [Input Validation](/security/input-validation.md).
 
 ## Composite primary keys
@@ -95,10 +92,6 @@ keys during a drop — SQLite as configured in CI, and MySQL or MariaDB with
 Verify a rollback on the target engine before relying on it.
 
 # Citations
-
-- Verified 2026-09-05 against git HEAD —
-  `database/migrations/2026_09_05_000000_map_annotation_reference_types.php`
-  updates `reference_type` from each mapped class name to its alias.
 
 - Verified 2026-09-04 against git HEAD — table list, `primary()` declarations,
   `unique()` constraints, and `onDelete()` modes read from

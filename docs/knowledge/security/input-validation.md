@@ -58,39 +58,52 @@ default `$guarded = ['*']`. See [Domain Model](/data/models/domain-model.md).
 
 `Annotation` is polymorphic: `reference_type` names the class Eloquent resolves
 when anything reads `$annotation->reference`. An unconstrained value there is a
-class lookup driven by request input, so the column is constrained in two
-places.
+class lookup driven by stored data, so the column is constrained in two layers.
 
-`BibliotecaServiceProvider::boot()` registers a morph map, keyed by the prefixed
-table name so the aliases cannot collide with a map the host application has
-already registered:
+`Annotation::REFERENCE_TYPES` is the allow-list — `Paragraph` and `Sentence`,
+and nothing else.
 
-| Alias          | Model       |
-| -------------- | ----------- |
-| `b_paragraphs` | `Paragraph` |
-| `b_sentences`  | `Sentence`  |
+**At the HTTP boundary**, `AnnotationRequest` restricts `reference_type` with
+`Rule::in(Annotation::REFERENCE_TYPES)` and validates `reference_id` with
+`Rule::exists()` against the table that type names, so an annotation cannot
+point at a row that does not exist. `prepareForValidation()` strips a leading
+backslash, since `\Foo\Bar` and `Foo\Bar` name the same class.
 
-`AnnotationRequest` then restricts `reference_type` with `Rule::in()` over those
-aliases, and validates `reference_id` with `Rule::exists()` against the table
-the submitted alias resolves to. An annotation cannot name a class outside the
-map, and cannot point at a row that does not exist.
+**At the model boundary**, the same allow-list is enforced regardless of how the
+write arrives:
 
-The allow-list is the control. The morph map alone would not be:
-`MorphTo::getActualClassNameForMorph()` falls back to the raw stored string when
-`Relation::getMorphedModel()` returns `null`, so registering the map keeps
-internal class names out of the API surface but does not by itself stop an
-unmapped name from being resolved.
+| Path                                  | Guard                                             |
+| ------------------------------------- | ------------------------------------------------- |
+| `Annotation::create()`, `fill()`, `$a->reference_type = …` | `setReferenceTypeAttribute()` |
+| `$annotation->reference` (lazy)       | `Annotation::getActualClassNameForMorph()`        |
+| `Annotation::with('reference')` (eager), `->load('reference')` | `ReferenceMorphTo::createModelByType()` |
 
-The package registers the map with `Relation::morphMap()` rather than
-`Relation::enforceMorphMap()`. The latter also calls
-`Relation::requireMorphMap()`, which sets a process-global flag that makes
-`getMorphClass()` throw for every unmapped model in the **host** application as
-well. A package must not impose that; an application that wants it should call
-`Relation::requireMorphMap()` itself.
+All four raise `InvalidReferenceTypeException`.
 
-Releases up to 2.1.0 stored `reference_type` as a fully-qualified class name.
-Those values are still accepted on input and normalized to the alias, and a data
-migration rewrites rows already in `b_annotations`.
+The HTTP layer alone would not be enough. The package's own user guide documents
+`Annotation::create()` as ordinary usage, and that path never reaches a form
+request. Neither would a write guard alone: a row stored by a release that did
+not constrain the column is still resolved on read, and that is exactly the
+population a patch for this has to protect. Guarding resolution means such a row
+raises an exception instead of instantiating the class it names.
+
+The lazy and eager paths need separate guards because they resolve the class
+differently. `HasRelationships::morphInstanceTo()` calls
+`static::getActualClassNameForMorph()`, which late static binding routes to
+`Annotation`. `MorphTo::createModelByType()` calls
+`Model::getActualClassNameForMorph()` — statically, on the base class — so an
+override on `Annotation` never runs there. `ReferenceMorphTo` covers it.
+
+Eloquent does not run mutators when hydrating from the database, so reading an
+`Annotation` row does not itself throw. Only resolving its reference does.
+
+### What this does not constrain
+
+The database does not enforce the allow-list; `b_annotations.reference_type` is
+a plain `string` column with no foreign key, and cannot have one while it is
+polymorphic. A direct `INSERT`, or an `UPDATE` issued through the query builder
+rather than the model, bypasses the mutator. The resolution guard is what makes
+that safe to leave: such a row can be written, but it cannot be resolved.
 
 ## What this control does not do
 
@@ -99,7 +112,7 @@ authorization.** A request can be perfectly well-formed and still come from
 someone with no right to make it. See
 [Authorization Boundary](/security/authorization-boundary.md).
 
-Validation does not cover:
+Nor does validation cover:
 
 - **Content sanitization.** No free-text field is sanitized anywhere. That
   includes `content`, `summary`, `biography`, `title`, `subtitle`,
@@ -120,17 +133,17 @@ Validation does not cover:
 
 # Citations
 
-- Verified 2026-09-05 against git HEAD — `BibliotecaServiceProvider::MORPH_MAP`
-  maps `Paragraph::TABLE_NAME` and `Sentence::TABLE_NAME`, and `boot()` passes
-  it to `Relation::morphMap()`.
-- Verified 2026-09-05 against git HEAD — `AnnotationRequest::rules()` applies
-  `Rule::in(array_keys(BibliotecaServiceProvider::MORPH_MAP))` to
-  `reference_type`, and `referenceIdRules()` adds `Rule::exists()` for the
-  resolved table.
+- Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` lists
+  `Paragraph::class` and `Sentence::class`; `AnnotationRequest::rules()` applies
+  `Rule::in(Annotation::REFERENCE_TYPES)`.
+- Verified 2026-09-05 by execution — `Annotation::create()`,
+  `$annotation->reference`, `Annotation::with('reference')` and
+  `->load('reference')` each raise `InvalidReferenceTypeException` for an
+  unpermitted type, including for a row inserted through the query builder.
 - Verified 2026-09-05 against Laravel 12/13 —
-  `Relation::enforceMorphMap()` calls `Relation::requireMorphMap()`, and
-  `MorphTo::getActualClassNameForMorph()` returns the raw value when
-  `Relation::getMorphedModel()` is `null`.
+  `HasRelationships::morphInstanceTo()` calls
+  `static::getActualClassNameForMorph()` while `MorphTo::createModelByType()`
+  calls `Model::getActualClassNameForMorph()`.
 - Verified 2026-09-04 against git HEAD — all 11 files in `src/Http/Requests/`
   implement `authorize(): bool` returning `true`.
 - Verified 2026-09-04 against git HEAD — `BookRequest::rules()` uses
