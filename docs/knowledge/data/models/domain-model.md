@@ -81,12 +81,21 @@ process-global `requireMorphMap()` flag, which would make every unmapped morph
 in the *host* application throw.
 
 A host application that registers its own alias for `Paragraph` or `Sentence`
-takes precedence: `Relation::morphMap()` merges as `$map + static::$morphMap`
-and application providers boot after package providers. `Annotation` therefore
-stores `getMorphClass()` rather than reading `REFERENCE_TYPES` directly, so the
-stored value always matches what `MorphMany` constrains on. The corollary is
-that a host claiming `b_paragraphs` or `b_sentences` for one of its own models
-silently repoints the alias, and Laravel reports no conflict.
+**from a service provider's `boot()`** takes precedence: `Relation::morphMap()`
+merges as `$map + static::$morphMap`, which prepends, and `getMorphClass()` takes
+the first match — so the last registration wins, and package providers boot
+first. A host registering from `register()` or `bootstrap/app.php` runs before
+this package and is overridden by it.
+
+`Annotation` therefore stores `Relation::getMorphAlias()` of the resolved class
+rather than reading `REFERENCE_TYPES` directly, so the stored value always
+matches what `MorphMany` constrains on. Where no map is registered at all that
+yields the class name, which is also what `MorphMany` constrains on in that
+process — the two agree, which matters more than the column keeping its 3.0.0
+shape.
+
+The corollary is that a host claiming `b_paragraphs` or `b_sentences` for one of
+its own models silently repoints the alias, and Laravel reports no conflict.
 
 ## Enumerations
 

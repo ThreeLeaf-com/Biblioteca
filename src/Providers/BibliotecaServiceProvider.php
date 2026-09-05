@@ -41,14 +41,26 @@ class BibliotecaServiceProvider extends ServiceProvider
      * unmapped morph in the *host* application throw. A package must not impose that on the
      * application that installs it.
      *
-     * The merge is <code>$map + static::$morphMap</code> and application providers boot
-     * after package providers, so a host that registers either alias for one of its own
-     * models silently repoints it, and <code>morphMap($map, false)</code> removes these
-     * entries entirely. Laravel detects neither. The upgrade notes state the alias namespace
-     * this package claims; detecting a collision here is not possible without the
-     * process-global flag above.
+     * The merge is <code>$map + static::$morphMap</code>, which prepends the caller's
+     * entries, and {@link \Illuminate\Database\Eloquent\Model::getMorphClass()} takes the
+     * first match — so the *last* registration wins. A host that registers its map from a
+     * service provider's <code>boot()</code> therefore takes precedence over this one,
+     * because package providers boot first. A host that registers from
+     * <code>register()</code> or from <code>bootstrap/app.php</code> runs *before* this
+     * method and does not: this package's entries are prepended over the host's, and a model
+     * the host had been persisting under its own discriminator starts reporting the
+     * package's.
      *
-     * @return void
+     * A host that claims either of these aliases for one of its own models silently
+     * repoints it, and <code>morphMap($map, false)</code> removes these entries entirely.
+     * Laravel detects neither. The upgrade notes state the alias namespace this package
+     * claims; detecting a collision here is not possible without the process-global flag
+     * above.
+     *
+     * Registering here rather than in <code>register()</code> is deliberate: it is what
+     * gives a host's own <code>boot()</code> the last word.
+     *
+     * @return void Nothing is returned; the map is registered on a static in Relation.
      */
     private function registerMorphMap(): void
     {

@@ -79,10 +79,23 @@ relationship-existence query family, are not covered. See
 
 A second migration,
 `2026_09_06_000000_alias_annotation_reference_types.php`, rewrites rows written
-by earlier releases from the class name to the alias, matching case-insensitively
-because PHP resolves class names that way. It is reversible: `down()` restores the
-class names. Rows holding a value the package never wrote are left untouched in
-both directions.
+by earlier releases from the class name to the alias. It matches
+case-insensitively, because PHP resolves class names that way, and matches the
+`\`-prefixed form, which releases before 2.2.0 could store verbatim. Its
+class⇄alias pairs and table name are **frozen literals, not references to
+`Annotation::REFERENCE_TYPES`**: a migration is replayed by every fresh install
+and must keep doing what it did when it was written, so a later change to that
+constant cannot retroactively alter what a 2.x upgrade writes.
+
+The target alias is read from the morph map, so a host that registers its own
+alias for one of these models has that alias written rather than the package's —
+otherwise the migrated rows would not match the relation the host's own
+`getMorphClass()` constrains on.
+
+`down()` restores the class names, in canonical letter case, and is intended for
+a downgrade to 2.x. It is less conservative than `up()`: it rewrites the
+package's aliases whoever wrote them. Rows holding a value the package never
+wrote are left untouched in both directions.
 
 ## Composite primary keys
 

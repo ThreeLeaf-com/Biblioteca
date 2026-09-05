@@ -233,21 +233,32 @@ something impermissible raises rather than resolving.
 
 #### What gets stored
 
-**Since 3.0.0 the column stores a morph alias, not a class name.** Whatever you
-submit, the stored — and returned — value is `b_paragraphs` or `b_sentences`:
+**Since 3.0.0 the column stores a morph alias, not a class name.** Unless you
+have registered an alias of your own — see below — the stored and returned value
+is `b_paragraphs` or `b_sentences`, whatever form you submitted:
 
 ```php
 $annotation->reference_type;    // 'b_paragraphs', not 'ThreeLeaf\Biblioteca\Models\Paragraph'
 ```
 
-The package registers those two aliases with `Relation::morphMap()`. Two
+The package registers those two aliases with `Relation::morphMap()`. Three
 consequences worth knowing:
 
-- If you register your own alias for `Paragraph` or `Sentence`, yours wins —
-  your providers boot after the package's — and that alias is what gets stored,
-  so your own relations keep working.
+- If you register your own alias for `Paragraph` or `Sentence` **from a service
+  provider's `boot()`**, yours wins — package providers boot first, and the last
+  registration takes precedence — and your alias is what gets stored, so your own
+  relations keep working. Registering from `register()` or `bootstrap/app.php`
+  runs *before* this package and does **not** win.
 - **Do not use `b_paragraphs` or `b_sentences` for your own models.** The package
-  claims those names, and Laravel does not report a collision.
+  claims those names, and Laravel does not report a collision. If you already
+  use one, `Paragraph::getMorphClass()` falls back to the class name, the data
+  migration then writes `b_paragraphs` anyway, and reads of those rows resolve to
+  *your* model — which is not a permitted reference type, so previously working
+  annotations start throwing `InvalidReferenceTypeException`. Check before you
+  upgrade.
+- **The morph map is application-global.** It changes `getMorphClass()` for
+  `Paragraph` and `Sentence` everywhere, not just in `b_annotations` — see the
+  upgrade section.
 
 The package does *not* call `Relation::enforceMorphMap()`, so no
 `requireMorphMap()` flag is set on your application and your other unmapped
@@ -255,11 +266,42 @@ morphs are unaffected.
 
 ### Upgrading from 2.x to 3.0.0
 
-Run the migrations. A data migration rewrites `b_annotations.reference_type`
-from the class name to the alias.
+**Before you upgrade**, confirm your own `Relation::morphMap()` does not already
+use the names `b_paragraphs` or `b_sentences`. If it does, rename your entries
+first — the package claims both, and the collision is silent.
 
-**Then audit your own code, because this change breaks silently.** Nothing
-throws; comparisons simply stop matching. Look for:
+Then run the migrations. A data migration rewrites
+`b_annotations.reference_type` from the class name to the alias.
+
+#### Your own polymorphic tables may also be affected
+
+`Relation::morphMap()` is application-global. After the upgrade,
+`(new Paragraph)->getMorphClass()` returns `b_paragraphs` **everywhere**, not
+only inside `b_annotations` — and only `b_annotations` gets a data migration.
+
+So if any table of your own stores these class names in a morph type column — a
+`comments.commentable_type`, an `activity_log.subject_type`, an
+`attachments.attachable_type` — its relations will silently stop matching. Find
+them and rewrite them yourself:
+
+```sql
+UPDATE comments SET commentable_type = 'b_paragraphs'
+ WHERE commentable_type = 'ThreeLeaf\Biblioteca\Models\Paragraph';
+```
+
+If you registered your own alias for either model, the data migration writes
+*your* alias rather than the package's, so `b_annotations` needs nothing further.
+
+#### Audit your own code, because this change breaks silently
+
+Nothing throws; comparisons simply stop matching. Start with:
+
+```bash
+grep -rn 'reference_type' app/ database/ routes/ tests/
+grep -rn 'Biblioteca\\Models\\\(Paragraph\|Sentence\)' app/ database/
+```
+
+Look for:
 
 ```php
 // Stops matching — the column no longer holds a class name.
@@ -274,9 +316,15 @@ Annotation::where('reference_type', (new Paragraph())->getMorphClass())->get();
 if ($annotation->reference instanceof Paragraph) { … }
 ```
 
-`Annotation::REFERENCE_TYPES` is now an `alias => class` map, so
-`array_keys(Annotation::REFERENCE_TYPES)` gives the stored values and
-`in_array($class, Annotation::REFERENCE_TYPES, true)` still tests a class.
+`Annotation::REFERENCE_TYPES` changed shape too, from a list of classes to an
+`alias => class` map. `in_array($class, Annotation::REFERENCE_TYPES, true)` and
+`foreach (… as $class)` are unaffected; `Annotation::REFERENCE_TYPES[0]` now
+fails on an undefined key, and `array_keys(…)` gives the stored values.
+
+The value also travels outside PHP, so check the other surfaces that carry it:
+seeders and test fixtures, front-end code asserting on the API response, and any
+search index, export, or downstream store that already persisted
+`reference_type`.
 
 API clients that send a class name keep working — the value is normalized to the
 alias on the way in — but any client *asserting* on `reference_type` in a
@@ -285,7 +333,14 @@ response has to be updated.
 Rows holding a value the package never wrote are left alone by the migration.
 See the audit query below.
 
-To roll back, `migrate:rollback` restores the class names.
+On a very large `b_annotations`, note that the migration is a single unchunked
+`UPDATE` per class; run it in a maintenance window if that matters to you.
+
+**Rolling back is for downgrading to 2.x.** Do not roll this migration back
+while still running 3.0.0: the code would keep writing and querying aliases
+against rows restored to class names, and `$paragraph->annotations()` would
+silently return nothing. If you repointed either alias at a model of your own, do
+not roll it back at all — `down()` restores those rows as the package's class.
 
 ### Upgrading from 2.1.0 or earlier
 

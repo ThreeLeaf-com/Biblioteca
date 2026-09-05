@@ -60,8 +60,9 @@ class Annotation extends Model
      *
      * The keys are the aliases {@link \ThreeLeaf\Biblioteca\Providers\BibliotecaServiceProvider}
      * registers with {@link Relation::morphMap()}, and are what the column stores as of
-     * 3.0.0. Declaring the allow-list and the morph map in one place keeps them from
-     * drifting apart.
+     * 3.0.0 unless a host application has registered an alias of its own for one of these
+     * models, which takes precedence. Declaring the allow-list and the morph map in one
+     * place keeps them from drifting apart.
      *
      * @var array<string, class-string<Model>>
      */
@@ -102,21 +103,28 @@ class Annotation extends Model
      * did, therefore keeps working and has its value normalized to
      * <code>b_paragraphs</code> on the way in.
      *
-     * The stored form is always {@link Model::getMorphClass()} of the resolved class, which
-     * under this package's map is <code>b_paragraphs</code> or <code>b_sentences</code>.
-     * Deferring to the model rather than reading {@link Annotation::REFERENCE_TYPES}
-     * directly is what keeps a host application's own aliasing working:
-     * {@link Relation::morphMap()} merges as <code>$map + static::$morphMap</code> and
-     * application providers boot after package providers, so a host that also aliases
-     * {@link Paragraph} takes precedence and <code>getMorphClass()</code> returns the host's
-     * alias. {@link MorphOneOrMany} constrains on that same method with a case-sensitive
-     * comparison on most engines, so storing anything else would leave the annotation
-     * readable through its own <code>reference</code> yet missing from
-     * <code>$paragraph->annotations()</code>.
+     * The stored form is the resolved class's morph alias, which under this package's map is
+     * <code>b_paragraphs</code> or <code>b_sentences</code>. Taking it from
+     * {@link Relation::getMorphAlias()} rather than from {@link Annotation::REFERENCE_TYPES}
+     * is what keeps a host application's own aliasing working: the alias registered for the
+     * class wins, so a host that has repointed {@link Paragraph} at its own subclass gets
+     * its own discriminator stored. {@link MorphOneOrMany} constrains on
+     * {@link Model::getMorphClass()} — the same lookup — with a case-sensitive comparison on
+     * most engines, so storing anything else would leave the annotation readable through its
+     * own <code>reference</code> yet missing from <code>$paragraph->annotations()</code>.
      *
-     * A host's own subclass of {@link Paragraph} or {@link Sentence} is stored the same way,
-     * under whatever alias the host registered for it, or under its class name when it
-     * registered none.
+     * {@link Relation::getMorphAlias()} is used in preference to instantiating the class and
+     * calling <code>getMorphClass()</code> on it. The two return the same value, but this
+     * path runs no constructor — and a host subclass's constructor would otherwise run
+     * during validation of an unauthenticated request.
+     *
+     * When the process has registered no morph map at all, this returns the class name, and
+     * that is deliberate: {@link MorphOneOrMany} constrains on the same lookup, so it also
+     * yields the class name there, and the two agree. Substituting the package's alias
+     * instead — to keep the column in its 3.0.0 shape — would store a value that the very
+     * relation this method exists to satisfy does not match, which is a worse failure than
+     * an unaliased row. A host's own subclass, which this package does not alias, is stored
+     * under its class name for the same reason.
      *
      * @param string $referenceType The reference type to check.
      *
@@ -126,9 +134,7 @@ class Annotation extends Model
      */
     public static function assertReferenceType(string $referenceType): string
     {
-        $resolved = self::resolveReferenceType($referenceType);
-
-        return (new $resolved())->getMorphClass();
+        return Relation::getMorphAlias(self::resolveReferenceType($referenceType));
     }
 
     /**
@@ -149,11 +155,14 @@ class Annotation extends Model
      * - **The package's own aliases resolve without the morph map**, so a process that
      *   boots no service providers — a migration run through a bare kernel, for one — still
      *   reads rows written by 3.0.0. The application's morph map is consulted first, so a
-     *   host that has repointed an alias keeps control of it.
+     *   host that has repointed an alias keeps control of it. That fallback matches exactly,
+     *   not case-insensitively, because {@link Relation::getMorphedModel()} matches exactly:
+     *   a looser comparison here would let a case variant slip past a host's own alias and
+     *   resolve to this package's class instead of the host's.
      *
-     * The case-insensitive comparison runs first and never autoloads, so the ordinary
-     * values resolve without touching the autoloader at all. Only an unrecognised name
-     * reaches the subclass check, which does autoload — that is strictly less than the
+     * Neither the alias lookups nor the case-insensitive comparison autoloads, so the
+     * ordinary values resolve without touching the autoloader at all. Only an unrecognised
+     * name reaches the subclass check, which does autoload — that is strictly less than the
      * unguarded behaviour, which autoloaded *and* constructed, and Composer can only
      * resolve a name to a file the application already ships.
      *
@@ -167,7 +176,7 @@ class Annotation extends Model
     {
         $normalized = ltrim($referenceType, '\\');
         $resolved = Relation::getMorphedModel($normalized)
-            ?? self::aliasedReferenceType($normalized)
+            ?? self::classForPackageAlias($normalized)
             ?? $normalized;
 
         foreach (self::REFERENCE_TYPES as $permitted) {
@@ -190,21 +199,22 @@ class Annotation extends Model
      *
      * This is the fallback {@link Annotation::resolveReferenceType()} uses when the
      * application's morph map does not answer, so the package's own rows resolve in a
-     * process where the morph map was never registered.
+     * process where the morph map was never registered. In a booted application the
+     * morph map answers first and this method is never reached.
+     *
+     * The match is exact, mirroring {@link Relation::getMorphedModel()}. A case-insensitive
+     * match here would be reached for a value the application's map declined only on letter
+     * case, and would then resolve that value to this package's class rather than to the
+     * class the host aliased — letting a caller pick the model by varying the case of an
+     * otherwise valid alias.
      *
      * @param string $referenceType The stored reference type.
      *
      * @return class-string<Model>|null The aliased class, or null when the value is not one of the package's aliases.
      */
-    private static function aliasedReferenceType(string $referenceType): ?string
+    private static function classForPackageAlias(string $referenceType): ?string
     {
-        foreach (self::REFERENCE_TYPES as $alias => $permitted) {
-            if (strcasecmp($referenceType, $alias) === 0) {
-                return $permitted;
-            }
-        }
-
-        return null;
+        return self::REFERENCE_TYPES[$referenceType] ?? null;
     }
 
     /**

@@ -53,6 +53,21 @@ is auto-discovered through the `extra.laravel.providers` entry in
   flag on the host. See
   [Domain Model](/data/models/domain-model.md).
 
+The morph map is the one place this package reaches outside its own tables.
+`Relation::$morphMap` is process-global and `Model::getMorphClass()` consults it
+unconditionally, so after 3.0.0 these two models report `b_paragraphs` and
+`b_sentences` in **every** polymorphic relation in the host application — a
+host-owned `commentable_type` or `subject_type` column holding the old class
+names included. The package migrates only its own table. This is the widest
+blast radius in the package and is documented as an upgrade step in the
+[User Guide](../../user-guide/README.md).
+
+Registration happens in `boot()` rather than `register()` so that a host
+registering its own map from a provider's `boot()` runs last and wins:
+`morphMap()` prepends, and `getMorphClass()` takes the first match. A host that
+registers from `register()` or `bootstrap/app.php` runs first and is overridden
+by this package instead.
+
 The `register()` method binds nothing.
 
 ## Framework support

@@ -40,7 +40,7 @@ class AnnotationControllerTest extends TestCase
     #[Test]
     public function showAnnotation(): void
     {
-        $annotation = Annotation::factory()->create();
+        $annotation = Annotation::factory()->paragraph()->create();
 
         $expectedData = (new AnnotationResource($annotation))->response()->getData(true);
 
@@ -48,6 +48,10 @@ class AnnotationControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_OK)
             ->assertJson($expectedData);
+
+        /* Pinned literally, because $expectedData comes from the resource and would agree
+           with it whatever the resource returned. */
+        $response->assertJsonPath('data.reference_type', Paragraph::TABLE_NAME);
     }
 
     /**

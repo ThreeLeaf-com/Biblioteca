@@ -76,21 +76,31 @@ A value is accepted when it *denotes* one of the two models:
   either model keeps working (Eloquent writes `getMorphClass()`, which is the
   alias under such a map);
 - then through this package's own aliases, so rows written by 3.0.0 still resolve
-  in a process where the morph map was never registered;
+  in a process where the morph map was never registered. That fallback matches
+  **exactly**, as `Relation::getMorphedModel()` does. A case-insensitive match
+  there would be reached only for a value the application's map declined on
+  letter case alone, and would then answer with this package's class rather than
+  the host's — letting a caller choose the model, and any global scopes on it, by
+  varying the case of an otherwise valid alias;
 - compared case-insensitively, since PHP resolves class names that way;
 - satisfied by a subclass, so a host may annotate its own `Paragraph` subclass.
 
 A morph map can *alias* a permitted model. It cannot widen the set: an alias
 pointing at any other class is rejected exactly as the class name would be.
 
-What is *stored* is the resolved model's `getMorphClass()` — the alias under the
-package's map, or the host's own alias where the host has registered one, or the
-class name for a subclass with no alias. `MorphOneOrMany` constrains on that same
-method with a case-sensitive comparison on most engines, so storing anything else
-would leave the annotation readable through its own `reference` yet missing from
-`$paragraph->annotations()`. Reading it from the model rather than from
-`REFERENCE_TYPES` is what makes the host's map authoritative when the two
-disagree.
+What is *stored* is `Relation::getMorphAlias()` of the resolved model — the alias
+under the package's map, or the host's own alias where the host has registered
+one, or the class name where nothing aliases it. `MorphOneOrMany` constrains on
+`getMorphClass()`, the same lookup, with a case-sensitive comparison on most
+engines, so storing anything else would leave the annotation readable through its
+own `reference` yet missing from `$paragraph->annotations()`. Reading it from the
+morph map rather than from `REFERENCE_TYPES` is what makes the host's map
+authoritative when the two disagree — including in the degenerate case where no
+map is registered and both sides fall back to the class name.
+
+The alias is read without instantiating the model. `getMorphClass()` on a fresh
+instance returns the same value, but constructing the class would run a host
+subclass's constructor during validation of an unauthenticated request.
 
 The map is registered with `Relation::morphMap()`, never
 `Relation::enforceMorphMap()`. The latter also sets `requireMorphMap()`, a
