@@ -18,6 +18,21 @@ class HostParagraph extends Paragraph
 {
 }
 
+/** A host subclass that sets its discriminator by overriding the accessor, not by aliasing. */
+class OverridingParagraph extends Paragraph
+{
+
+    /**
+     * Report a discriminator of the subclass's own choosing.
+     *
+     * @return string The morph class.
+     */
+    public function getMorphClass(): string
+    {
+        return 'overriding_paragraph';
+    }
+}
+
 /**
  * Test the {@link Annotation} reference type allow-list.
  *
@@ -30,17 +45,38 @@ class AnnotationReferenceTypeTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Clear the morph map between tests.
+     * The morph map as it stood before the test ran.
+     *
+     * @var array<string, class-string>
+     */
+    private array $originalMorphMap = [];
+
+    /**
+     * Remember the morph map before each test.
+     *
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->originalMorphMap = Relation::morphMap();
+    }
+
+    /**
+     * Restore the morph map between tests.
      *
      * {@link Relation::morphMap()} writes to a static, so a test that registers one would
      * otherwise change how every later test in the process resolves its polymorphic
-     * relations.
+     * relations. The map is restored rather than emptied, because emptying it would also
+     * discard the entries the package's own service provider registered — state this test
+     * class did not create and must not destroy.
      *
      * @return void
      */
     protected function tearDown(): void
     {
-        Relation::morphMap([], false);
+        Relation::morphMap($this->originalMorphMap, false);
 
         parent::tearDown();
     }
@@ -152,10 +188,11 @@ class AnnotationReferenceTypeTest extends TestCase
         $this->assertTrue($onParagraph->reference->is($paragraph));
         $this->assertTrue($onSentence->reference->is($sentence));
 
-        /* The leading backslash is stripped, so the column holds one form. */
+        /* The leading backslash is stripped and the class name is aliased, so the column
+           holds one form. */
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $onSentence->annotation_id,
-            'reference_type' => Sentence::class,
+            'reference_type' => Sentence::TABLE_NAME,
         ]);
     }
 
@@ -169,7 +206,7 @@ class AnnotationReferenceTypeTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
         ]);
     }
 
@@ -264,15 +301,15 @@ class AnnotationReferenceTypeTest extends TestCase
     }
 
     /**
-     * A mis-cased class name is stored canonically, so the parent relation still finds it.
+     * A mis-cased class name is stored as the alias, so the parent relation still finds it.
      *
      * {@link \Illuminate\Database\Eloquent\Relations\MorphOneOrMany} constrains on the
      * parent's `getMorphClass()`, and that comparison is case-sensitive on most engines.
-     * Storing the submitted case would leave the annotation readable through its own
+     * Storing the submitted value would leave the annotation readable through its own
      * `reference` yet absent from `$paragraph->annotations()`.
      */
     #[Test]
-    public function misCasedClassNameIsStoredCanonically(): void
+    public function misCasedClassNameIsStoredAsTheAlias(): void
     {
         $paragraph = Paragraph::factory()->create();
 
@@ -284,7 +321,7 @@ class AnnotationReferenceTypeTest extends TestCase
 
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
         ]);
 
         $paragraph->refresh();
@@ -363,6 +400,229 @@ class AnnotationReferenceTypeTest extends TestCase
 
         $eager = Annotation::with('reference')->find($annotation->annotation_id);
         $this->assertTrue($eager->reference->is($paragraph));
+    }
+
+    /** The package registers its own aliases, so the models report them as their morph class. */
+    #[Test]
+    public function packageMorphMapIsRegistered(): void
+    {
+        $this->assertSame(Paragraph::class, Relation::getMorphedModel(Paragraph::TABLE_NAME));
+        $this->assertSame(Sentence::class, Relation::getMorphedModel(Sentence::TABLE_NAME));
+
+        $this->assertSame(Paragraph::TABLE_NAME, (new Paragraph())->getMorphClass());
+        $this->assertSame(Sentence::TABLE_NAME, (new Sentence())->getMorphClass());
+    }
+
+    /**
+     * The morph map is registered without requiring one.
+     *
+     * {@link Relation::enforceMorphMap()} also sets {@link Relation::requireMorphMap()}, a
+     * process-global flag that would make every unmapped morph in the host application
+     * throw. Registering the map must not impose that.
+     */
+    #[Test]
+    public function morphMapIsNotRequiredOfTheHost(): void
+    {
+        $this->assertFalse(Relation::requiresMorphMap());
+    }
+
+    /** An alias is accepted on write and stored as given. */
+    #[Test]
+    public function aliasIsAcceptedOnWrite(): void
+    {
+        $sentence = Sentence::factory()->create();
+
+        $annotation = Annotation::create([
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => Sentence::TABLE_NAME,
+            'content' => 'Written with the alias.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => Sentence::TABLE_NAME,
+        ]);
+        $this->assertTrue($annotation->reference->is($sentence));
+    }
+
+    /** A class name submitted by a 2.x client is normalized to the alias. */
+    #[Test]
+    public function legacyClassNameIsNormalizedToTheAlias(): void
+    {
+        $this->assertSame(Paragraph::TABLE_NAME, Annotation::assertReferenceType(Paragraph::class));
+        $this->assertSame(Sentence::TABLE_NAME, Annotation::assertReferenceType('\\' . Sentence::class));
+        $this->assertSame(Paragraph::TABLE_NAME, Annotation::assertReferenceType(strtolower(Paragraph::class)));
+    }
+
+    /**
+     * A stored alias resolves even where the morph map was never registered.
+     *
+     * A process that boots no service providers — a migration run through a bare kernel, for
+     * one — must still read rows this package wrote.
+     */
+    #[Test]
+    public function aliasResolvesWithoutTheMorphMap(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+        $annotationId = $this->plantAnnotation($paragraph->paragraph_id, Paragraph::TABLE_NAME);
+
+        Relation::morphMap([], false);
+
+        $this->assertNull(Relation::getMorphedModel(Paragraph::TABLE_NAME));
+
+        $this->assertSame(Paragraph::class, Annotation::resolveReferenceType(Paragraph::TABLE_NAME));
+        $this->assertSame(Sentence::class, Annotation::resolveReferenceType(Sentence::TABLE_NAME));
+
+        /* The eager path resolves through the fallback too, not only the static call. */
+        $eager = Annotation::with('reference')->find($annotationId);
+        $this->assertInstanceOf(Paragraph::class, $eager->reference);
+        $this->assertTrue($eager->reference->is($paragraph));
+    }
+
+    /**
+     * A host alias for a permitted model wins over the package's own.
+     *
+     * {@link \Illuminate\Database\Eloquent\Relations\MorphOneOrMany} constrains on the
+     * parent's `getMorphClass()`, so the stored value has to follow the host's map rather
+     * than {@link Annotation::REFERENCE_TYPES}, or the annotation would go missing from
+     * `$paragraph->annotations()`.
+     */
+    #[Test]
+    public function hostAliasTakesPrecedenceOverThePackageAlias(): void
+    {
+        Relation::morphMap(['paragraph' => Paragraph::class]);
+
+        $paragraph = Paragraph::factory()->create();
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => Paragraph::class,
+            'content' => 'Under a host morph map.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => 'paragraph',
+        ]);
+
+        $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /**
+     * A case variant of an alias does not slip past a host's own morph map.
+     *
+     * {@link Relation::getMorphedModel()} matches exactly, so a mis-cased alias reaches this
+     * package's fallback. If that fallback matched loosely it would answer with the
+     * package's class, letting a caller choose the model — and any global scopes on it — by
+     * varying the letter case of an otherwise valid alias.
+     */
+    #[Test]
+    public function misCasedAliasDoesNotBypassAHostMorphMap(): void
+    {
+        Relation::morphMap([Paragraph::TABLE_NAME => HostParagraph::class]);
+
+        $this->assertSame(HostParagraph::class, Annotation::resolveReferenceType(Paragraph::TABLE_NAME));
+
+        $this->expectException(InvalidReferenceTypeException::class);
+
+        Annotation::resolveReferenceType(strtoupper(Paragraph::TABLE_NAME));
+    }
+
+    /**
+     * A host repointing the package's own alias cannot widen the allow-list.
+     *
+     * This is the case the fallback could have rescued: the alias is one the package knows,
+     * but the application map answers first and points it somewhere impermissible.
+     */
+    #[Test]
+    public function hostCannotRepointThePackageAliasAtAnotherModel(): void
+    {
+        Relation::morphMap([Paragraph::TABLE_NAME => Book::class]);
+
+        $this->expectException(InvalidReferenceTypeException::class);
+
+        Annotation::resolveReferenceType(Paragraph::TABLE_NAME);
+    }
+
+    /**
+     * Writes still work when a host removes the package's entries from the morph map.
+     *
+     * <code>morphMap($map, false)</code> replaces the map outright. The stored value then
+     * degrades to the class name, which is what <code>getMorphClass()</code> returns in that
+     * process — so the parent relation, which constrains on the same method, still finds the
+     * row. The column is no longer in the 3.0.0 shape, but nothing breaks silently.
+     */
+    #[Test]
+    public function writesDegradeGracefullyWhenTheMapIsRemoved(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+
+        Relation::morphMap([], false);
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => Paragraph::class,
+            'content' => 'Written with no morph map.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => Paragraph::class,
+        ]);
+
+        $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /**
+     * A subclass that overrides getMorphClass() has that override stored.
+     *
+     * Overriding the accessor is the other way a host sets a discriminator, and it is
+     * invisible to the morph map. The parent relation constrains on the same method, so
+     * storing anything else would leave the annotation out of
+     * <code>$paragraph->annotations()</code>.
+     */
+    #[Test]
+    public function subclassMorphClassOverrideIsStored(): void
+    {
+        $paragraph = OverridingParagraph::find(Paragraph::factory()->create()->paragraph_id);
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => OverridingParagraph::class,
+            'content' => 'On a subclass that overrides its morph class.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => 'overriding_paragraph',
+        ]);
+
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /** The aliases are a stored-data contract, so they are pinned to their literal values. */
+    #[Test]
+    public function aliasesAreTheFrozenLiteralValues(): void
+    {
+        $this->assertSame(
+            [
+                'b_paragraphs' => Paragraph::class,
+                'b_sentences' => Sentence::class,
+            ],
+            Annotation::REFERENCE_TYPES,
+        );
+    }
+
+    /** The exception names the aliases, which is what the column actually holds. */
+    #[Test]
+    public function exceptionMessageNamesThePermittedAliases(): void
+    {
+        $this->expectException(InvalidReferenceTypeException::class);
+        $this->expectExceptionMessage(Paragraph::TABLE_NAME);
+
+        Annotation::resolveReferenceType('Illuminate\\Foundation\\Auth\\User');
     }
 
     /** An alias that maps to a model outside the allow-list is still rejected. */

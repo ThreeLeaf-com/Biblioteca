@@ -4,7 +4,7 @@ title: Conventions
 description: Naming, PHPDoc, annotation, and migration-comment rules this package follows.
 resource: src
 tags: [style, conventions, phpdoc]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Conventions
@@ -18,6 +18,15 @@ and the ones a contributor is expected to follow.
 - **Tables** carry the `b_` prefix from `BibliotecaConstants::TABLE_PREFIX`, and
   each model exposes its own `TABLE_NAME` constant. Reference the constant, not
   the literal, wherever a table name is needed — validation rules do this.
+  - **Exception: `Paragraph::TABLE_NAME` and `Sentence::TABLE_NAME` are also
+    morph aliases**, and a morph alias is persisted data. Renaming either table
+    would change what `Annotation.reference_type` stores and orphan every
+    existing row. A test pins both to their literal values so a rename fails
+    loudly; treat it as a data-format change requiring its own migration, not a
+    rename. See [Domain Model](/data/models/domain-model.md).
+  - **Migrations are the other exception**: they name tables and classes as
+    literals, because a migration is replayed by every fresh install and must
+    keep doing what it did when it was written.
 - **Primary keys** are named after the entity (`book_id`, `chapter_id`,
   `toc_id`), never `id`.
 - **Route parameters** match the key name: `books/{book_id}`.

@@ -4,7 +4,7 @@ title: Database Schema
 description: The b_-prefixed tables created by the package migration, their keys, unique constraints, and foreign-key cascade behaviour.
 resource: database/migrations/2024_10_07_000000_create_bibliotecha_tables.php
 tags: [data, schema, migrations]
-timestamp: 2026-09-05T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Database Schema
@@ -71,10 +71,34 @@ rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
 
 `reference_type` is a plain `string` column, so the database does not constrain
-which class it names. `Annotation` constrains ordinary model writes and its own
-read paths; writes that skip the attribute pipeline, and the
+what it holds. Since 3.0.0 it stores a morph alias — `b_paragraphs` or
+`b_sentences` — rather than a class name. `Annotation` constrains ordinary model
+writes and its own read paths; writes that skip the attribute pipeline, and the
 relationship-existence query family, are not covered. See
 [Input Validation](/security/input-validation.md).
+
+A second migration,
+`2026_09_06_000000_alias_annotation_reference_types.php`, rewrites rows written
+by earlier releases from the class name to the alias. It matches
+case-insensitively, because PHP resolves class names that way, and matches the
+`\`-prefixed form, which releases before 2.2.0 could store verbatim. Its
+class⇄alias pairs and table name are **frozen literals, not references to
+`Annotation::REFERENCE_TYPES`**: a migration is replayed by every fresh install
+and must keep doing what it did when it was written, so a later change to that
+constant cannot retroactively alter what a 2.x upgrade writes.
+
+The target alias is read from the morph map, so a host that registers its own
+alias for one of these models has that alias written rather than the package's —
+otherwise the migrated rows would not match the relation the host's own
+`getMorphClass()` constrains on. Where the map holds no alias for the class, the
+rewrite is skipped rather than forced to the package alias: that state means a
+host has displaced the package's entry, and 3.0.0 stores the class name there
+too, so the untouched rows keep matching.
+
+`down()` restores the class names, in canonical letter case, and is intended for
+a downgrade to 2.x. It is less conservative than `up()`: it rewrites the
+package's aliases whoever wrote them. Rows holding a value the package never
+wrote are left untouched in both directions.
 
 ## Composite primary keys
 

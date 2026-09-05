@@ -4,7 +4,7 @@ title: Domain Model
 description: The Biblioteca entities and the Eloquent relationships that connect them.
 resource: src/Models
 tags: [data, eloquent, relationships]
-timestamp: 2026-09-05T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Domain Model
@@ -62,12 +62,45 @@ class, which already handles a two-column key, so they use neither the trait nor
 `annotations()`. This lets one annotation table serve both text levels without a
 second table or a nullable-column-per-target design.
 
-`reference_type` holds a class name, or an alias for one when the host
-application registers a morph map. `Annotation::REFERENCE_TYPES` is the only set
-of models it may denote — by class name in any letter case, by subclass, or by
-alias — and a value denoting anything else raises
+`reference_type` holds a **morph alias**, not a class name. As of 3.0.0 the
+package registers a morph map keyed by the prefixed table names, so the column
+stores `b_paragraphs` or `b_sentences`, and the persisted discriminator no
+longer names a PHP class.
+
+`Annotation::REFERENCE_TYPES` declares that map — `alias => class` — and is the
+only set of models `reference_type` may denote. A value is accepted as an alias,
+as a class name in any letter case, or as a subclass, and is stored as the
+model's `getMorphClass()`. A value denoting anything else raises
 `InvalidReferenceTypeException` on write and on resolution alike. See
 [Input Validation](/security/input-validation.md).
+
+The single constant is both the allow-list and the morph map, registered by
+`BibliotecaServiceProvider::boot()` with `Relation::morphMap()`. `morphMap()`
+rather than `Relation::enforceMorphMap()`, because the latter also sets the
+process-global `requireMorphMap()` flag, which would make every unmapped morph
+in the *host* application throw.
+
+A host application that registers its own alias for `Paragraph` or `Sentence`
+**from a service provider's `boot()`** takes precedence: `Relation::morphMap()`
+merges as `$map + static::$morphMap`, which prepends, and `getMorphClass()` takes
+the first match — so the last registration wins, and package providers boot
+first. A host registering from `register()` or `bootstrap/app.php` runs before
+this package and is overridden by it.
+
+`Annotation` therefore stores the resolved class's own `getMorphClass()` rather
+than reading `REFERENCE_TYPES` directly, so the stored value always matches what
+`MorphMany` constrains on. Where no map is registered at all that yields the
+class name, which is also what `MorphMany` constrains on in that process — the
+two agree, which matters more than the column keeping its 3.0.0 shape.
+
+The instance is created without its constructor, so nothing of the host's runs
+during a write. Reading the morph map directly through
+`Relation::getMorphAlias()` would be cheaper still, but a subclass may set its
+discriminator by overriding `getMorphClass()` instead of by registering an
+alias, and the map cannot see that.
+
+The corollary is that a host claiming `b_paragraphs` or `b_sentences` for one of
+its own models silently repoints the alias, and Laravel reports no conflict.
 
 ## Enumerations
 
@@ -100,8 +133,13 @@ For the physical tables and their cascade rules, see
 
 # Citations
 
-- Verified 2026-09-05 against git HEAD — `Annotation::REFERENCE_TYPES` contains
-  `Paragraph::class` and `Sentence::class`.
+- Verified 2026-09-06 against git HEAD — `Annotation::REFERENCE_TYPES` maps
+  `Paragraph::TABLE_NAME => Paragraph::class` and
+  `Sentence::TABLE_NAME => Sentence::class`, and `BibliotecaServiceProvider`
+  passes it to `Relation::morphMap()`.
+- Verified 2026-09-06 by execution — `(new Paragraph())->getMorphClass()` returns
+  `b_paragraphs` once the provider has booted, and a host alias registered
+  afterwards takes precedence over it.
 
 - Verified 2026-09-04 against git HEAD — relationship methods enumerated from
   `src/Models/*.php`; `Annotation::reference()` is `MorphTo`, and
