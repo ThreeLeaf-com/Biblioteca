@@ -5,9 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.2.1] - 2026-09-05
+## [2.3.0] - 2026-09-05
 
 ### Fixed
+
+- **The book tag and genre endpoints validate their input.** `addTags()` and
+  `addGenres()` took a bare `Illuminate\Http\Request` and passed `tag_ids` /
+  `genre_ids` straight to `syncWithoutDetaching()` with no `array`, `uuid` or
+  `exists:` rule, and `removeTag()` / `removeGenre()` took no request object at
+  all. On the add routes, malformed or unknown identifiers reached the database
+  and surfaced as foreign-key errors (HTTP 500) rather than a 422; on the remove
+  routes an unknown identifier was a silent no-op returning 200. They now use
+  `BookTagRequest` and `BookGenreRequest`, and the remove routes resolve their
+  path identifier with `findOrFail()`, so an unknown one is a 404.
+
+  Three shapes that previously returned `200` now return `422`: an absent
+  `tag_ids` / `genre_ids`, an empty array, and `null`. Each attached nothing
+  before, so the outcome is unchanged — only the status. A batch containing one
+  unknown identifier now attaches none of it rather than the valid half.
+  Advisory:
+  [GHSA-8ph5-c5p6-vhf9](https://github.com/ThreeLeaf-com/Biblioteca/security/advisories/GHSA-8ph5-c5p6-vhf9).
 
 - **Chapter and paragraph re-parse is now atomic.**
   `ChapterService::parseChapterContents()` and

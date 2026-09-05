@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
@@ -190,5 +191,188 @@ class BookControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_OK);
         $this->assertFalse($book->genres()->where('b_book_genres.genre_id', $genre->genre_id)->exists());
+    }
+
+    /**
+     * {@link BookController::addTags()} rejects anything but existing tag identifiers.
+     *
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\BookTagRequest::rules()}
+     */
+    #[Test]
+    public function addTagsRejectsInvalidInput(): void
+    {
+        $book = Book::factory()->create();
+        $payloads = [
+            'missing' => [],
+            'not an array' => ['tag_ids' => 'not-an-array'],
+            'empty string element' => ['tag_ids' => ['']],
+            'not a uuid' => ['tag_ids' => ['nonsense']],
+            'unknown uuid' => ['tag_ids' => [fake()->uuid()]],
+        ];
+
+        foreach ($payloads as $label => $payload) {
+            $response = $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), $payload);
+
+            $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+            $this->assertSame(0, $book->tags()->count(), "Tags were attached for: $label");
+        }
+    }
+
+    /** {@link BookController::addTags()} rejects a batch containing one unknown identifier. */
+    #[Test]
+    public function addTagsRejectsAPartiallyValidBatch(): void
+    {
+        $book = Book::factory()->create();
+        $tag = Tag::factory()->create();
+
+        $response = $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), [
+            'tag_ids' => [$tag->tag_id, fake()->uuid()],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('tag_ids.1');
+
+        /* Nothing is attached, not even the valid half. */
+        $this->assertSame(0, $book->tags()->count());
+    }
+
+    /**
+     * {@link BookController::addGenres()} rejects anything but existing genre identifiers.
+     *
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\BookGenreRequest::rules()}
+     */
+    #[Test]
+    public function addGenresRejectsInvalidInput(): void
+    {
+        $book = Book::factory()->create();
+        $payloads = [
+            'missing' => [],
+            'not an array' => ['genre_ids' => 'not-an-array'],
+            'not a uuid' => ['genre_ids' => ['nonsense']],
+            'unknown uuid' => ['genre_ids' => [fake()->uuid()]],
+        ];
+
+        foreach ($payloads as $label => $payload) {
+            $response = $this->postJson(route('books.addGenres', ['book_id' => $book->book_id]), $payload);
+
+            $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+            $this->assertSame(0, $book->genres()->count(), "Genres were attached for: $label");
+        }
+    }
+
+    /** {@link BookController::removeTag()} reports an unknown tag rather than failing at the database. */
+    #[Test]
+    public function removeTagRejectsUnknownIdentifier(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([fake()->uuid(), 'nonsense'] as $tagId) {
+            $response = $this->deleteJson(
+                route('books.removeTag', ['book_id' => $book->book_id, 'tag_id' => $tagId])
+            );
+
+            $response->assertStatus(HttpCodes::HTTP_NOT_FOUND);
+        }
+    }
+
+    /** {@link BookController::removeGenre()} reports an unknown genre rather than failing at the database. */
+    #[Test]
+    public function removeGenreRejectsUnknownIdentifier(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([fake()->uuid(), 'nonsense'] as $genreId) {
+            $response = $this->deleteJson(
+                route('books.removeGenre', ['book_id' => $book->book_id, 'genre_id' => $genreId])
+            );
+
+            $response->assertStatus(HttpCodes::HTTP_NOT_FOUND);
+        }
+    }
+
+    /** Removing a tag that exists but is not attached is still a success, and detaches nothing. */
+    #[Test]
+    public function removeTagThatIsNotAttachedSucceeds(): void
+    {
+        $book = Book::factory()->create();
+        $attached = Tag::factory()->create();
+        $unattached = Tag::factory()->create();
+        $book->tags()->attach($attached);
+
+        $response = $this->deleteJson(
+            route('books.removeTag', ['book_id' => $book->book_id, 'tag_id' => $unattached->tag_id])
+        );
+
+        $response->assertStatus(HttpCodes::HTTP_OK);
+        $this->assertSame(1, $book->tags()->count());
+    }
+
+    /**
+     * The element rules reject a value that trims to empty, without relying on middleware.
+     *
+     * Laravel skips an element's whole rule set when the value trims to empty and no
+     * implicit rule is present, so `['"'"''"'"']` would pass through unvalidated. The stock
+     * `ConvertEmptyStringsToNull` middleware masks this over HTTP, which is why this is
+     * asserted against the rules directly — the guarantee has to come from the rules, not
+     * from the host's middleware stack.
+     */
+    #[Test]
+    public function elementRulesRejectEmptyAndWhitespaceIdentifiers(): void
+    {
+        $tag = Tag::factory()->create();
+        $genre = Genre::factory()->create();
+
+        foreach ([
+            [new \ThreeLeaf\Biblioteca\Http\Requests\BookTagRequest(), 'tag_ids', $tag->tag_id],
+            [new \ThreeLeaf\Biblioteca\Http\Requests\BookGenreRequest(), 'genre_ids', $genre->genre_id],
+        ] as [$request, $field, $validId]) {
+            $rules = $request->rules();
+
+            foreach (['', ' ', "\t"] as $value) {
+                $this->assertTrue(
+                    Validator::make([$field => [$value]], $rules)->fails(),
+                    "$field accepted a value that trims to empty.",
+                );
+            }
+
+            $this->assertFalse(
+                Validator::make([$field => [$validId]], $rules)->fails(),
+                "$field rejected a valid identifier.",
+            );
+        }
+    }
+
+    /** Removing a genre that exists but is not attached is still a success. */
+    #[Test]
+    public function removeGenreThatIsNotAttachedSucceeds(): void
+    {
+        $book = Book::factory()->create();
+        $attached = Genre::factory()->create();
+        $unattached = Genre::factory()->create();
+        $book->genres()->attach($attached);
+
+        $response = $this->deleteJson(
+            route('books.removeGenre', ['book_id' => $book->book_id, 'genre_id' => $unattached->genre_id])
+        );
+
+        $response->assertStatus(HttpCodes::HTTP_OK);
+        $this->assertSame(1, $book->genres()->count());
+    }
+
+    /** An empty or absent identifier list is rejected rather than silently doing nothing. */
+    #[Test]
+    public function addTagsRejectsAnEmptyList(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([[], ['tag_ids' => []], ['tag_ids' => null]] as $payload) {
+            $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), $payload)
+                ->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        foreach ([[], ['genre_ids' => []], ['genre_ids' => null]] as $payload) {
+            $this->postJson(route('books.addGenres', ['book_id' => $book->book_id]), $payload)
+                ->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 }
