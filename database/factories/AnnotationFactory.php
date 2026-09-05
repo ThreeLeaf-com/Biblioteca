@@ -37,7 +37,7 @@ class AnnotationFactory extends Factory
     /**
      * Define the model's default state.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed> The default annotation attributes.
      */
     public function definition()
     {
@@ -53,7 +53,7 @@ class AnnotationFactory extends Factory
      * $annotation = Annotation::factory()->sentence()->create();
      * ```
      *
-     * @return AnnotationFactory
+     * @return AnnotationFactory The factory with the sentence reference state applied.
      */
     public function sentence(): AnnotationFactory
     {
@@ -67,7 +67,7 @@ class AnnotationFactory extends Factory
      * $annotation = Annotation::factory()->paragraph()->create();
      * ```
      *
-     * @return AnnotationFactory
+     * @return AnnotationFactory The factory with the paragraph reference state applied.
      */
     public function paragraph(): AnnotationFactory
     {
@@ -77,15 +77,23 @@ class AnnotationFactory extends Factory
     /**
      * Helper method to generate annotation data for a specific reference type.
      *
-     * @param class-string<Sentence|Paragraph> $referenceType
+     * The stored <code>reference_type</code> is the model's morph alias, not its class name,
+     * which is what {@link Annotation::assertReferenceType()} writes and what the column has
+     * held since 3.0.0. It is read from the morph map rather than from
+     * {@link Annotation::REFERENCE_TYPES}, so generated rows follow a host application's own
+     * morph map exactly as application writes do. Rows built with <code>create()</code> pass
+     * through the model's mutator and would be normalized anyway; this keeps
+     * <code>make()</code> and <code>raw()</code> in the same shape.
      *
-     * @return array<string, mixed>
+     * @param class-string<Sentence|Paragraph> $referenceType The model the annotation references.
+     *
+     * @return array<string, mixed> The generated annotation attributes.
      */
     private function generateAnnotationData(string $referenceType): array
     {
         return [
             'reference_id' => $referenceType::factory(),
-            'reference_type' => $referenceType,
+            'reference_type' => Annotation::assertReferenceType($referenceType),
             'content' => $referenceType === Sentence::class
                 ? $this->faker->sentence()
                 : $this->faker->paragraph(),

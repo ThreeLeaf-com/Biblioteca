@@ -110,10 +110,11 @@ class AnnotationTest extends TestCase
             'reference_type' => Paragraph::class,
         ]);
 
+        /* The submitted class name is normalized to the morph alias on the way in. */
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $paragraph->paragraph_id,
-            'reference_type' => Paragraph::class,
+            'reference_type' => Paragraph::TABLE_NAME,
         ]);
 
         $this->assertTrue($annotation->reference()->is($paragraph));
@@ -129,10 +130,11 @@ class AnnotationTest extends TestCase
             'reference_type' => Sentence::class,
         ]);
 
+        /* The submitted class name is normalized to the morph alias on the way in. */
         $this->assertDatabaseHas(Annotation::TABLE_NAME, [
             'annotation_id' => $annotation->annotation_id,
             'reference_id' => $sentence->sentence_id,
-            'reference_type' => Sentence::class,
+            'reference_type' => Sentence::TABLE_NAME,
         ]);
 
         $this->assertTrue($annotation->reference()->is($sentence));
@@ -176,7 +178,6 @@ class AnnotationTest extends TestCase
         ]);
 
         $bookAuthor = $book->author;
-        echo "Book Author: $bookAuthor->first_name $bookAuthor->last_name";
 
         $this->assertEquals($author->first_name, $bookAuthor->first_name);
 
@@ -192,10 +193,9 @@ class AnnotationTest extends TestCase
             'content' => implode("\n", fake()->paragraphs(3)),
         ]);
 
-        $booksByAuthor = Author::find($author->author_id)->books;
-
-        foreach ($booksByAuthor as $book) {
-            echo $book->title;
-        }
+        $this->assertDatabaseHas(Paragraph::TABLE_NAME, [
+            'paragraph_id' => $paragraph->paragraph_id,
+            'chapter_id' => $chapter->chapter_id,
+        ]);
     }
 }
