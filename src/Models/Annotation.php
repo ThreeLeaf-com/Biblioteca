@@ -14,7 +14,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *
  * @property string                  $annotation_id   Unique identifier for the annotation in UUID format.
  * @property string                  $reference_id    Reference UUID for the associated paragraph or sentence.
- * @property string                  $reference_type  The type/class of the referenced entity (paragraph or sentence).
+ * @property string                  $reference_type  The morph alias of the referenced entity (paragraph or sentence).
  * @property string                  $content         The content of the annotation.
  * @property-read Paragraph|Sentence $reference       Reference to the paragraph or sentence associated with this annotation.
  *
@@ -25,7 +25,7 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  *     description="An annotation applied to a paragraph or sentence",
  *     @OA\Property(property="annotation_id", type="string", description="Unique identifier for the annotation in UUID format"),
  *     @OA\Property(property="reference_id", type="string", description="Reference UUID for the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="\ThreeLeaf\Biblioteca\Models\Sentence", description="The type/class of the referenced entity"),
+ *     @OA\Property(property="reference_type", type="string", enum={"b_paragraphs", "b_sentences"}, example="b_sentences", description="The morph alias of the referenced entity"),
  *     @OA\Property(property="content", type="string", description="The content of the annotation"),
  *     @OA\Property(
  *         property="reference",

@@ -199,6 +199,43 @@ Annotations are the exception to the cascade: they carry no foreign key, so
 deleting a paragraph or a sentence leaves its annotations behind. Clean them up
 yourself if that matters to you.
 
+### Annotations name their target by alias
+
+An annotation attaches to either a paragraph or a sentence, and `reference_type`
+says which. It takes one of two values:
+
+| `reference_type` | Attaches to |
+| ---------------- | ----------- |
+| `b_paragraphs`   | a paragraph |
+| `b_sentences`    | a sentence  |
+
+```php
+$annotation = Annotation::create([
+    'reference_id' => $paragraph->paragraph_id,
+    'reference_type' => Paragraph::TABLE_NAME,
+    'content' => 'The date here is disputed.',
+]);
+```
+
+Or let the relation set it for you, which is less to get wrong:
+
+```php
+$annotation = $paragraph->annotations()->create([
+    'content' => 'The date here is disputed.',
+]);
+```
+
+The API rejects any other `reference_type`, and rejects a `reference_id` that is
+not a real row in the matching table.
+
+**Upgrading from 2.1.0 or earlier.** Those releases stored `reference_type` as a
+fully-qualified class name such as `ThreeLeaf\Biblioteca\Models\Paragraph`.
+Running the package migrations rewrites existing rows to the aliases above. API
+clients that still send the class name keep working — it is translated to the
+alias — but the value read back, and the value stored, is now the alias. Update
+any code that compares `reference_type` against a class name, and any query that
+filters on one.
+
 ## Using the API routes
 
 The package ships an example route file at

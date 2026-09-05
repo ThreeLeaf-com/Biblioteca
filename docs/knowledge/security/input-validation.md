@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 ---
 
 # Input Validation
@@ -54,6 +54,44 @@ key that passes validation but is not fillable is dropped at the model boundary.
 `BookTag` and `BookGenre` declare none; they are protected instead by Eloquent's
 default `$guarded = ['*']`. See [Domain Model](/data/models/domain-model.md).
 
+## Polymorphic reference constraint
+
+`Annotation` is polymorphic: `reference_type` names the class Eloquent resolves
+when anything reads `$annotation->reference`. An unconstrained value there is a
+class lookup driven by request input, so the column is constrained in two
+places.
+
+`BibliotecaServiceProvider::boot()` registers a morph map, keyed by the prefixed
+table name so the aliases cannot collide with a map the host application has
+already registered:
+
+| Alias          | Model       |
+| -------------- | ----------- |
+| `b_paragraphs` | `Paragraph` |
+| `b_sentences`  | `Sentence`  |
+
+`AnnotationRequest` then restricts `reference_type` with `Rule::in()` over those
+aliases, and validates `reference_id` with `Rule::exists()` against the table
+the submitted alias resolves to. An annotation cannot name a class outside the
+map, and cannot point at a row that does not exist.
+
+The allow-list is the control. The morph map alone would not be:
+`MorphTo::getActualClassNameForMorph()` falls back to the raw stored string when
+`Relation::getMorphedModel()` returns `null`, so registering the map keeps
+internal class names out of the API surface but does not by itself stop an
+unmapped name from being resolved.
+
+The package registers the map with `Relation::morphMap()` rather than
+`Relation::enforceMorphMap()`. The latter also calls
+`Relation::requireMorphMap()`, which sets a process-global flag that makes
+`getMorphClass()` throw for every unmapped model in the **host** application as
+well. A package must not impose that; an application that wants it should call
+`Relation::requireMorphMap()` itself.
+
+Releases up to 2.1.0 stored `reference_type` as a fully-qualified class name.
+Those values are still accepted on input and normalized to the alias, and a data
+migration rewrites rows already in `b_annotations`.
+
 ## What this control does not do
 
 `authorize()` returns `true` in all eleven form requests. **Validation is not
@@ -61,12 +99,7 @@ authorization.** A request can be perfectly well-formed and still come from
 someone with no right to make it. See
 [Authorization Boundary](/security/authorization-boundary.md).
 
-`Annotation` is polymorphic, and polymorphic columns deserve application-level
-handling regardless of what a package does: register
-`Relation::enforceMorphMap()` and constrain `reference_type` to the types your
-application actually accepts.
-
-Nor does validation cover:
+Validation does not cover:
 
 - **Content sanitization.** No free-text field is sanitized anywhere. That
   includes `content`, `summary`, `biography`, `title`, `subtitle`,
@@ -87,6 +120,17 @@ Nor does validation cover:
 
 # Citations
 
+- Verified 2026-09-05 against git HEAD — `BibliotecaServiceProvider::MORPH_MAP`
+  maps `Paragraph::TABLE_NAME` and `Sentence::TABLE_NAME`, and `boot()` passes
+  it to `Relation::morphMap()`.
+- Verified 2026-09-05 against git HEAD — `AnnotationRequest::rules()` applies
+  `Rule::in(array_keys(BibliotecaServiceProvider::MORPH_MAP))` to
+  `reference_type`, and `referenceIdRules()` adds `Rule::exists()` for the
+  resolved table.
+- Verified 2026-09-05 against Laravel 12/13 —
+  `Relation::enforceMorphMap()` calls `Relation::requireMorphMap()`, and
+  `MorphTo::getActualClassNameForMorph()` returns the raw value when
+  `Relation::getMorphedModel()` is `null`.
 - Verified 2026-09-04 against git HEAD — all 11 files in `src/Http/Requests/`
   implement `authorize(): bool` returning `true`.
 - Verified 2026-09-04 against git HEAD — `BookRequest::rules()` uses

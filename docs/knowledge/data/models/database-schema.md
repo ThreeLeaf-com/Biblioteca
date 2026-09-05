@@ -4,7 +4,7 @@ title: Database Schema
 description: The b_-prefixed tables created by the package migration, their keys, unique constraints, and foreign-key cascade behaviour.
 resource: database/migrations/2024_10_07_000000_create_bibliotecha_tables.php
 tags: [data, schema, migrations]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 ---
 
 # Database Schema
@@ -70,6 +70,13 @@ polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
 rows are therefore not cascaded away when their target is deleted, and an
 application that deletes text should clean them up itself.
 
+`reference_type` stores the morph alias — the target table name, `b_paragraphs`
+or `b_sentences` — rather than a class name. The database does not enforce this;
+`AnnotationRequest` does. Rows written by releases up to 2.1.0 hold the
+fully-qualified class name and are rewritten by
+`2026_09_05_000000_map_annotation_reference_types.php`. See
+[Input Validation](/security/input-validation.md).
+
 ## Composite primary keys
 
 `b_book_tags`, `b_book_genres`, and `b_series_books` declare
@@ -88,6 +95,10 @@ keys during a drop — SQLite as configured in CI, and MySQL or MariaDB with
 Verify a rollback on the target engine before relying on it.
 
 # Citations
+
+- Verified 2026-09-05 against git HEAD —
+  `database/migrations/2026_09_05_000000_map_annotation_reference_types.php`
+  updates `reference_type` from each mapped class name to its alias.
 
 - Verified 2026-09-04 against git HEAD — table list, `primary()` declarations,
   `unique()` constraints, and `onDelete()` modes read from

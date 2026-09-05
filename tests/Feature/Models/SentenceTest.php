@@ -68,7 +68,7 @@ class SentenceTest extends TestCase
         $sentence = Sentence::factory()->create();
         $this->assertCount(0, $sentence->annotations);
 
-        Annotation::factory(3)->create(['reference_id' => $sentence->sentence_id, 'reference_type' => Sentence::class]);
+        Annotation::factory(3)->create(['reference_id' => $sentence->sentence_id, 'reference_type' => Sentence::TABLE_NAME]);
         $sentence->refresh();
 
         $this->assertCount(3, $sentence->annotations);

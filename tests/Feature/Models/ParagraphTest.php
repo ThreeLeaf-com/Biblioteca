@@ -72,7 +72,7 @@ class ParagraphTest extends TestCase
         $paragraph = Paragraph::factory()->create();
         $this->assertCount(0, $paragraph->annotations);
 
-        Annotation::factory(3)->create(['reference_id' => $paragraph->paragraph_id, 'reference_type' => Paragraph::class]);
+        Annotation::factory(3)->create(['reference_id' => $paragraph->paragraph_id, 'reference_type' => Paragraph::TABLE_NAME]);
         $paragraph->refresh();
 
         $this->assertCount(3, $paragraph->annotations);

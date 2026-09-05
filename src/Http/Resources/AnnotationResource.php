@@ -19,7 +19,7 @@ use ThreeLeaf\Biblioteca\Models\Paragraph;
  *     schema="AnnotationResource",
  *     @OA\Property(property="annotation_id", type="string", example="b1234567-89ab-cdef-0123-456789abcdef", description="UUID of the annotation"),
  *     @OA\Property(property="reference_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="UUID of the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="\ThreeLeaf\Biblioteca\Models\Sentence", description="Type of the referenced entity"),
+ *     @OA\Property(property="reference_type", type="string", enum={"b_paragraphs", "b_sentences"}, example="b_sentences", description="Morph alias of the referenced entity"),
  *     @OA\Property(property="content", type="string", example="This is an annotation explaining the text.", description="Content of the annotation"),
  *     @OA\Property(
  *         property="reference",

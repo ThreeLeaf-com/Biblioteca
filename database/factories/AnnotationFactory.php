@@ -3,6 +3,7 @@
 namespace Database\Factories\ThreeLeaf\Biblioteca\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
@@ -85,7 +86,8 @@ class AnnotationFactory extends Factory
     {
         return [
             'reference_id' => $referenceType::factory(),
-            'reference_type' => $referenceType,
+            /* Store the morph alias rather than the class name, matching what the API writes. */
+            'reference_type' => Relation::getMorphAlias($referenceType),
             'content' => $referenceType === Sentence::class
                 ? $this->faker->sentence()
                 : $this->faker->paragraph(),

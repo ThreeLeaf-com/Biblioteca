@@ -4,7 +4,7 @@ title: Domain Model
 description: The Biblioteca entities and the Eloquent relationships that connect them.
 resource: src/Models
 tags: [data, eloquent, relationships]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 ---
 
 # Domain Model
@@ -62,6 +62,13 @@ class, which already handles a two-column key, so they use neither the trait nor
 `annotations()`. This lets one annotation table serve both text levels without a
 second table or a nullable-column-per-target design.
 
+`reference_type` holds a morph alias, not a class name.
+`BibliotecaServiceProvider::boot()` registers `b_paragraphs` for `Paragraph` and
+`b_sentences` for `Sentence`, and `AnnotationRequest` accepts no other value.
+Releases up to 2.1.0 stored the fully-qualified class name; those values are
+still accepted on input and are rewritten by a data migration. See
+[Input Validation](/security/input-validation.md).
+
 ## Enumerations
 
 `Note` carries two backed string enums from
@@ -92,6 +99,9 @@ For the physical tables and their cascade rules, see
 [Database Schema](/data/models/database-schema.md).
 
 # Citations
+
+- Verified 2026-09-05 against git HEAD — `BibliotecaServiceProvider::MORPH_MAP`
+  keys `Paragraph::TABLE_NAME` and `Sentence::TABLE_NAME`.
 
 - Verified 2026-09-04 against git HEAD — relationship methods enumerated from
   `src/Models/*.php`; `Annotation::reference()` is `MorphTo`, and
