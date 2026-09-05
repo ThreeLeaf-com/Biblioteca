@@ -2,12 +2,16 @@
 
 namespace ThreeLeaf\Biblioteca\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
+use ThreeLeaf\Biblioteca\Http\Requests\BookGenreRequest;
 use ThreeLeaf\Biblioteca\Http\Requests\BookRequest;
+use ThreeLeaf\Biblioteca\Http\Requests\BookTagRequest;
 use ThreeLeaf\Biblioteca\Http\Resources\BookResource;
 use ThreeLeaf\Biblioteca\Models\Book;
+use ThreeLeaf\Biblioteca\Models\Genre;
+use ThreeLeaf\Biblioteca\Models\Tag;
 
 /**
  * Controller for {@link Book}.
@@ -189,19 +193,22 @@ class BookController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(type="array", @OA\Items(type="string", example="b1234567-89ab-cdef-0123-456789abcdef")),
-     *         description="Array of tag IDs to add"
+     *         @OA\JsonContent(ref="#/components/schemas/BookTagRequest")
      *     ),
      *     @OA\Response(response=200, description="Tags added successfully"),
-     *     @OA\Response(response=400, description="Invalid request"),
-     *     @OA\Response(response=404, description="Book not found")
+     *     @OA\Response(response=404, description="Book not found"),
+     *     @OA\Response(response=422, description="Validation failed")
      * )
+     *
+     * @param BookTagRequest $request The validated request containing the tag identifiers.
+     * @param string         $book_id The book to attach the tags to.
+     *
+     * @return JsonResponse Confirmation that the tags were attached.
      */
-    public function addTags(Request $request, $book_id)
+    public function addTags(BookTagRequest $request, $book_id): JsonResponse
     {
         $book = Book::findOrFail($book_id);
-        $tagIds = $request->input('tag_ids', []);
-        $book->tags()->syncWithoutDetaching($tagIds);
+        $book->tags()->syncWithoutDetaching($request->validated('tag_ids'));
 
         return response()->json(['message' => 'Tags added successfully']);
     }
@@ -231,10 +238,12 @@ class BookController extends Controller
      *     @OA\Response(response=404, description="Book or tag not found")
      * )
      */
-    public function removeTag($book_id, $tag_id)
+    public function removeTag($book_id, $tag_id): JsonResponse
     {
         $book = Book::findOrFail($book_id);
-        $book->tags()->detach($tag_id);
+        /* Resolve rather than detaching the raw path value, so an unknown identifier is a 404. */
+        $tag = Tag::findOrFail($tag_id);
+        $book->tags()->detach($tag->tag_id);
 
         return response()->json(['message' => 'Tag removed successfully']);
     }
@@ -256,15 +265,7 @@ class BookController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="genre_ids",
-     *                 type="array",
-     *                 @OA\Items(type="string", example="b1234567-89ab-cdef-0123-456789abcdef"),
-     *                 description="Array of genre IDs to add"
-     *             )
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/BookGenreRequest")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -284,11 +285,10 @@ class BookController extends Controller
      *     )
      * )
      */
-    public function addGenres(Request $request, $book_id)
+    public function addGenres(BookGenreRequest $request, $book_id): JsonResponse
     {
         $book = Book::findOrFail($book_id);
-        $genreIds = $request->input('genre_ids', []);
-        $book->genres()->syncWithoutDetaching($genreIds);
+        $book->genres()->syncWithoutDetaching($request->validated('genre_ids'));
 
         return response()->json(['message' => 'Genres added successfully']);
     }
@@ -329,10 +329,12 @@ class BookController extends Controller
      *     )
      * )
      */
-    public function removeGenre($book_id, $genre_id)
+    public function removeGenre($book_id, $genre_id): JsonResponse
     {
         $book = Book::findOrFail($book_id);
-        $book->genres()->detach($genre_id);
+        /* Resolve rather than detaching the raw path value, so an unknown identifier is a 404. */
+        $genre = Genre::findOrFail($genre_id);
+        $book->genres()->detach($genre->genre_id);
 
         return response()->json(['message' => 'Genre removed successfully']);
     }

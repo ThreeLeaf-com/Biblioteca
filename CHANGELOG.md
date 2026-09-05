@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The book tag and genre endpoints validate their input.** `addTags()` and
+  `addGenres()` took a bare `Illuminate\Http\Request` and passed `tag_ids` /
+  `genre_ids` straight to `syncWithoutDetaching()` with no `array`, `uuid` or
+  `exists:` rule, and `removeTag()` / `removeGenre()` took no request object at
+  all. Malformed or unknown identifiers reached the database and surfaced as
+  foreign-key errors (HTTP 500) rather than a 422. They now use
+  `BookTagRequest` and `BookGenreRequest`, and the remove routes resolve their
+  path identifier with `findOrFail()`, so an unknown one is a 404. A batch
+  containing one unknown identifier now attaches none of it. Advisory:
+  [GHSA-8ph5-c5p6-vhf9](https://github.com/ThreeLeaf-com/Biblioteca/security/advisories/GHSA-8ph5-c5p6-vhf9).
+
 - **Chapter and paragraph re-parse is now atomic.**
   `ChapterService::parseChapterContents()` and
   `ParagraphService::parseParagraphContents()` delete every child row before

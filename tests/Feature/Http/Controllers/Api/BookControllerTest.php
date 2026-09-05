@@ -191,4 +191,118 @@ class BookControllerTest extends TestCase
         $response->assertStatus(HttpCodes::HTTP_OK);
         $this->assertFalse($book->genres()->where('b_book_genres.genre_id', $genre->genre_id)->exists());
     }
+
+    /**
+     * {@link BookController::addTags()} rejects anything but existing tag identifiers.
+     *
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\BookTagRequest::rules()}
+     */
+    #[Test]
+    public function addTagsRejectsInvalidInput(): void
+    {
+        $book = Book::factory()->create();
+        $payloads = [
+            'missing' => [],
+            'not an array' => ['tag_ids' => 'not-an-array'],
+            'empty string element' => ['tag_ids' => ['']],
+            'not a uuid' => ['tag_ids' => ['nonsense']],
+            'unknown uuid' => ['tag_ids' => [fake()->uuid()]],
+        ];
+
+        foreach ($payloads as $label => $payload) {
+            $response = $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), $payload);
+
+            $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+            $this->assertSame(0, $book->tags()->count(), "Tags were attached for: $label");
+        }
+    }
+
+    /** {@link BookController::addTags()} rejects a batch containing one unknown identifier. */
+    #[Test]
+    public function addTagsRejectsAPartiallyValidBatch(): void
+    {
+        $book = Book::factory()->create();
+        $tag = Tag::factory()->create();
+
+        $response = $this->postJson(route('books.addTags', ['book_id' => $book->book_id]), [
+            'tag_ids' => [$tag->tag_id, fake()->uuid()],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('tag_ids.1');
+
+        /* Nothing is attached, not even the valid half. */
+        $this->assertSame(0, $book->tags()->count());
+    }
+
+    /**
+     * {@link BookController::addGenres()} rejects anything but existing genre identifiers.
+     *
+     * @see {@link \ThreeLeaf\Biblioteca\Http\Requests\BookGenreRequest::rules()}
+     */
+    #[Test]
+    public function addGenresRejectsInvalidInput(): void
+    {
+        $book = Book::factory()->create();
+        $payloads = [
+            'missing' => [],
+            'not an array' => ['genre_ids' => 'not-an-array'],
+            'not a uuid' => ['genre_ids' => ['nonsense']],
+            'unknown uuid' => ['genre_ids' => [fake()->uuid()]],
+        ];
+
+        foreach ($payloads as $label => $payload) {
+            $response = $this->postJson(route('books.addGenres', ['book_id' => $book->book_id]), $payload);
+
+            $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+            $this->assertSame(0, $book->genres()->count(), "Genres were attached for: $label");
+        }
+    }
+
+    /** {@link BookController::removeTag()} reports an unknown tag rather than failing at the database. */
+    #[Test]
+    public function removeTagRejectsUnknownIdentifier(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([fake()->uuid(), 'nonsense'] as $tagId) {
+            $response = $this->deleteJson(
+                route('books.removeTag', ['book_id' => $book->book_id, 'tag_id' => $tagId])
+            );
+
+            $response->assertStatus(HttpCodes::HTTP_NOT_FOUND);
+        }
+    }
+
+    /** {@link BookController::removeGenre()} reports an unknown genre rather than failing at the database. */
+    #[Test]
+    public function removeGenreRejectsUnknownIdentifier(): void
+    {
+        $book = Book::factory()->create();
+
+        foreach ([fake()->uuid(), 'nonsense'] as $genreId) {
+            $response = $this->deleteJson(
+                route('books.removeGenre', ['book_id' => $book->book_id, 'genre_id' => $genreId])
+            );
+
+            $response->assertStatus(HttpCodes::HTTP_NOT_FOUND);
+        }
+    }
+
+    /** Removing a tag that exists but is not attached is still a success, and detaches nothing. */
+    #[Test]
+    public function removeTagThatIsNotAttachedSucceeds(): void
+    {
+        $book = Book::factory()->create();
+        $attached = Tag::factory()->create();
+        $unattached = Tag::factory()->create();
+        $book->tags()->attach($attached);
+
+        $response = $this->deleteJson(
+            route('books.removeTag', ['book_id' => $book->book_id, 'tag_id' => $unattached->tag_id])
+        );
+
+        $response->assertStatus(HttpCodes::HTTP_OK);
+        $this->assertSame(1, $book->tags()->count());
+    }
 }

@@ -293,9 +293,9 @@ returns `true`.
 Combined with cascading deletes, an exposed `DELETE authors/{author_id}` will
 remove an author's entire library.
 
-Validation coverage is also not uniform: not every route in the example file
-routes its input through a form request, so do not assume a payload reaching a
-controller has been checked.
+Every write route in the example file now routes its input through a form
+request. That is validation, not authorization — a well-formed payload from an
+anonymous caller is still accepted.
 
 Before exposing any of these routes:
 
