@@ -64,9 +64,9 @@ second table or a nullable-column-per-target design.
 
 `reference_type` holds a class name, or an alias for one when the host
 application registers a morph map. `Annotation::REFERENCE_TYPES` is the only set
-of models it may denote; a value outside it raises
-`InvalidReferenceTypeException` on write and on resolution alike, and stored
-values naming anything else are cleared by migration. See
+of models it may denote — by class name in any letter case, by subclass, or by
+alias — and a value denoting anything else raises
+`InvalidReferenceTypeException` on write and on resolution alike. See
 [Input Validation](/security/input-validation.md).
 
 ## Enumerations

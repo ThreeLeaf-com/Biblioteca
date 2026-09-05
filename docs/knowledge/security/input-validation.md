@@ -58,20 +58,26 @@ default `$guarded = ['*']`. See [Domain Model](/data/models/domain-model.md).
 
 `Annotation` is polymorphic: `reference_type` names the class Eloquent resolves
 when the reference is read. An unconstrained value there is a class lookup
-driven by stored data, so the column is constrained in three layers.
+driven by stored data, so the column is constrained in two layers.
 
-`Annotation::REFERENCE_TYPES` is the allow-list — `Paragraph` and `Sentence`.
-A value is checked by resolving it through the application's morph map first, so
-a host that has aliased either model keeps working: Eloquent writes
-`getMorphClass()`, which is the alias under such a map. A morph map cannot
-*widen* the allow-list, only alias what is already in it.
+`Annotation::REFERENCE_TYPES` is the allow-list — `Paragraph` and `Sentence`. A
+value is accepted when it *denotes* one of them:
 
-**At the HTTP boundary**, `AnnotationRequest` restricts `reference_type` with
-`Rule::in(Annotation::REFERENCE_TYPES)` and validates `reference_id` with
-`Rule::exists()` against the table that type names. `prepareForValidation()`
-strips a leading backslash, since `\Foo\Bar` and `Foo\Bar` name the same class.
+- resolved through the application's morph map first, so a host that has aliased
+  either model keeps working (Eloquent writes `getMorphClass()`, which is the
+  alias under such a map);
+- compared case-insensitively, since PHP resolves class names that way;
+- satisfied by a subclass, so a host may annotate its own `Paragraph` subclass.
 
-**At the model boundary**, the same allow-list applies to every model write and
+A morph map can *alias* a permitted model. It cannot widen the set.
+
+**At the HTTP boundary**, `AnnotationRequest` validates `reference_type` through
+the same resolver the model uses — not a literal `Rule::in` list, which would
+reject aliases, subclasses and case variants and leave a morph-map host with no
+working route. `reference_id` is then checked with `Rule::exists()` against the
+table the resolved class names.
+
+**At the model boundary**, the same check applies to ordinary model writes and
 to the model's own read paths:
 
 | Path                                                           | Guard                                       |
@@ -89,34 +95,28 @@ The lazy and eager paths need separate guards because they resolve differently.
 `Model::getActualClassNameForMorph()` — statically, on the base class — so an
 override on `Annotation` never runs there.
 
-**In the data**, because guarding the model is not sufficient on its own.
-Relationship-existence queries — `has()`, `doesntHave()`, `whereHasMorph()` —
-pluck `reference_type` values straight from the table and instantiate them
-without going through `Annotation` at all. Query-builder writes, `upsert()`,
-`insert()` and `setRawAttributes()` likewise skip the mutator. Guarding each
-such site individually does not converge: any Eloquent release may add another.
+### What these guards do not cover
 
-`2026_09_05_000000_neutralize_invalid_annotation_reference_types.php` therefore
-makes the column nullable and clears every stored value that does not denote a
-permitted model, keeping the annotation's `content`. Once the column cannot hold
-a class worth instantiating, every resolution path is safe at once — including
-paths that predate this package and paths added later. The migration logs a
-warning naming the cleared values, because a non-zero count means rows existed
-that this package could not have written.
+Eloquent does not run mutators when hydrating from the database, nor for writes
+that skip the model's attribute pipeline. `Annotation::insert()`,
+`Annotation::upsert()`, `Annotation::query()->update()` and a direct `INSERT`
+all store whatever they are given.
 
-The three layers are complementary: validation and the mutator keep new bad
-values out, and the migration removes the ones a release without them let in.
+Reads have an equivalent gap. The relationship-existence family — `has()`,
+`doesntHave()`, `whereHasMorph()` and their `or`/`Not` variants — reads
+`reference_type` values straight from the table and instantiates them without
+going through `Annotation` at all. A row holding an impermissible class is
+therefore still constructed by those queries.
 
-### What this does not constrain
+Both gaps require a row that this package will not write. They matter to one
+population: an installation that ran a release without these guards and may have
+had such a row stored through the then-unvalidated API. **If you are upgrading,
+audit the column** — the user guide has the query. Remediation is deliberately
+left to the operator rather than done by migration: an automatic sweep cannot
+tell an attacker's row from a legitimate one whose morph map simply is not
+registered in the migration process, and clearing the second is data loss.
 
-The database itself does not enforce the allow-list — `reference_type` is a
-plain nullable `string` with no foreign key, and cannot have one while it is
-polymorphic. A direct `INSERT` after the migration can still store an arbitrary
-value, and until the next run of the migration the relationship-existence
-queries above would resolve it. The mutator is what prevents application code
-from doing this; nothing prevents a database client from doing it deliberately.
-
-## What this control does not do
+## What this control does not do## What this control does not do
 
 `authorize()` returns `true` in all eleven form requests. **Validation is not
 authorization.** A request can be perfectly well-formed and still come from
@@ -151,12 +151,16 @@ Nor does validation cover:
   `$annotation->reference`, `Annotation::with('reference')` and
   `->load('reference')` each raise `InvalidReferenceTypeException` for an
   unpermitted type, including for a row inserted through the query builder.
-- Verified 2026-09-05 by execution — before the migration runs, `has()`,
-  `doesntHave()` and `whereHasMorph()` each construct a canary class planted
-  through `DB::table()->insert()`; after it runs, none of them do.
+- Verified 2026-09-05 by execution — `has()`, `doesntHave()` and
+  `whereHasMorph()` each construct a canary class planted through
+  `DB::table()->insert()`, confirming the documented read gap.
+- Verified 2026-09-05 by execution — `Annotation::insert()` stores an
+  impermissible reference type, confirming the documented write gap.
 - Verified 2026-09-05 by execution — with `Relation::morphMap(['paragraph' =>
   Paragraph::class])` registered, `$paragraph->annotations()->create()` stores
-  `'paragraph'` and both read paths resolve it back to `Paragraph`.
+  `'paragraph'`, both read paths resolve it back to `Paragraph`, and
+  `POST /annotations` with `'paragraph'` returns 201 and is returned by
+  `$paragraph->annotations()`.
 - Verified 2026-09-05 against Laravel 12/13 —
   `HasRelationships::morphInstanceTo()` calls
   `static::getActualClassNameForMorph()` while `MorphTo::createModelByType()`

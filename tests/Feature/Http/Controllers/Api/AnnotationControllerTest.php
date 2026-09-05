@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
@@ -16,6 +17,21 @@ use PHPUnit\Framework\Attributes\Test;
 class AnnotationControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Clear the morph map between tests.
+     *
+     * {@link Relation::morphMap()} writes to a static, so a test that registers one would
+     * otherwise change how every later test in the process resolves its relations.
+     *
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        Relation::morphMap([], false);
+
+        parent::tearDown();
+    }
 
     /**
      * {@link AnnotationController::show()}.
@@ -296,5 +312,70 @@ class AnnotationControllerTest extends TestCase
             $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
                 ->assertJsonValidationErrors('reference_type');
         }
+    }
+
+
+    /**
+     * A host morph map alias is accepted by the API and stored as the alias.
+     *
+     * Eloquent writes `getMorphClass()` under such a map, so an API that rejected the alias
+     * would leave the host with no route that produces a row its own relations can read.
+     */
+    #[Test]
+    public function storeAcceptsHostMorphMapAlias(): void
+    {
+        Relation::morphMap(['paragraph' => Paragraph::class]);
+
+        $paragraph = Paragraph::factory()->create();
+
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => 'paragraph',
+            'content' => 'Posted with a host morph alias',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => 'paragraph',
+            'content' => 'Posted with a host morph alias',
+        ]);
+
+        $paragraph->refresh();
+        $this->assertCount(1, $paragraph->annotations);
+    }
+
+    /** An alias for a model outside the permitted set is still rejected. */
+    #[Test]
+    public function storeRejectsAliasForAnImpermissibleModel(): void
+    {
+        Relation::morphMap(['book' => \ThreeLeaf\Biblioteca\Models\Book::class]);
+
+        $paragraph = Paragraph::factory()->create();
+
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => 'book',
+            'content' => 'This annotation should never be stored',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('reference_type');
+    }
+
+    /** A class name in a different letter case is accepted. */
+    #[Test]
+    public function storeAcceptsMisCasedClassName(): void
+    {
+        $sentence = Sentence::factory()->create();
+
+        $response = $this->postJson(route('annotations.store'), [
+            'reference_id' => $sentence->sentence_id,
+            'reference_type' => strtolower(Sentence::class),
+            'content' => 'Posted with a mis-cased class name',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
     }
 }

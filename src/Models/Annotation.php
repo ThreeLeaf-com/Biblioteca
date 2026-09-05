@@ -117,11 +117,23 @@ class Annotation extends Model
      * Resolve a reference type to the class it denotes, rejecting anything impermissible.
      *
      * This is the read-side counterpart of {@link Annotation::assertReferenceType()}: it
-     * returns the class name rather than the stored discriminator, so callers instantiate
-     * a class this model permits rather than re-resolving the raw string.
+     * returns a class name rather than the stored discriminator, so callers instantiate a
+     * class this model permits rather than re-resolving the raw string.
      *
-     * The comparison against {@link Annotation::REFERENCE_TYPES} is exact. PHP resolves
-     * class names case-insensitively, but this does not, so a mis-cased value fails closed.
+     * Matching is deliberately tolerant in two ways that cost nothing in safety, because
+     * the value must still denote {@link Paragraph} or {@link Sentence} either way:
+     *
+     * - **Case-insensitive**, since PHP resolves class names case-insensitively. A row
+     *   holding a differently-cased class name worked before this check existed and still
+     *   names the same class.
+     * - **Subclasses are accepted**, so a host that extends {@link Paragraph} or
+     *   {@link Sentence} can annotate its own model.
+     *
+     * The case-insensitive comparison runs first and never autoloads, so the ordinary
+     * values resolve without touching the autoloader at all. Only an unrecognised name
+     * reaches the subclass check, which does autoload — that is strictly less than the
+     * unguarded behaviour, which autoloaded *and* constructed, and Composer can only
+     * resolve a name to a file the application already ships.
      *
      * @param string $referenceType The stored reference type.
      *
@@ -134,19 +146,28 @@ class Annotation extends Model
         $normalized = ltrim($referenceType, '\\');
         $resolved = Relation::getMorphedModel($normalized) ?? $normalized;
 
-        if (!in_array($resolved, self::REFERENCE_TYPES, true)) {
-            throw new InvalidReferenceTypeException($referenceType);
+        foreach (self::REFERENCE_TYPES as $permitted) {
+            if (strcasecmp($resolved, $permitted) === 0) {
+                return $permitted;
+            }
         }
 
-        return $resolved;
+        foreach (self::REFERENCE_TYPES as $permitted) {
+            if (is_subclass_of($resolved, $permitted, true)) {
+                return $resolved;
+            }
+        }
+
+        throw new InvalidReferenceTypeException($referenceType);
     }
 
     /**
      * Reject an impermissible reference type as it is written.
      *
      * Eloquent does not run mutators when it hydrates a model from the database, nor when
-     * a write is issued through the query builder, so this guards model writes only. See
-     * the security concept for what covers the rest.
+     * a write is issued through the query builder or through <code>insert()</code> and
+     * <code>upsert()</code>, so this guards ordinary model writes only. See the security
+     * concept for what that does and does not cover.
      *
      * @param string|null $value The reference type being assigned.
      *

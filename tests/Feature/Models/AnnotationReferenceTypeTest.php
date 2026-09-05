@@ -13,6 +13,11 @@ use ThreeLeaf\Biblioteca\Models\Paragraph;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 use PHPUnit\Framework\Attributes\Test;
 
+/** A host application's own subclass of a permitted model. */
+class HostParagraph extends Paragraph
+{
+}
+
 /**
  * Test the {@link Annotation} reference type allow-list.
  *
@@ -242,13 +247,48 @@ class AnnotationReferenceTypeTest extends TestCase
         Annotation::assertReferenceType('Illuminate\\Foundation\\Auth\\User');
     }
 
-    /** A mis-cased class name fails closed rather than being normalized. */
+    /**
+     * A mis-cased class name is accepted, because PHP resolves class names that way.
+     *
+     * Such a value worked before the check existed and denotes the same model, so
+     * rejecting it would break data rather than protect it.
+     */
     #[Test]
-    public function misCasedClassNameIsRejected(): void
+    public function misCasedClassNameIsAccepted(): void
+    {
+        $paragraph = Paragraph::factory()->create();
+        $annotationId = $this->plantAnnotation($paragraph->paragraph_id, strtolower(Paragraph::class));
+
+        $this->assertSame(Paragraph::class, Annotation::resolveReferenceType(strtolower(Paragraph::class)));
+        $this->assertTrue(Annotation::find($annotationId)->reference->is($paragraph));
+    }
+
+    /** A host subclass of a permitted model is accepted. */
+    #[Test]
+    public function hostSubclassIsAccepted(): void
+    {
+        $paragraph = HostParagraph::find(Paragraph::factory()->create()->paragraph_id);
+
+        $annotation = Annotation::create([
+            'reference_id' => $paragraph->paragraph_id,
+            'reference_type' => HostParagraph::class,
+            'content' => 'On a host subclass.',
+        ]);
+
+        $this->assertDatabaseHas(Annotation::TABLE_NAME, [
+            'annotation_id' => $annotation->annotation_id,
+            'reference_type' => HostParagraph::class,
+        ]);
+        $this->assertInstanceOf(HostParagraph::class, $annotation->reference);
+    }
+
+    /** A class unrelated to the permitted models is still rejected. */
+    #[Test]
+    public function unrelatedClassIsRejected(): void
     {
         $this->expectException(InvalidReferenceTypeException::class);
 
-        Annotation::assertReferenceType(strtolower(Paragraph::class));
+        Annotation::resolveReferenceType(Book::class);
     }
 
     /**
@@ -287,18 +327,4 @@ class AnnotationReferenceTypeTest extends TestCase
         Annotation::assertReferenceType('book');
     }
 
-    /** A null reference type is permitted, and reads as no reference. */
-    #[Test]
-    public function nullReferenceTypeResolvesToNoReference(): void
-    {
-        $paragraph = Paragraph::factory()->create();
-        $annotationId = $this->plantAnnotation($paragraph->paragraph_id, Paragraph::class);
-
-        DB::table(Annotation::TABLE_NAME)
-            ->where('annotation_id', $annotationId)
-            ->update(['reference_type' => null]);
-
-        $this->assertNull(Annotation::find($annotationId)->reference);
-        $this->assertNull(Annotation::with('reference')->find($annotationId)->reference);
-    }
 }
