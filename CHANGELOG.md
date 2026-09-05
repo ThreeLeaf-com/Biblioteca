@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-09-05
+
+### Fixed
+
+- **Chapter and paragraph re-parse is now atomic.**
+  `ChapterService::parseChapterContents()` and
+  `ParagraphService::parseParagraphContents()` delete every child row before
+  writing replacements, because the child tables are unique on their position
+  columns. That sequence was not wrapped in a transaction, so a failure
+  part-way through left the paragraphs, and their sentences, deleted and not
+  restored. Both now run in `DB::transaction()`.
+
+  Chapter parsing calls paragraph parsing, and Laravel nests the inner
+  transaction as a savepoint, so sentences written during a chapter rebuild
+  cannot commit independently of it. One caller-visible consequence: a deadlock
+  raised inside the nested transaction now surfaces as
+  `Illuminate\Database\DeadlockException`, which is not a `QueryException`, so
+  host code catching `QueryException` around chapter parsing no longer catches
+  that case. Advisory:
+  [GHSA-f6xp-r5g7-8wq7](https://github.com/ThreeLeaf-com/Biblioteca/security/advisories/GHSA-f6xp-r5g7-8wq7).
+
 ## [2.2.0] - 2026-09-05
 
 ### Security
