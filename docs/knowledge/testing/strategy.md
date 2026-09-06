@@ -4,7 +4,7 @@ title: Testing Strategy
 description: The PHPUnit suites, the compatibility matrix run in CI, and how the coverage badge is produced.
 resource: phpunit.xml
 tags: [testing, phpunit, ci, coverage]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-09-06T00:00:00Z
 ---
 
 # Testing Strategy
@@ -70,8 +70,50 @@ coverage percentage — and writes an SVG badge that the root
   validation-failure path, since validation is the package's only enforced
   control. See [Input Validation](/security/input-validation.md).
 
+## Verify service and repository tests by mutation
+
+A test that passes against a gutted implementation protects nothing, and it
+reads as coverage. Confirm the test by **removing the behaviour and watching the
+test fail**, rather than by reading the code:
+
+1. Delete or neutralise the behaviour under test.
+2. Run the test. It must fail, and the failure message must name the behaviour
+   you removed.
+3. Restore the implementation and confirm the suite is green again.
+
+Two shapes of test in this package go wrong without that check:
+
+- **Transaction rollback.** Assert on state re-read from the database, and
+  inject the failure at a point where earlier writes have already run.
+  A failure raised after the rows are written back tests an empty transaction
+  and passes with the transaction removed.
+- **Persistence.** Assert against a re-read row, not the in-memory model.
+  `$model->only(...)` on the instance you just passed in cannot tell
+  `update()` from `fill()`, because both leave the same attributes in memory.
+
+## Foreign keys are not enforced in feature tests
+
+`Tests\Feature\TestCase::setUp()` issues `PRAGMA foreign_keys=ON`, but
+`RefreshDatabase` has already opened a transaction by then, and SQLite treats
+that pragma as a no-op inside a transaction. Referential integrity is therefore
+**not enforced** in any feature test.
+
+A test cannot use an unknown foreign key as its failure trigger: the write
+succeeds and the test passes regardless. Inject the failure from a
+`QueryExecuted` listener instead — it is driver-independent, and it fires after
+the statement has run, so real rows exist for a rollback to undo.
+`SeriesServiceTest::failOnInsertInto()` is the worked example.
+
 # Citations
 
+- Verified 2026-09-06 against git HEAD — with `SeriesService`'s two
+  `DB::transaction()` calls removed and `ChapterRepository::update()` changed to
+  `fill()` without saving, the pre-existing tests reported
+  `OK (19 tests, 33 assertions)`; the same mutants against the current tests
+  produce three failures.
+- Verified 2026-09-06 by execution — a probe test using `RefreshDatabase`
+  reports `PRAGMA foreign_keys` as `0` with `DB::transactionLevel()` as `1`
+  after `Tests\Feature\TestCase::setUp()` has run.
 - Verified 2026-09-04 against git HEAD — suite names, directories, and the
   `<source><include>./src</include></source>` block read from `phpunit.xml`.
 - Verified 2026-09-04 against git HEAD — the matrix in
