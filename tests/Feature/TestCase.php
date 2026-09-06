@@ -21,7 +21,10 @@ abstract class TestCase extends OrchestraTestCase
         $this->setUpRoutes();
 
         if (DB::connection()->getDriverName() === 'sqlite') {
-            /* Enable foreign key constraints for SQLite */
+            /* FIXME(#27): This is a no-op. RefreshDatabase has already opened a transaction
+               by this point, and SQLite ignores the pragma inside one, so foreign keys are
+               not enforced in any feature test. Set foreign_key_constraints on the testing
+               connection instead, which applies at connect time. */
             DB::statement('PRAGMA foreign_keys=ON;');
         }
     }
