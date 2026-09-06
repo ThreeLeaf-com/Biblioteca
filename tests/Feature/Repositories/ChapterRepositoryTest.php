@@ -158,6 +158,10 @@ class ChapterRepositoryTest extends TestCase
 
         $this->assertEquals($chapter->chapter_id, $updatedChapter->chapter_id);
         $this->assertEquals($newData, $chapter->only(['title', 'content', 'chapter_number', 'book_id']));
+
+        /* Re-read the row: the assertion above only proves the in-memory model was filled. */
+        $persistedChapter = Chapter::findOrFail($chapter->chapter_id);
+        $this->assertEquals($newData, $persistedChapter->only(['title', 'content', 'chapter_number', 'book_id']));
     }
 
     /** {@link ChapterRepository::updateOrCreate()}. */
