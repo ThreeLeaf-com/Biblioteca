@@ -1,9 +1,9 @@
 ---
 type: Testing Strategy
 title: Testing Strategy
-description: The PHPUnit suites, the compatibility matrix run in CI, and how the coverage badge is produced.
+description: The PHPUnit suites, the compatibility matrix run in CI, how the coverage badge is produced, how to verify tests by mutation, and why foreign keys are not enforced in feature tests.
 resource: phpunit.xml
-tags: [testing, phpunit, ci, coverage]
+tags: [testing, phpunit, ci, coverage, mutation, transactions]
 timestamp: 2026-09-06T00:00:00Z
 ---
 
@@ -81,36 +81,63 @@ test fail**, rather than by reading the code:
    you removed.
 3. Restore the implementation and confirm the suite is green again.
 
-Two shapes of test in this package go wrong without that check:
+Three shapes of test in this package go wrong without that check:
 
 - **Transaction rollback.** Assert on state re-read from the database, and
-  inject the failure at a point where earlier writes have already run.
-  A failure raised after the rows are written back tests an empty transaction
-  and passes with the transaction removed.
+  inject the failure at a point where earlier writes have already run. A failure
+  raised before any rows are written tests an empty transaction, and passes with
+  the transaction removed.
 - **Persistence.** Assert against a re-read row, not the in-memory model.
   `$model->only(...)` on the instance you just passed in cannot tell
   `update()` from `fill()`, because both leave the same attributes in memory.
+- **Absence.** `assertDatabaseMissing` is also true when the code under test did
+  nothing at all. Pair it with proof that the work was attempted — catch the
+  specific injected failure and assert it fired.
 
-## Foreign keys are not enforced in feature tests
+Catch the narrowest exception type you can. `PHPUnit\Framework\AssertionFailedError`
+and `Illuminate\Database\QueryException` both extend `RuntimeException`, so a
+`catch (RuntimeException)` swallows assertion failures and real database errors
+alike, and hides the defects the test exists to detect.
 
-`Tests\Feature\TestCase::setUp()` issues `PRAGMA foreign_keys=ON`, but
-`RefreshDatabase` has already opened a transaction by then, and SQLite treats
-that pragma as a no-op inside a transaction. Referential integrity is therefore
-**not enforced** in any feature test.
+## How to inject a failure
 
-A test cannot use an unknown foreign key as its failure trigger: the write
-succeeds and the test passes regardless. Inject the failure from a
-`QueryExecuted` listener instead — it is driver-independent, and it fires after
-the statement has run, so real rows exist for a rollback to undo.
-`SeriesServiceTest::failOnInsertInto()` is the worked example.
+Prefer a **collaborator seam**: subclass the dependency and make it fail. See
+[`ReparseTransactionTest`](../../../tests/Feature/Services/ReparseTransactionTest.php),
+where `FailingParagraphService` stands in for a mid-rebuild error. This reads
+clearly and survives refactoring.
+
+Fall back to a **query listener** only when the code under test has no
+injectable collaborator.
+[`SeriesServiceTest::failOnInsertInto()`](../../../tests/Feature/Services/SeriesServiceTest.php)
+is the worked example: `SeriesService` takes no constructor dependencies, and
+`BelongsToMany::attach()` writes through the pivot query builder without firing
+Eloquent model events, so no cheaper seam exists. Anchor the match on the insert
+target — `b_series` is a prefix of `b_series_books`, so a substring test matches
+the wrong table.
+
+## Known defect: foreign keys are not enforced in feature tests
+
+Tracked as [#27](https://github.com/ThreeLeaf-com/Biblioteca/issues/27). **Remove
+this section when that issue closes.**
+
+[`Tests\Feature\TestCase::setUp()`](../../../tests/Feature/TestCase.php) issues
+`PRAGMA foreign_keys=ON`, but `RefreshDatabase` has already opened a transaction
+by then, and SQLite treats that pragma as a no-op inside a transaction.
+Referential integrity is therefore **not enforced** in any feature test.
+
+Until that is fixed, a test cannot use an unknown foreign key as its failure
+trigger: the write succeeds and the test passes regardless.
 
 # Citations
 
-- Verified 2026-09-06 against git HEAD — with `SeriesService`'s two
+- Verified 2026-09-06 by execution — with `SeriesService`'s two
   `DB::transaction()` calls removed and `ChapterRepository::update()` changed to
-  `fill()` without saving, the pre-existing tests reported
-  `OK (19 tests, 33 assertions)`; the same mutants against the current tests
-  produce three failures.
+  `fill()` without saving, `SeriesServiceTest` and `ChapterRepositoryTest` at
+  `staging` reported `OK (19 tests, 33 assertions)`. Each mutant applied
+  separately against the tests on this branch kills exactly one test.
+- Verified 2026-09-06 by execution — `PHPUnit\Framework\AssertionFailedError`
+  and `Illuminate\Database\QueryException` both report `true` for
+  `is_subclass_of(..., 'RuntimeException')`.
 - Verified 2026-09-06 by execution — a probe test using `RefreshDatabase`
   reports `PRAGMA foreign_keys` as `0` with `DB::transactionLevel()` as `1`
   after `Tests\Feature\TestCase::setUp()` has run.

@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Services;
 
+use Exception;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
@@ -13,6 +13,18 @@ use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
 use ThreeLeaf\Biblioteca\Services\SeriesService;
 use PHPUnit\Framework\Attributes\Test;
+
+/**
+ * A failure injected into a query listener, standing in for any mid-write error.
+ *
+ * It extends {@link Exception} rather than a framework or PHPUnit type so that catching it
+ * cannot also swallow a real database error or a PHPUnit assertion failure. Both of those
+ * extend `RuntimeException`, so a broad catch would hide the very defects these tests exist
+ * to detect.
+ */
+class InjectedFailure extends Exception
+{
+}
 
 /** Test {@link SeriesService}. */
 class SeriesServiceTest extends TestCase
@@ -90,8 +102,8 @@ class SeriesServiceTest extends TestCase
     /**
      * {@link SeriesService::create()} discards the whole series when attaching a book fails.
      *
-     * The series row and the first pivot row are both written before the second attach
-     * fails, so without the surrounding transaction a half-built series survives.
+     * The series row and both pivot rows are written before the injected failure fires, so
+     * without the surrounding transaction a half-built series survives.
      */
     #[Test]
     public function createRollsBackWhenAttachingABookFails()
@@ -106,16 +118,19 @@ class SeriesServiceTest extends TestCase
         ];
 
         $this->failOnInsertInto(SeriesBook::TABLE_NAME, 2);
+        $injectedFailure = null;
 
         try {
             $this->seriesService->create($seriesData);
-            $this->fail('The injected failure should have aborted the create.');
-        } catch (RuntimeException) {
-            /* Expected: the second book fails to attach. */
+        } catch (InjectedFailure $exception) {
+            $injectedFailure = $exception;
         }
 
+        /* Without this, the assertions below would also hold for a create() that did nothing. */
+        $this->assertNotNull($injectedFailure, 'The injected failure never fired.');
+
         $this->assertDatabaseMissing(Series::TABLE_NAME, ['title' => $title]);
-        $this->assertDatabaseMissing(SeriesBook::TABLE_NAME, ['book_id' => $books->first()->book_id]);
+        $this->assertDatabaseCount(SeriesBook::TABLE_NAME, 0);
     }
 
     /**
@@ -132,13 +147,18 @@ class SeriesServiceTest extends TestCase
         $books = Book::factory()->count(2)->create();
         $replacementBook = Book::factory()->create();
         $originalTitle = fake()->sentence();
-        $series = $this->seriesService->update(Series::factory()->create(), [
+
+        /* Arranged without the service, so a regression in update() cannot fake the baseline. */
+        $series = Series::factory()->create([
             'title' => $originalTitle,
             'author_id' => $author->author_id,
-            'book_ids' => $books->pluck('book_id')->toArray(),
         ]);
+        foreach ($books as $index => $book) {
+            $series->books()->attach($book->book_id, ['number' => $index + 1]);
+        }
 
         $this->failOnInsertInto(SeriesBook::TABLE_NAME, 1);
+        $injectedFailure = null;
 
         try {
             $this->seriesService->update($series, [
@@ -146,10 +166,11 @@ class SeriesServiceTest extends TestCase
                 'author_id' => $author->author_id,
                 'book_ids' => [$replacementBook->book_id],
             ]);
-            $this->fail('The injected failure should have aborted the update.');
-        } catch (RuntimeException) {
-            /* Expected: the replacement book fails to attach, after the detach has run. */
+        } catch (InjectedFailure $exception) {
+            $injectedFailure = $exception;
         }
+
+        $this->assertNotNull($injectedFailure, 'The injected failure never fired.');
 
         $this->assertDatabaseHas(Series::TABLE_NAME, [
             'series_id' => $series->series_id,
@@ -162,27 +183,31 @@ class SeriesServiceTest extends TestCase
     }
 
     /**
-     * Throw once the nth insert into the given table has run.
+     * Register a query listener that throws once the nth insert into the given table has run.
      *
-     * A missing foreign key is not usable as the failure here: SQLite treats
+     * The listener stays registered for the rest of the test, and it fires on every matching
+     * insert from the nth onwards.
+     *
+     * A missing foreign key is not usable as the failure trigger. SQLite treats
      * `PRAGMA foreign_keys` as a no-op inside a transaction, and `RefreshDatabase` opens one
-     * before the test starts, so the constraint is not enforced. Failing from a query
-     * listener is driver-independent, and it fires *after* the statement has executed, which
-     * leaves real rows behind for the rollback to undo rather than testing an empty
-     * transaction.
+     * before the test starts, so the constraint is not enforced. A query listener is
+     * driver-independent. It also fires after the statement has executed, so real rows exist
+     * for the rollback to undo rather than the test asserting against an empty transaction.
      *
      * @param string $table       The table whose inserts are counted.
-     * @param int    $insertCount The 1-based insert to fail on.
+     * @param int    $insertCount The 1-based insert to start failing on.
+     *
+     * @throws InjectedFailure From a later query, once the nth matching insert has run.
      */
     private function failOnInsertInto(string $table, int $insertCount): void
     {
-        $insertsSeen = 0;
-        DB::listen(function (QueryExecuted $query) use ($table, $insertCount, &$insertsSeen) {
-            $isInsert = str_starts_with(strtolower(ltrim($query->sql)), 'insert into')
-                && str_contains($query->sql, $table);
+        /* Anchored on the insert target: b_series is a prefix of b_series_books. */
+        $pattern = '/^insert\s+(?:or\s+\w+\s+)?into\s+["`\[]?' . preg_quote($table, '/') . '["`\]]?[\s(]/i';
 
-            if ($isInsert && ++$insertsSeen === $insertCount) {
-                throw new RuntimeException("Injected failure on insert $insertCount into $table.");
+        $insertsSeen = 0;
+        DB::listen(function (QueryExecuted $query) use ($pattern, $table, $insertCount, &$insertsSeen) {
+            if (preg_match($pattern, ltrim($query->sql)) && ++$insertsSeen >= $insertCount) {
+                throw new InjectedFailure("Injected failure on insert $insertsSeen into $table.");
             }
         });
     }
