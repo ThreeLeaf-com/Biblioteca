@@ -58,7 +58,7 @@ application developer installs and uses the package.
 ## Features
 
 - [OpenAPI Generation](/features/openapi-generation.md) — how `target/api-docs.json`
-  is produced from source annotations.
+  is produced from source attributes, and why attributes rather than annotations.
 - [Chapter Text Parsing](/features/chapter-text-parsing.md) — how chapter
   content is split into paragraphs and sentences.
 - [UUID Identifiers](/features/uuid-identifiers.md) — the identifier scheme,

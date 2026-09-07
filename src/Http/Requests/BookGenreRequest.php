@@ -5,23 +5,25 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Genre;
 
 /**
  * The {@link FormRequest} used to validate genres being attached to a {@link Book}.
- *
- * @OA\Schema(
- *     schema="BookGenreRequest",
- *     required={"genre_ids"},
- *     @OA\Property(
- *         property="genre_ids",
- *         type="array",
- *         @OA\Items(type="string", format="uuid", example="b1234567-89ab-cdef-0123-456789abcdef"),
- *         description="Identifiers of existing genres to attach to the book"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'BookGenreRequest',
+    required: ['genre_ids'],
+    properties: [
+        new OA\Property(
+            property: 'genre_ids',
+            type: 'array',
+            items: new OA\Items(type: 'string', format: 'uuid', example: 'b1234567-89ab-cdef-0123-456789abcdef'),
+            description: 'Identifiers of existing genres to attach to the book',
+        ),
+    ],
+)]
 class BookGenreRequest extends FormRequest
 {
 

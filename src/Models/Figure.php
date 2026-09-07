@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -21,23 +22,32 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read Chapter $chapter       The chapter associated with the figure.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Figure",
- *     description="A figure model",
- *     @OA\Property(property="figure_id", type="string", description="Primary key of the figure in UUID format"),
- *     @OA\Property(property="chapter_id", type="string", description="UUID of the associated chapter"),
- *     @OA\Property(property="figure_label", type="string", description="Alphanumeric label of the figure"),
- *     @OA\Property(property="caption", type="string", description="Caption of the figure"),
- *     @OA\Property(property="image_url", type="string", description="URL of the figure image"),
- *     @OA\Property(property="description", type="string", description="Description of the figure"),
- *     @OA\Property(
- *         property="chapter",
- *         ref="#/components/schemas/Chapter",
- *         description="The chapter associated with the figure"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Figure',
+    description: 'A figure model',
+    properties: [
+        new OA\Property(
+            property: 'figure_id',
+            type: 'string',
+            description: 'Primary key of the figure in UUID format',
+        ),
+        new OA\Property(property: 'chapter_id', type: 'string', description: 'UUID of the associated chapter'),
+        new OA\Property(
+            property: 'figure_label',
+            type: 'string',
+            description: 'Alphanumeric label of the figure',
+        ),
+        new OA\Property(property: 'caption', type: 'string', description: 'Caption of the figure'),
+        new OA\Property(property: 'image_url', type: 'string', description: 'URL of the figure image'),
+        new OA\Property(property: 'description', type: 'string', description: 'Description of the figure'),
+        new OA\Property(
+            property: 'chapter',
+            ref: '#/components/schemas/Chapter',
+            description: 'The chapter associated with the figure',
+        ),
+    ],
+)]
 class Figure extends Model
 {
     use HasUuids;

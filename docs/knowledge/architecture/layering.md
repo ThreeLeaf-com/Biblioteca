@@ -27,7 +27,7 @@ HTTP response
 
 One Eloquent model per entity in [`src/Models/`](../../../src/Models) — 15
 entity models plus 3 pivot models. The entity models carry the PHPDoc
-`@property` block and the OpenAPI `@OA\Schema` annotation; the two `Pivot`
+`@property` block and the OpenAPI `#[OA\Schema]` attribute; the two `Pivot`
 subclasses carry neither. See [Domain Model](/data/models/domain-model.md).
 
 ## The HTTP layer covers 11 of the 15 entities

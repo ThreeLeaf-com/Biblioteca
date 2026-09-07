@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Traits\HasCompositeKey;
 
@@ -19,30 +20,27 @@ use ThreeLeaf\Biblioteca\Traits\HasCompositeKey;
  * @property-read Book   $book         The book.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     schema="SeriesBook",
- *     type="object",
- *     title="SeriesBook",
- *     description="The association between a book and a series",
- *     required={"series_id", "book_id", "number"},
- *     @OA\Property(
- *         property="series_id",
- *         type="string",
- *         description="Unique identifier for the series"
- *     ),
- *     @OA\Property(
- *         property="book_id",
- *         type="string",
- *         description="Unique identifier for the book"
- *     ),
- *     @OA\Property(
- *         property="number",
- *         type="integer",
- *         description="Position of the book in the series"
- *     )
- * )
  */
+#[OA\Schema(
+    schema: 'SeriesBook',
+    type: 'object',
+    title: 'SeriesBook',
+    description: 'The association between a book and a series',
+    required: ['series_id', 'book_id', 'number'],
+    properties: [
+        new OA\Property(
+            property: 'series_id',
+            type: 'string',
+            description: 'Unique identifier for the series',
+        ),
+        new OA\Property(property: 'book_id', type: 'string', description: 'Unique identifier for the book'),
+        new OA\Property(
+            property: 'number',
+            type: 'integer',
+            description: 'Position of the book in the series',
+        ),
+    ],
+)]
 class SeriesBook extends Model
 {
     use HasFactory;

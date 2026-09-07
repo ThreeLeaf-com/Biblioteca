@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -18,20 +19,25 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read Book $book            The book associated with the bibliography entry.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Bibliography",
- *     description="A bibliography entry model",
- *     @OA\Property(property="bibliography_id", type="string", description="Primary key of the bibliography entry in UUID format"),
- *     @OA\Property(property="book_id", type="string", description="UUID of the associated book"),
- *     @OA\Property(property="content", type="string", description="Content of the bibliography entry"),
- *     @OA\Property(
- *         property="book",
- *         ref="#/components/schemas/Book",
- *         description="The book associated with the bibliography entry"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Bibliography',
+    description: 'A bibliography entry model',
+    properties: [
+        new OA\Property(
+            property: 'bibliography_id',
+            type: 'string',
+            description: 'Primary key of the bibliography entry in UUID format',
+        ),
+        new OA\Property(property: 'book_id', type: 'string', description: 'UUID of the associated book'),
+        new OA\Property(property: 'content', type: 'string', description: 'Content of the bibliography entry'),
+        new OA\Property(
+            property: 'book',
+            ref: '#/components/schemas/Book',
+            description: 'The book associated with the bibliography entry',
+        ),
+    ],
+)]
 class Bibliography extends Model
 {
     use HasUuids;

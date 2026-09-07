@@ -5,6 +5,56 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-09-07
+
+### Fixed
+
+- **The OpenAPI document is generated again.** swagger-php 6.7.1 reads docblock
+  `@OA\*` annotations only when `doctrine/annotations` is installed, and it is
+  not a dependency of this package. Every annotation in the package — 653 lines
+  across 54 files — was inert, and `composer install` wrote
+  `{"openapi":"3.0.0"}` with no paths and no schemas. A consumer generating a
+  client from the specification got an empty document.
+
+  The annotations are now PHP attributes (`#[OA\...]`), which swagger-php reads
+  with no extra dependency. `doctrine/annotations` was not adopted: Composer
+  reports it as abandoned. Attributes are not a permanent home either —
+  swagger-php's roadmap deprecates the whole classic pipeline, annotations and
+  attributes alike, in v7 — but they are the form that works today. The
+  migration is behaviour-preserving; the generated document is identical to the
+  one the annotations produced, at 28 paths and 42 schemas.
+
+  This is a source-level change only. No model, route, request, or response
+  behaviour changes, and nothing a consumer calls has a different shape. Host
+  code that scans this package's source for `@OA\*` docblocks — there is no
+  documented reason to — will no longer find any.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
+- **An incomplete OpenAPI document fails the build.** `util/generate-open-api.php`
+  caught its own exceptions, printed them, and exited `0`, so the build reported
+  success on a document with nothing in it. It now exits `1` on a `Throwable`
+  and on a document with zero paths, zero schemas, or no `Info` block, checked
+  before the document is written and before anything reports success. The
+  generator is wired to `post-update-cmd` as well as `post-install-cmd`, so
+  `composer update` — which is how CI installs — runs the gate too, and
+  `tests/Unit/OpenApi/OpenApiDocumentTest.php` asserts the same properties from
+  the test suite.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
+- **Two errors in the published document are corrected.** Both predate this
+  release and became visible only now that the document is generated at all.
+  `AnnotationController::update()` published `PUT /api/annotations/{id}` while
+  every other annotation operation published `/api/annotations/{annotation_id}`,
+  so one resource appeared in the document as two unrelated paths and the update
+  operation was missing from the one a reader would look at. (An OpenAPI path
+  parameter is a placeholder, so a generated client still called the right URL —
+  the harm was to the document, not to the request.) `LibraryController::index()`
+  tagged itself `Biblioteca` while the class declares `Biblioteca/Library`, so
+  swagger-php dropped the declared tag and its description and synthesised a
+  placeholder whose description is just its own name. The first correction merges the two path entries, leaving 27 paths and 42
+  schemas.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
 ## [3.0.0] - 2026-09-06
 
 ### Changed

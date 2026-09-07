@@ -87,8 +87,8 @@ than integer literals.
 
 ## Machine-readable specification
 
-Controllers, form requests, resources, models, and enums all carry `@OA\*`
-annotations. The generated OpenAPI document is the authoritative contract — see
+Controllers, form requests, resources, models, and enums all carry `#[OA\...]`
+attributes. The generated OpenAPI document is the authoritative contract — see
 [OpenAPI Generation](/features/openapi-generation.md). Tags are namespaced
 `Biblioteca/<Entity>` so the package's operations stay grouped when merged into
 a host application's specification.
@@ -110,4 +110,4 @@ a host application's specification.
   `response()->json()`.
 - Verified 2026-09-04 against git HEAD — `AuthorController` imports
   `Symfony\Component\HttpFoundation\Response as HttpCodes` and carries an
-  `@OA\Tag(name="Biblioteca/Authors")` annotation.
+  `#[OA\Tag(name: 'Biblioteca/Authors')]` attribute.

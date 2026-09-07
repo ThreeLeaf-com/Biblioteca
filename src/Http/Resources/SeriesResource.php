@@ -4,31 +4,48 @@ namespace ThreeLeaf\Biblioteca\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Series;
 
 /**
  * The {@link Series} {@link JsonResource} class used to shape API output.
  *
  * @mixin Series
- *
- * @OA\Schema(
- *     schema="SeriesResource",
- *     @OA\Property(property="series_id", type="string", example="b1234567-89ab-cdef-0123-456789abcdef", description="UUID of the series"),
- *     @OA\Property(property="name", type="string", example="Mystery Chronicles", description="Name of the series"),
- *     @OA\Property(property="description", type="string", example="A captivating series of mystery books.", description="Description of the series"),
- *     @OA\Property(
- *         property="author",
- *         ref="#/components/schemas/AuthorResource",
- *         description="The author associated with the series"
- *     ),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/BookResource"),
- *         description="Books that are part of this series"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'SeriesResource',
+    properties: [
+        new OA\Property(
+            property: 'series_id',
+            type: 'string',
+            example: 'b1234567-89ab-cdef-0123-456789abcdef',
+            description: 'UUID of the series',
+        ),
+        new OA\Property(
+            property: 'name',
+            type: 'string',
+            example: 'Mystery Chronicles',
+            description: 'Name of the series',
+        ),
+        new OA\Property(
+            property: 'description',
+            type: 'string',
+            example: 'A captivating series of mystery books.',
+            description: 'Description of the series',
+        ),
+        new OA\Property(
+            property: 'author',
+            ref: '#/components/schemas/AuthorResource',
+            description: 'The author associated with the series',
+        ),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/BookResource'),
+            description: 'Books that are part of this series',
+        ),
+    ],
+)]
 class SeriesResource extends JsonResource
 {
     /**

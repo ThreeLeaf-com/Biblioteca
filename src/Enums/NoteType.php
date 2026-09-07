@@ -2,17 +2,18 @@
 
 namespace ThreeLeaf\Biblioteca\Enums;
 
+use OpenApi\Attributes as OA;
+
 /**
  * Enum representing different note types.
- *
- * @OA\Schema(
- *     schema="NoteType",
- *     type="string",
- *     description="Enumeration of possible note types.",
- *     enum={"FOOTNOTE", "ENDNOTE", "BOTH"},
- *     example="FOOTNOTE"
- * )
  */
+#[OA\Schema(
+    schema: 'NoteType',
+    type: 'string',
+    description: 'Enumeration of possible note types.',
+    enum: ['FOOTNOTE', 'ENDNOTE', 'BOTH'],
+    example: 'FOOTNOTE',
+)]
 enum NoteType: string
 {
     /**

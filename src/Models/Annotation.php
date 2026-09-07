@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use OpenApi\Attributes as OA;
 use ReflectionClass;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Exceptions\InvalidReferenceTypeException;
@@ -24,24 +25,38 @@ use ThreeLeaf\Biblioteca\Relations\ReferenceMorphTo;
  * @property-read Paragraph|Sentence $reference       Reference to the paragraph or sentence associated with this annotation.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Annotation",
- *     description="An annotation applied to a paragraph or sentence",
- *     @OA\Property(property="annotation_id", type="string", description="Unique identifier for the annotation in UUID format"),
- *     @OA\Property(property="reference_id", type="string", description="Reference UUID for the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="b_sentences", description="The morph alias of the referenced entity: b_paragraphs or b_sentences, or the alias of a host subclass of one of them"),
- *     @OA\Property(property="content", type="string", description="The content of the annotation"),
- *     @OA\Property(
- *         property="reference",
- *         oneOf={
- *             @OA\Schema(ref="#/components/schemas/Sentence"),
- *             @OA\Schema(ref="#/components/schemas/Paragraph")
- *         },
- *         description="Reference to the paragraph or sentence associated with this annotation"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Annotation',
+    description: 'An annotation applied to a paragraph or sentence',
+    properties: [
+        new OA\Property(
+            property: 'annotation_id',
+            type: 'string',
+            description: 'Unique identifier for the annotation in UUID format',
+        ),
+        new OA\Property(
+            property: 'reference_id',
+            type: 'string',
+            description: 'Reference UUID for the associated paragraph or sentence',
+        ),
+        new OA\Property(
+            property: 'reference_type',
+            type: 'string',
+            example: 'b_sentences',
+            description: 'The morph alias of the referenced entity: b_paragraphs or b_sentences, or the alias of a host subclass of one of them',
+        ),
+        new OA\Property(property: 'content', type: 'string', description: 'The content of the annotation'),
+        new OA\Property(
+            property: 'reference',
+            oneOf: [
+                new OA\Schema(ref: '#/components/schemas/Sentence'),
+                new OA\Schema(ref: '#/components/schemas/Paragraph'),
+            ],
+            description: 'Reference to the paragraph or sentence associated with this annotation',
+        ),
+    ],
+)]
 class Annotation extends Model
 {
 

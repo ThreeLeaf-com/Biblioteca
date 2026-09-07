@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
@@ -11,22 +12,43 @@ use ThreeLeaf\Biblioteca\Models\Series;
  * The {@link Series} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Series
- *
- * @OA\Schema(
- *     schema="SeriesRequest",
- *     required={"title", "author_id"},
- *     @OA\Property(property="title", type="string", example="Mystery Chronicles", description="The title of the series"),
- *     @OA\Property(property="subtitle", type="string", example="The Beginning", description="The subtitle of the series"),
- *     @OA\Property(property="description", type="string", example="A captivating series of mystery books.", description="The description of the series"),
- *     @OA\Property(property="author_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="The unique ID of the associated author or editor"),
- *     @OA\Property(
- *         property="book_ids",
- *         type="array",
- *         @OA\Items(type="string", format="uuid"),
- *         description="The ordered array of book unique IDs to include in the series"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'SeriesRequest',
+    required: ['title', 'author_id'],
+    properties: [
+        new OA\Property(
+            property: 'title',
+            type: 'string',
+            example: 'Mystery Chronicles',
+            description: 'The title of the series',
+        ),
+        new OA\Property(
+            property: 'subtitle',
+            type: 'string',
+            example: 'The Beginning',
+            description: 'The subtitle of the series',
+        ),
+        new OA\Property(
+            property: 'description',
+            type: 'string',
+            example: 'A captivating series of mystery books.',
+            description: 'The description of the series',
+        ),
+        new OA\Property(
+            property: 'author_id',
+            type: 'string',
+            example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
+            description: 'The unique ID of the associated author or editor',
+        ),
+        new OA\Property(
+            property: 'book_ids',
+            type: 'array',
+            items: new OA\Items(type: 'string', format: 'uuid'),
+            description: 'The ordered array of book unique IDs to include in the series',
+        ),
+    ],
+)]
 class SeriesRequest extends FormRequest
 {
     /**

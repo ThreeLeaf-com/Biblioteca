@@ -5,23 +5,25 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
 /**
  * The {@link FormRequest} used to validate tags being attached to a {@link Book}.
- *
- * @OA\Schema(
- *     schema="BookTagRequest",
- *     required={"tag_ids"},
- *     @OA\Property(
- *         property="tag_ids",
- *         type="array",
- *         @OA\Items(type="string", format="uuid", example="b1234567-89ab-cdef-0123-456789abcdef"),
- *         description="Identifiers of existing tags to attach to the book"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'BookTagRequest',
+    required: ['tag_ids'],
+    properties: [
+        new OA\Property(
+            property: 'tag_ids',
+            type: 'array',
+            items: new OA\Items(type: 'string', format: 'uuid', example: 'b1234567-89ab-cdef-0123-456789abcdef'),
+            description: 'Identifiers of existing tags to attach to the book',
+        ),
+    ],
+)]
 class BookTagRequest extends FormRequest
 {
 

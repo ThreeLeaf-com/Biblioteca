@@ -4,25 +4,32 @@ namespace ThreeLeaf\Biblioteca\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
 /**
  * The {@link Tag} {@link JsonResource} class used to format the response for a tag.
  *
  * @mixin Tag
- *
- * @OA\Schema(
- *     schema="TagResource",
- *     @OA\Property(property="tag_id", type="string", example="b1234567-89ab-cdef-0123-456789abcdef", description="UUID of the tag"),
- *     @OA\Property(property="name", type="string", example="Fiction", description="Name of the tag"),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/BookResource"),
- *         description="Books associated with this tag"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'TagResource',
+    properties: [
+        new OA\Property(
+            property: 'tag_id',
+            type: 'string',
+            example: 'b1234567-89ab-cdef-0123-456789abcdef',
+            description: 'UUID of the tag',
+        ),
+        new OA\Property(property: 'name', type: 'string', example: 'Fiction', description: 'Name of the tag'),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/BookResource'),
+            description: 'Books associated with this tag',
+        ),
+    ],
+)]
 class TagResource extends JsonResource
 {
     /**

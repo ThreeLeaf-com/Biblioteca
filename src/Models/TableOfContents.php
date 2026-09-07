@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -21,27 +22,40 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read Chapter $chapter     The chapter associated with the table of contents entry.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="TableOfContents",
- *     description="A table of contents model",
- *     @OA\Property(property="toc_id", type="string", description="Primary key of the table of contents entry in UUID format"),
- *     @OA\Property(property="book_id", type="string", description="UUID of the associated book"),
- *     @OA\Property(property="title", type="string", description="Title of the chapter/section in the table of contents"),
- *     @OA\Property(property="chapter_id", type="string", description="UUID of the associated chapter"),
- *     @OA\Property(property="page_number", type="integer", description="Page number of the chapter/section in the book"),
- *     @OA\Property(
- *         property="book",
- *         ref="#/components/schemas/Book",
- *         description="The book associated with the table of contents entry"
- *     ),
- *     @OA\Property(
- *         property="chapter",
- *         ref="#/components/schemas/Chapter",
- *         description="The chapter associated with the table of contents entry"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'TableOfContents',
+    description: 'A table of contents model',
+    properties: [
+        new OA\Property(
+            property: 'toc_id',
+            type: 'string',
+            description: 'Primary key of the table of contents entry in UUID format',
+        ),
+        new OA\Property(property: 'book_id', type: 'string', description: 'UUID of the associated book'),
+        new OA\Property(
+            property: 'title',
+            type: 'string',
+            description: 'Title of the chapter/section in the table of contents',
+        ),
+        new OA\Property(property: 'chapter_id', type: 'string', description: 'UUID of the associated chapter'),
+        new OA\Property(
+            property: 'page_number',
+            type: 'integer',
+            description: 'Page number of the chapter/section in the book',
+        ),
+        new OA\Property(
+            property: 'book',
+            ref: '#/components/schemas/Book',
+            description: 'The book associated with the table of contents entry',
+        ),
+        new OA\Property(
+            property: 'chapter',
+            ref: '#/components/schemas/Chapter',
+            description: 'The chapter associated with the table of contents entry',
+        ),
+    ],
+)]
 class TableOfContents extends Model
 {
     use HasUuids;
