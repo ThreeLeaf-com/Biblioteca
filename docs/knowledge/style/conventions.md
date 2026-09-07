@@ -99,8 +99,9 @@ between concepts, relative paths to in-repo files outside the bundle, and a
 
 - Verified 2026-09-04 against git HEAD — PSR-4 root and namespace read from
   `composer.json`; `BibliotecaConstants::TABLE_PREFIX` is `'b_'`.
-- Verified 2026-09-04 against git HEAD — `Book` carries the `@property` block,
-  `@mixin Builder`, and `@OA\Schema`; `HasCompositeKey` documents `$primaryKeys`.
+- Verified 2026-09-07 against git HEAD — `Book` carries the `@property` block,
+  `@mixin Builder`, and an `#[OA\Schema]` attribute; `HasCompositeKey` documents
+  `$primaryKeys`.
 - Verified 2026-09-04 against git HEAD — every `Schema::create` block in the
   migration calls `$table->comment()` and comments each column.
 - Verified 2026-09-04 against git HEAD — `AuthorController` imports

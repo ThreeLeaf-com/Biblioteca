@@ -122,12 +122,12 @@ class AnnotationController extends Controller
      * @return AnnotationResource The updated annotation resource.
      */
     #[OA\Put(
-        path: '/api/annotations/{id}',
+        path: '/api/annotations/{annotation_id}',
         summary: 'Update an existing annotation',
         tags: ['Biblioteca/Annotations'],
         parameters: [
             new OA\Parameter(
-                name: 'id',
+                name: 'annotation_id',
                 in: 'path',
                 required: true,
                 description: 'ID of the annotation',

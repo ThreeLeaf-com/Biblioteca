@@ -19,7 +19,7 @@ class LibraryController extends Controller
     #[OA\Get(
         path: '/api/library',
         summary: 'Get series and book IDs',
-        tags: ['Biblioteca'],
+        tags: ['Biblioteca/Library'],
         responses: [
             new OA\Response(
                 response: 200,

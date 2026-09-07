@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test that the package's {@link OA} attributes still produce an OpenAPI document.
+ * Test that the package's `#[OA\...]` attributes still produce an OpenAPI document.
  *
  * Issue #20: swagger-php 6.7.1 reads docblock annotations only through
  * `doctrine/annotations`, which is not installed, so every `@OA\` docblock in the
@@ -91,5 +91,50 @@ class OpenApiDocumentTest extends TestCase
         $this->assertContains('Book', $schemas, 'The model attributes were not read.');
         $this->assertContains('BookRequest', $schemas, 'The form request attributes were not read.');
         $this->assertContains('BookResource', $schemas, 'The API resource attributes were not read.');
+    }
+
+    /**
+     * Path parameters are named after the entity key, never `id`.
+     *
+     * A published path whose parameter does not match the one `routes/api.php` binds
+     * generates a client that calls a route that does not exist. `AnnotationController`
+     * declared `/api/annotations/{id}` for years — see issue #20 — and nothing caught it
+     * because the document was empty. See {@link /style/conventions.md}.
+     */
+    #[Test]
+    public function pathParametersAreNamedAfterTheEntityKey()
+    {
+        foreach (self::$document->paths as $path) {
+            $this->assertStringNotContainsString(
+                '{id}',
+                $path->path,
+                "$path->path uses {id}; path parameters are named after the entity key.",
+            );
+        }
+    }
+
+    /**
+     * Every operation is tagged with a tag a controller declares.
+     *
+     * swagger-php synthesises a description-less tag for an operation that references one no
+     * class declares, and silently drops the declared tag nobody used. `LibraryController`
+     * tagged its operation `Biblioteca` while declaring `Biblioteca/Library`, and lost its
+     * own tag that way. Tags are namespaced `Biblioteca/<Entity>`, so an un-namespaced tag
+     * is an operation referencing a tag that does not exist.
+     */
+    #[Test]
+    public function everyOperationTagIsNamespaced()
+    {
+        foreach (self::$document->paths as $path) {
+            foreach ($path->operations() as $operation) {
+                foreach ($operation->tags as $tag) {
+                    $this->assertStringStartsWith(
+                        'Biblioteca/',
+                        $tag,
+                        "$path->path is tagged '$tag', which no controller declares.",
+                    );
+                }
+            }
+        }
     }
 }

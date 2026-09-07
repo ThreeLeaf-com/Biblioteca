@@ -15,7 +15,7 @@ timestamp: 2026-09-06T00:00:00Z
 
 | Suite     | Directory       | Covers                                                           |
 | --------- | --------------- | ---------------------------------------------------------------- |
-| `Unit`    | `tests/Unit`    | Traits and utilities with no database — `Equals`, `UuidUtil`     |
+| `Unit`    | `tests/Unit`    | Traits, utilities, and the generated OpenAPI document — no database |
 | `Feature` | `tests/Feature` | Models, repositories, services, controllers, requests, resources |
 
 Coverage is measured over `./src` only. Reports are written to
@@ -69,6 +69,11 @@ coverage percentage — and writes an SVG badge that the root
 - **A new route** needs a feature test covering the success path and the
   validation-failure path, since validation is the package's only enforced
   control. See [Input Validation](/security/input-validation.md).
+- **A new endpoint or schema** needs its path or schema name asserted in
+  `tests/Unit/OpenApi/OpenApiDocumentTest.php`, which generates the OpenAPI
+  document from `src/` and fails when it is empty or when a representative
+  attribute stops being read. See
+  [OpenAPI Generation](/features/openapi-generation.md).
 
 ## Verify service and repository tests by mutation
 

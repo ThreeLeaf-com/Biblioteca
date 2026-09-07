@@ -17,9 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   client from the specification got an empty document.
 
   The annotations are now PHP attributes (`#[OA\...]`), which swagger-php reads
-  with no extra dependency and which is the direction the library has taken —
-  its roadmap deprecates annotations in v7 and removes them in v8.
-  `doctrine/annotations` was not adopted: Composer reports it as abandoned. The
+  with no extra dependency. `doctrine/annotations` was not adopted: Composer
+  reports it as abandoned. Attributes are not a permanent home either —
+  swagger-php's roadmap deprecates the whole classic pipeline, annotations and
+  attributes alike, in v7 — but they are the form that works today. The
   migration is behaviour-preserving; the generated document is identical to the
   one the annotations produced, at 28 paths and 42 schemas.
 
@@ -29,13 +30,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   documented reason to — will no longer find any.
   ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
 
-- **An empty OpenAPI document fails the build.** `util/generate-open-api.php`
+- **An incomplete OpenAPI document fails the build.** `util/generate-open-api.php`
   caught its own exceptions, printed them, and exited `0`, so the build reported
   success on a document with nothing in it. It now exits `1` on a `Throwable`
-  and on a document with zero paths or zero schemas, and reports the schema
-  count alongside the path count.
-  `tests/Unit/OpenApi/OpenApiDocumentTest.php` makes the same assertion in CI,
-  which runs `composer update` and so never invokes the generator.
+  and on a document with zero paths, zero schemas, or no `Info` block, checked
+  before the document is written and before anything reports success. The
+  generator is wired to `post-update-cmd` as well as `post-install-cmd`, so
+  `composer update` — which is how CI installs — runs the gate too, and
+  `tests/Unit/OpenApi/OpenApiDocumentTest.php` asserts the same properties from
+  the test suite.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
+- **Two published paths were wrong, and are corrected.** These are annotation
+  errors that predate this release; they became reachable only now that the
+  document is generated at all. `AnnotationController::update()` published
+  `PUT /api/annotations/{id}` where the route binds `{annotation_id}`, so a
+  generated client called a path that 404s. `LibraryController::index()` tagged
+  itself `Biblioteca` while the class declares `Biblioteca/Library`, so the
+  declared tag and its description were dropped from the document. The
+  correction merges what had been two `annotations` path entries, leaving 27
+  paths and 42 schemas.
   ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
 
 ## [3.0.0] - 2026-09-06

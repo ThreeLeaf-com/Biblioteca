@@ -42,6 +42,9 @@
     "scripts": {
         "post-install-cmd": [
             "@php util/generate-open-api.php"
+        ],
+        "post-update-cmd": [
+            "@php util/generate-open-api.php"
         ]
     }
 }
