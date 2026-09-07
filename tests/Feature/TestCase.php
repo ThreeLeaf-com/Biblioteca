@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use ThreeLeaf\Biblioteca\Providers\BibliotecaServiceProvider;
@@ -19,14 +18,6 @@ abstract class TestCase extends OrchestraTestCase
         parent::setUp();
 
         $this->setUpRoutes();
-
-        if (DB::connection()->getDriverName() === 'sqlite') {
-            /* FIXME(#27): This is a no-op. RefreshDatabase has already opened a transaction
-               by this point, and SQLite ignores the pragma inside one, so foreign keys are
-               not enforced in any feature test. Set foreign_key_constraints on the testing
-               connection instead, which applies at connect time. */
-            DB::statement('PRAGMA foreign_keys=ON;');
-        }
     }
 
     /**
@@ -65,12 +56,18 @@ abstract class TestCase extends OrchestraTestCase
      */
     protected function getEnvironmentSetUp($app): void
     {
-        /* Use SQLite in-memory database for testing. */
+        /* Use SQLite in-memory database for testing.
+
+           foreign_key_constraints makes Laravel issue "PRAGMA foreign_keys=ON" when it
+           opens the connection, before RefreshDatabase starts its transaction. SQLite
+           ignores the pragma inside a transaction, so this is the only point at which
+           it can take effect. See ForeignKeyConstraintTest. */
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
+            'foreign_key_constraints' => true,
         ]);
     }
 }

@@ -47,7 +47,7 @@ application developer installs and uses the package.
 
 - [Testing Strategy](/testing/strategy.md) — the PHPUnit suites, the coverage
   report, the compatibility matrix run in CI, how to verify tests by mutation,
-  and why foreign keys are not enforced in feature tests.
+  and how foreign keys are enforced in feature tests.
 
 ## Style
 
