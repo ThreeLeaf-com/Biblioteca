@@ -3,20 +3,32 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Genre;
 
 /**
  * The {@link Genre} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Genre
- *
- * @OA\Schema(
- *     schema="GenreRequest",
- *     required={"name"},
- *     @OA\Property(property="name", type="string", example="Science Fiction", description="Name of the genre"),
- *     @OA\Property(property="description", type="string", example="A genre that explores futuristic concepts.", description="Description of the genre"),
- * )
  */
+#[OA\Schema(
+    schema: 'GenreRequest',
+    required: ['name'],
+    properties: [
+        new OA\Property(
+            property: 'name',
+            type: 'string',
+            example: 'Science Fiction',
+            description: 'Name of the genre',
+        ),
+        new OA\Property(
+            property: 'description',
+            type: 'string',
+            example: 'A genre that explores futuristic concepts.',
+            description: 'Description of the genre',
+        ),
+    ],
+)]
 class GenreRequest extends FormRequest
 {
     /**

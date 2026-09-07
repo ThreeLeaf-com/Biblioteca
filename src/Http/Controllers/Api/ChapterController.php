@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use ThreeLeaf\Biblioteca\Http\Controllers\Controller;
 use ThreeLeaf\Biblioteca\Http\Requests\ChapterRequest;
@@ -15,12 +16,8 @@ use ThreeLeaf\Biblioteca\Services\ChapterService;
 
 /**
  * Controller for {@link Chapter}.
- *
- * @OA\Tag(
- *     name="Biblioteca/Chapters",
- *     description="API Endpoints for managing Chapters in Biblioteca"
- * )
  */
+#[OA\Tag(name: 'Biblioteca/Chapters', description: 'API Endpoints for managing Chapters in Biblioteca')]
 class ChapterController extends Controller
 {
 
@@ -33,29 +30,33 @@ class ChapterController extends Controller
     /**
      * Display a listing of the chapters.
      *
-     * @OA\Get(
-     *     path="/api/chapters",
-     *     summary="Get a list of chapters",
-     *     tags={"Biblioteca/Chapters"},
-     *     @OA\Parameter(
-     *         name="bookId",
-     *         in="query",
-     *         description="ID of the book",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/ChapterResource")
-     *         )
-     *     )
-     * )
      * @param Request $request The request object
      *
      * @return ResourceCollection<ChapterResource> The {@link ChapterResource}
      */
+    #[OA\Get(
+        path: '/api/chapters',
+        summary: 'Get a list of chapters',
+        tags: ['Biblioteca/Chapters'],
+        parameters: [
+            new OA\Parameter(
+                name: 'bookId',
+                in: 'query',
+                description: 'ID of the book',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/ChapterResource'),
+                ),
+            ),
+        ],
+    )]
     public function index(Request $request): ResourceCollection
     {
         $bookId = $request->query('bookId');
@@ -67,25 +68,26 @@ class ChapterController extends Controller
     /**
      * Store a newly created chapter in storage.
      *
-     * @OA\Post(
-     *     path="/api/chapters",
-     *     summary="Create a new chapter",
-     *     tags={"Biblioteca/Chapters"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ChapterRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Chapter created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/ChapterResource")
-     *     )
-     * )
-     *
      * @param ChapterRequest $request The chapter request
      *
      * @return JsonResponse The {@link ChapterResource}
      */
+    #[OA\Post(
+        path: '/api/chapters',
+        summary: 'Create a new chapter',
+        tags: ['Biblioteca/Chapters'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ChapterRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Chapter created successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/ChapterResource'),
+            ),
+        ],
+    )]
     public function store(ChapterRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -99,32 +101,32 @@ class ChapterController extends Controller
     /**
      * Display the specified chapter.
      *
-     * @OA\Get(
-     *     path="/api/chapters/{chapter_id}",
-     *     summary="Get a specific chapter by ID",
-     *     tags={"Biblioteca/Chapters"},
-     *     @OA\Parameter(
-     *         name="chapter_id",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the chapter",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/ChapterResource")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Chapter not found"
-     *     )
-     * )
-     *
      * @param string $chapter_id The chapter ID.
      *
      * @return JsonResource The {@link ChapterResource}
      */
+    #[OA\Get(
+        path: '/api/chapters/{chapter_id}',
+        summary: 'Get a specific chapter by ID',
+        tags: ['Biblioteca/Chapters'],
+        parameters: [
+            new OA\Parameter(
+                name: 'chapter_id',
+                in: 'path',
+                required: true,
+                description: 'ID of the chapter',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful operation',
+                content: new OA\JsonContent(ref: '#/components/schemas/ChapterResource'),
+            ),
+            new OA\Response(response: 404, description: 'Chapter not found'),
+        ],
+    )]
     public function show(string $chapter_id): JsonResource
     {
         $chapter = Chapter::findOrFail($chapter_id);
@@ -135,36 +137,37 @@ class ChapterController extends Controller
     /**
      * Update an existing chapter in storage.
      *
-     * @OA\Put(
-     *     path="/api/chapters/{chapter_id}",
-     *     summary="Update an existing chapter",
-     *     tags={"Biblioteca/Chapters"},
-     *     @OA\Parameter(
-     *         name="chapter_id",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the chapter",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ChapterRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Chapter updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/ChapterResource")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Chapter not found"
-     *     )
-     * )
      * @param ChapterRequest $request    The validated request containing the updated chapter data.
      * @param string         $chapter_id The chapter ID.
      *
      * @return JsonResource The {@link ChapterResource}
      */
+    #[OA\Put(
+        path: '/api/chapters/{chapter_id}',
+        summary: 'Update an existing chapter',
+        tags: ['Biblioteca/Chapters'],
+        parameters: [
+            new OA\Parameter(
+                name: 'chapter_id',
+                in: 'path',
+                required: true,
+                description: 'ID of the chapter',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ChapterRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Chapter updated successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/ChapterResource'),
+            ),
+            new OA\Response(response: 404, description: 'Chapter not found'),
+        ],
+    )]
     public function update(ChapterRequest $request, string $chapter_id): JsonResource
     {
         $chapter = Chapter::findOrFail($chapter_id);
@@ -177,31 +180,28 @@ class ChapterController extends Controller
     /**
      * Remove the specified chapter from storage.
      *
-     * @OA\Delete(
-     *     path="/api/chapters/{chapter_id}",
-     *     summary="Delete a specific chapter",
-     *     tags={"Biblioteca/Chapters"},
-     *     @OA\Parameter(
-     *         name="chapter_id",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the chapter",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=204,
-     *         description="Chapter deleted successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Chapter not found"
-     *     )
-     * )
-     *
      * @param string $chapter_id The chapter ID.
      *
      * @return JsonResponse A JSON response with HTTP status code 204 (No Content) indicating successful deletion.
      */
+    #[OA\Delete(
+        path: '/api/chapters/{chapter_id}',
+        summary: 'Delete a specific chapter',
+        tags: ['Biblioteca/Chapters'],
+        parameters: [
+            new OA\Parameter(
+                name: 'chapter_id',
+                in: 'path',
+                required: true,
+                description: 'ID of the chapter',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'Chapter deleted successfully'),
+            new OA\Response(response: 404, description: 'Chapter not found'),
+        ],
+    )]
     public function destroy(string $chapter_id): JsonResponse
     {
         $chapter = $this->chapterService->findOrFail($chapter_id);

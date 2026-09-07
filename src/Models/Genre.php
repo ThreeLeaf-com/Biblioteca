@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -19,21 +20,26 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read HasMany<Book> $books        The books associated with this genre.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Genre",
- *     description="A genre model",
- *     @OA\Property(property="genre_id", type="string", description="Primary key of the genre in UUID format"),
- *     @OA\Property(property="name", type="string", description="Name of the genre"),
- *     @OA\Property(property="description", type="string", description="Description of the genre"),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Book"),
- *         description="The books associated with this genre"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Genre',
+    description: 'A genre model',
+    properties: [
+        new OA\Property(
+            property: 'genre_id',
+            type: 'string',
+            description: 'Primary key of the genre in UUID format',
+        ),
+        new OA\Property(property: 'name', type: 'string', description: 'Name of the genre'),
+        new OA\Property(property: 'description', type: 'string', description: 'Description of the genre'),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Book'),
+            description: 'The books associated with this genre',
+        ),
+    ],
+)]
 class Genre extends Model
 {
     use HasUuids;

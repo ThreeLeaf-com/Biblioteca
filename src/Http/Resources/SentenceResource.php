@@ -4,6 +4,7 @@ namespace ThreeLeaf\Biblioteca\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Sentence;
 
 /**
@@ -13,15 +14,36 @@ use ThreeLeaf\Biblioteca\Models\Sentence;
  * its key attributes like content and related paragraph.
  *
  * @mixin Sentence
- *
- * @OA\Schema(
- *     schema="SentenceResource",
- *     @OA\Property(property="sentence_id", type="string", example="b1234567-89ab-cdef-0123-456789abcdef", description="UUID of the sentence"),
- *     @OA\Property(property="paragraph_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="UUID of the associated paragraph"),
- *     @OA\Property(property="sentence_number", type="integer", example=1, description="Number of the sentence within the paragraph"),
- *     @OA\Property(property="content", type="string", example="This is the first sentence of the paragraph.", description="Content of the sentence"),
- * )
  */
+#[OA\Schema(
+    schema: 'SentenceResource',
+    properties: [
+        new OA\Property(
+            property: 'sentence_id',
+            type: 'string',
+            example: 'b1234567-89ab-cdef-0123-456789abcdef',
+            description: 'UUID of the sentence',
+        ),
+        new OA\Property(
+            property: 'paragraph_id',
+            type: 'string',
+            example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
+            description: 'UUID of the associated paragraph',
+        ),
+        new OA\Property(
+            property: 'sentence_number',
+            type: 'integer',
+            example: 1,
+            description: 'Number of the sentence within the paragraph',
+        ),
+        new OA\Property(
+            property: 'content',
+            type: 'string',
+            example: 'This is the first sentence of the paragraph.',
+            description: 'Content of the sentence',
+        ),
+    ],
+)]
 class SentenceResource extends JsonResource
 {
     /**

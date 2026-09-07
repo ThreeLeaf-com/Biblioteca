@@ -4,44 +4,46 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Author;
 
 /**
  * The {@link Author} {@link FormRequest} class used to validate incoming requests.
  *
- * @OA\Schema(
- *     title="AuthorRequest",
- *     description="Request body for creating or updating an author",
- *     required={"first_name", "last_name"},
- *     @OA\Property(
- *         property="first_name",
- *         type="string",
- *         description="First name of the author",
- *         example="John"
- *     ),
- *     @OA\Property(
- *         property="last_name",
- *         type="string",
- *         description="Last name of the author",
- *         example="Marsh"
- *     ),
- *     @OA\Property(
- *         property="biography",
- *         type="string",
- *         description="Short biography of the author",
- *         example="John Marsh is an accomplished author known for his contributions to modern literature."
- *     ),
- *     @OA\Property(
- *         property="author_image_url",
- *         type="string",
- *         format="url",
- *         description="URL to the author's profile image",
- *         example="https://example.com/images/authors/john-marsh.jpg"
- *     )
- * )
- *
  * @mixin Author
  */
+#[OA\Schema(
+    title: 'AuthorRequest',
+    description: 'Request body for creating or updating an author',
+    required: ['first_name', 'last_name'],
+    properties: [
+        new OA\Property(
+            property: 'first_name',
+            type: 'string',
+            description: 'First name of the author',
+            example: 'John',
+        ),
+        new OA\Property(
+            property: 'last_name',
+            type: 'string',
+            description: 'Last name of the author',
+            example: 'Marsh',
+        ),
+        new OA\Property(
+            property: 'biography',
+            type: 'string',
+            description: 'Short biography of the author',
+            example: 'John Marsh is an accomplished author known for his contributions to modern literature.',
+        ),
+        new OA\Property(
+            property: 'author_image_url',
+            type: 'string',
+            format: 'url',
+            description: 'URL to the author\'s profile image',
+            example: 'https://example.com/images/authors/john-marsh.jpg',
+        ),
+    ],
+)]
 class AuthorRequest extends FormRequest
 {
     /**

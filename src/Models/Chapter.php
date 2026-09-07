@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Traits\Equals;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
@@ -27,31 +28,48 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read HasMany<Figure>    $figures           The figures associated with the chapter.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Chapter",
- *     description="A chapter model",
- *     required={"book_id"},
- *     @OA\Property(property="chapter_id", type="string", description="Primary key of the chapter in UUID format"),
- *     @OA\Property(property="book_id", type="string", description="UUID of the associated book"),
- *     @OA\Property(property="chapter_number", type="integer", description="Number of the chapter in the book"),
- *     @OA\Property(property="title", type="string", description="Title of the chapter (Defaults to Chapter $chapter_number)"),
- *     @OA\Property(property="summary", type="string", description="A brief summary of the chapter"),
- *     @OA\Property(property="chapter_image_url", type="string", description="URL of the chapter’s image"),
- *     @OA\Property(property="content", type="string", description="Content of the chapter"),
- *     @OA\Property(
- *         property="book",
- *         ref="#/components/schemas/Book",
- *         description="The book associated with the chapter"
- *     ),
- *     @OA\Property(
- *         property="paragraphs",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Paragraph"),
- *         description="The paragraphs associated with the chapter"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Chapter',
+    description: 'A chapter model',
+    required: ['book_id'],
+    properties: [
+        new OA\Property(
+            property: 'chapter_id',
+            type: 'string',
+            description: 'Primary key of the chapter in UUID format',
+        ),
+        new OA\Property(property: 'book_id', type: 'string', description: 'UUID of the associated book'),
+        new OA\Property(
+            property: 'chapter_number',
+            type: 'integer',
+            description: 'Number of the chapter in the book',
+        ),
+        new OA\Property(
+            property: 'title',
+            type: 'string',
+            description: 'Title of the chapter (Defaults to Chapter $chapter_number)',
+        ),
+        new OA\Property(property: 'summary', type: 'string', description: 'A brief summary of the chapter'),
+        new OA\Property(
+            property: 'chapter_image_url',
+            type: 'string',
+            description: 'URL of the chapter’s image',
+        ),
+        new OA\Property(property: 'content', type: 'string', description: 'Content of the chapter'),
+        new OA\Property(
+            property: 'book',
+            ref: '#/components/schemas/Book',
+            description: 'The book associated with the chapter',
+        ),
+        new OA\Property(
+            property: 'paragraphs',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Paragraph'),
+            description: 'The paragraphs associated with the chapter',
+        ),
+    ],
+)]
 class Chapter extends Model
 {
     use HasUuids;

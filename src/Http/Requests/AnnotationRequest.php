@@ -5,6 +5,7 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 use Stringable;
 use ThreeLeaf\Biblioteca\Exceptions\InvalidReferenceTypeException;
 use ThreeLeaf\Biblioteca\Models\Annotation;
@@ -13,15 +14,31 @@ use ThreeLeaf\Biblioteca\Models\Annotation;
  * The {@link Annotation} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Annotation
- *
- * @OA\Schema(
- *     schema="AnnotationRequest",
- *     required={"reference_id", "reference_type", "content"},
- *     @OA\Property(property="reference_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="Reference UUID of an existing paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="b_sentences", description="The referenced entity. Must denote Paragraph or Sentence: the b_paragraphs or b_sentences morph alias, their class names in any letter case, a subclass, or a morph alias the host application has registered for one of them. It is stored, and returned, as the alias"),
- *     @OA\Property(property="content", type="string", example="This is an annotation explaining the text.", description="The content of the annotation"),
- * )
  */
+#[OA\Schema(
+    schema: 'AnnotationRequest',
+    required: ['reference_id', 'reference_type', 'content'],
+    properties: [
+        new OA\Property(
+            property: 'reference_id',
+            type: 'string',
+            example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
+            description: 'Reference UUID of an existing paragraph or sentence',
+        ),
+        new OA\Property(
+            property: 'reference_type',
+            type: 'string',
+            example: 'b_sentences',
+            description: 'The referenced entity. Must denote Paragraph or Sentence: the b_paragraphs or b_sentences morph alias, their class names in any letter case, a subclass, or a morph alias the host application has registered for one of them. It is stored, and returned, as the alias',
+        ),
+        new OA\Property(
+            property: 'content',
+            type: 'string',
+            example: 'This is an annotation explaining the text.',
+            description: 'The content of the annotation',
+        ),
+    ],
+)]
 class AnnotationRequest extends FormRequest
 {
 

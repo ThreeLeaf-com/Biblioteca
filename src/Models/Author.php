@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
@@ -21,25 +22,34 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read HasMany<Book> $books            Collection of books associated with this author
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     schema="Author",
- *     title="Author",
- *     description="An author of books",
- *     required={"first_name", "last_name"},
- *     @OA\Property(property="author_id", type="string", description="Primary key of the author in UUID format"),
- *     @OA\Property(property="first_name", type="string", description="First name of the author"),
- *     @OA\Property(property="last_name", type="string", description="Last name of the author"),
- *     @OA\Property(property="biography", type="string", description="A brief biography of the author"),
- *     @OA\Property(property="author_image_url", type="string", description="URL of the author's image"),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Book"),
- *         description="Collection of books associated with this author"
- *     )
- * )
  */
+#[OA\Schema(
+    schema: 'Author',
+    title: 'Author',
+    description: 'An author of books',
+    required: ['first_name', 'last_name'],
+    properties: [
+        new OA\Property(
+            property: 'author_id',
+            type: 'string',
+            description: 'Primary key of the author in UUID format',
+        ),
+        new OA\Property(property: 'first_name', type: 'string', description: 'First name of the author'),
+        new OA\Property(property: 'last_name', type: 'string', description: 'Last name of the author'),
+        new OA\Property(property: 'biography', type: 'string', description: 'A brief biography of the author'),
+        new OA\Property(
+            property: 'author_image_url',
+            type: 'string',
+            description: 'URL of the author\'s image',
+        ),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Book'),
+            description: 'Collection of books associated with this author',
+        ),
+    ],
+)]
 class Author extends Model
 {
     use HasUuids;

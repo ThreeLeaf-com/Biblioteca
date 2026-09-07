@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
@@ -22,21 +23,34 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read MorphMany<Annotation> $annotations       The annotations associated with the sentence.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Sentence",
- *     description="A sentence model",
- *     @OA\Property(property="sentence_id", type="string", description="Primary key of the sentence in UUID format"),
- *     @OA\Property(property="paragraph_id", type="string", description="UUID of the associated paragraph"),
- *     @OA\Property(property="sentence_number", type="integer", description="Number of the sentence within the paragraph"),
- *     @OA\Property(property="content", type="string", description="Content of the sentence"),
- *     @OA\Property(
- *         property="paragraph",
- *         ref="#/components/schemas/Paragraph",
- *         description="The paragraph associated with the sentence"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Sentence',
+    description: 'A sentence model',
+    properties: [
+        new OA\Property(
+            property: 'sentence_id',
+            type: 'string',
+            description: 'Primary key of the sentence in UUID format',
+        ),
+        new OA\Property(
+            property: 'paragraph_id',
+            type: 'string',
+            description: 'UUID of the associated paragraph',
+        ),
+        new OA\Property(
+            property: 'sentence_number',
+            type: 'integer',
+            description: 'Number of the sentence within the paragraph',
+        ),
+        new OA\Property(property: 'content', type: 'string', description: 'Content of the sentence'),
+        new OA\Property(
+            property: 'paragraph',
+            ref: '#/components/schemas/Paragraph',
+            description: 'The paragraph associated with the sentence',
+        ),
+    ],
+)]
 class Sentence extends Model
 {
     use HasUuids;
