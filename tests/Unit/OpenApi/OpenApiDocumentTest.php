@@ -57,7 +57,8 @@ class OpenApiDocumentTest extends TestCase
     #[Test]
     public function documentHasSchemas()
     {
-        $this->assertIsIterable(self::$document->components->schemas ?? null, 'No schemas were generated at all.');
+        $this->assertFalse(Generator::isDefault(self::$document->components), 'No schemas were generated at all.');
+        $this->assertIsIterable(self::$document->components->schemas, 'No schemas were generated at all.');
         $this->assertNotEmpty(self::$document->components->schemas, 'The generated document has zero schemas.');
     }
 
@@ -96,10 +97,12 @@ class OpenApiDocumentTest extends TestCase
     /**
      * Path parameters are named after the entity key, never `id`.
      *
-     * A published path whose parameter does not match the one `routes/api.php` binds
-     * generates a client that calls a route that does not exist. `AnnotationController`
-     * declared `/api/annotations/{id}` for years — see issue #20 — and nothing caught it
-     * because the document was empty. See {@link /style/conventions.md}.
+     * That is the package's own naming convention, recorded in the style conventions. A path
+     * that breaks it splits the entity's operations across two entries in the document —
+     * `AnnotationController::update()` published `/api/annotations/{id}` while every other
+     * annotation operation published `/api/annotations/{annotation_id}` — so the two halves
+     * of one resource are documented as unrelated. Nothing caught it for as long as the
+     * document was empty. See issue #20.
      */
     #[Test]
     public function pathParametersAreNamedAfterTheEntityKey()
@@ -114,19 +117,27 @@ class OpenApiDocumentTest extends TestCase
     }
 
     /**
-     * Every operation is tagged with a tag a controller declares.
+     * Every operation carries a tag, namespaced `Biblioteca/<Entity>`.
      *
      * swagger-php synthesises a description-less tag for an operation that references one no
      * class declares, and silently drops the declared tag nobody used. `LibraryController`
      * tagged its operation `Biblioteca` while declaring `Biblioteca/Library`, and lost its
-     * own tag that way. Tags are namespaced `Biblioteca/<Entity>`, so an un-namespaced tag
-     * is an operation referencing a tag that does not exist.
+     * own tag that way. Every controller declares its tag namespaced, so an un-namespaced tag
+     * names one that does not exist. An operation with no tag at all is the adjacent failure:
+     * it groups under no entity, and the sentinel swagger-php leaves in place of an absent
+     * `tags` is a string, which iterates as nothing rather than failing.
      */
     #[Test]
     public function everyOperationTagIsNamespaced()
     {
         foreach (self::$document->paths as $path) {
             foreach ($path->operations() as $operation) {
+                $this->assertFalse(
+                    Generator::isDefault($operation->tags),
+                    "$path->path has an operation with no tags.",
+                );
+                $this->assertNotEmpty($operation->tags, "$path->path has an operation with no tags.");
+
                 foreach ($operation->tags as $tag) {
                     $this->assertStringStartsWith(
                         'Biblioteca/',

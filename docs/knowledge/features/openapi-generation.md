@@ -37,13 +37,16 @@ with `doctrine/annotations` temporarily installed and diffing the attribute-era
 document against it: the two are identical, at 28 paths and 42 schemas.
 
 Two errors the annotations had always contained became visible once the document
-was generated again, and were corrected in the same release: `AnnotationController::update()`
-declared `/api/annotations/{id}` where the route binds `{annotation_id}`, which
-published a path a generated client would call and get a 404 from, and
-`LibraryController::index()` referenced a `Biblioteca` tag that no class
-declares, so its own `Biblioteca/Library` tag was dropped from the document. The
-first correction merges what had been two path entries, so the document now has
-**27 paths and 42 schemas**.
+was generated again, and were corrected in the same release.
+`AnnotationController::update()` declared `/api/annotations/{id}` while every
+other annotation operation declared `/api/annotations/{annotation_id}`, so one
+resource was published as two unrelated path entries. A path parameter is a
+placeholder, so a generated client still called the right URL; the damage was to
+the document, which showed no update operation on the path a reader would look
+at. `LibraryController::index()` referenced a `Biblioteca` tag that no class
+declares, so its own `Biblioteca/Library` tag was dropped and a description-less
+one synthesised in its place. The first correction merges the two path entries,
+so the document now has **27 paths and 42 schemas**.
 
 ## The generator
 

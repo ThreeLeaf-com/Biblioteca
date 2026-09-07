@@ -119,14 +119,14 @@ of truth for the allowed values.
 Each of the 15 **entity** models declares its own table through a `TABLE_NAME`
 constant, an explicit `$primaryKey` (`book_id`, `chapter_id`, and so on — never
 `id`), a `$fillable` list, a full PHPDoc `@property` block, and an
-`@OA\Schema` annotation used by
+`#[OA\Schema]` attribute used by
 [OpenAPI generation](/features/openapi-generation.md). See
 [Conventions](/style/conventions.md).
 
 `SeriesBook` follows the same conventions, because it carries a real `number`
 column and is part of the API surface. `BookTag` and `BookGenre` do not: each is
 a 13-line `Pivot` subclass holding only a `TABLE_NAME` constant — no `$fillable`,
-no `@property` block, and no `@OA\Schema`.
+no `@property` block, and no `#[OA\Schema]`.
 
 For the physical tables and their cascade rules, see
 [Database Schema](/data/models/database-schema.md).

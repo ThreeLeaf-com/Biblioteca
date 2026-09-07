@@ -41,15 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the test suite.
   ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
 
-- **Two published paths were wrong, and are corrected.** These are annotation
-  errors that predate this release; they became reachable only now that the
-  document is generated at all. `AnnotationController::update()` published
-  `PUT /api/annotations/{id}` where the route binds `{annotation_id}`, so a
-  generated client called a path that 404s. `LibraryController::index()` tagged
-  itself `Biblioteca` while the class declares `Biblioteca/Library`, so the
-  declared tag and its description were dropped from the document. The
-  correction merges what had been two `annotations` path entries, leaving 27
-  paths and 42 schemas.
+- **Two errors in the published document are corrected.** Both predate this
+  release and became visible only now that the document is generated at all.
+  `AnnotationController::update()` published `PUT /api/annotations/{id}` while
+  every other annotation operation published `/api/annotations/{annotation_id}`,
+  so one resource appeared in the document as two unrelated paths and the update
+  operation was missing from the one a reader would look at. (An OpenAPI path
+  parameter is a placeholder, so a generated client still called the right URL —
+  the harm was to the document, not to the request.) `LibraryController::index()`
+  tagged itself `Biblioteca` while the class declares `Biblioteca/Library`, so
+  swagger-php dropped the declared tag and its description and synthesised a bare
+  one. The first correction merges the two path entries, leaving 27 paths and 42
+  schemas.
   ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
 
 ## [3.0.0] - 2026-09-06

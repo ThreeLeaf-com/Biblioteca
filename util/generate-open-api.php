@@ -17,11 +17,29 @@ class OpenApiSpec
 {
 }
 
+/* swagger-php arrives through the require-dev `darkaonline/l5-swagger`, so a `--no-dev`
+ * install has no generator. That is not a build failure — there is nothing to generate
+ * with. Every environment that is meant to run this gate installs the dev dependencies.
+ */
+if (!class_exists(Generator::class)) {
+    echo "\nswagger-php is not installed (--no-dev); skipping OpenAPI generation.\n\n";
+    exit(0);
+}
+
 try {
     $targetDirectory = __DIR__ . '/../target';
     if (!is_dir($targetDirectory)) {
         mkdir($targetDirectory, 0755, true);
     }
+    $targetFile = $targetDirectory . '/api-docs.json';
+
+    /* Remove the previous document before generating, so a failed run leaves no stale
+     * artifact that reads as current.
+     */
+    if (is_file($targetFile)) {
+        unlink($targetFile);
+    }
+
     $openApi = (new Generator())->generate(new SourceFinder($paths));
 
     /* Absent members are the `OpenApi\Generator::UNDEFINED` sentinel — a string, not null —
@@ -38,7 +56,8 @@ try {
      * annotations and every build kept passing on `{"openapi":"3.0.0"}`.
      *
      * This runs before the document is written and before anything reports success, so a
-     * failing run does not leave a plausible-looking artifact behind a success banner.
+     * failing run leaves no artifact at all rather than a plausible-looking one behind a
+     * success banner.
      */
     if ($pathCount === 0 || $schemaCount === 0 || Generator::isDefault($openApi->info)) {
         fwrite(STDERR, "\nThe generated OpenAPI document is incomplete: $pathCount paths, $schemaCount schemas");
@@ -48,7 +67,7 @@ try {
         exit(1);
     }
 
-    file_put_contents($targetDirectory . '/api-docs.json', $openApi->toJson());
+    file_put_contents($targetFile, $openApi->toJson());
 
     echo "\nSwagger documentation generated successfully.\n\n";
     echo "Scanned paths: \n* " . implode("\n* ", $paths) . "\n\n";

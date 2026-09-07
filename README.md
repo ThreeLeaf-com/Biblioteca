@@ -170,8 +170,11 @@ This library is open-sourced software licensed under the [GPL-3.0+](https://www.
 
 ### OpenApi Documentation
 
-OpenAPI documentation can be generated within the application using the command:
+`composer install` and `composer update` regenerate the OpenAPI document at
+`target/api-docs.json`. To regenerate it on its own:
 
 ```
-composer generate-swagger
+php util/generate-open-api.php
 ```
+
+The command exits non-zero when the generated document is incomplete.
