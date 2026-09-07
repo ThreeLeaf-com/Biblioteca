@@ -119,8 +119,9 @@ class OpenApiDocumentTest extends TestCase
     /**
      * Every operation carries a tag, namespaced `Biblioteca/<Entity>`.
      *
-     * swagger-php synthesises a description-less tag for an operation that references one no
-     * class declares, and silently drops the declared tag nobody used. `LibraryController`
+     * swagger-php synthesises a placeholder tag — its description is just its own name —
+     * for an operation that references one no class declares, and silently drops the
+     * declared tag, and its description, that nobody used. `LibraryController`
      * tagged its operation `Biblioteca` while declaring `Biblioteca/Library`, and lost its
      * own tag that way. Every controller declares its tag namespaced, so an un-namespaced tag
      * names one that does not exist. An operation with no tag at all is the adjacent failure:

@@ -44,8 +44,9 @@ resource was published as two unrelated path entries. A path parameter is a
 placeholder, so a generated client still called the right URL; the damage was to
 the document, which showed no update operation on the path a reader would look
 at. `LibraryController::index()` referenced a `Biblioteca` tag that no class
-declares, so its own `Biblioteca/Library` tag was dropped and a description-less
-one synthesised in its place. The first correction merges the two path entries,
+declares, so its own `Biblioteca/Library` tag and its description were dropped
+and a placeholder synthesised in their place, whose description is just its own
+name. The first correction merges the two path entries,
 so the document now has **27 paths and 42 schemas**.
 
 ## The generator
@@ -72,6 +73,14 @@ Absent members of the generated document are swagger-php's
 `OpenApi\Generator::UNDEFINED` sentinel — a string, not `null` — so the checks
 use `Generator::isDefault()` rather than a null comparison.
 
+The previous document is deleted before generation, so a failing run leaves no
+artifact at all rather than a stale one that reads as current.
+
+The one case that is not a failure is a `--no-dev` install: swagger-php arrives
+through the `require-dev` `darkaonline/l5-swagger`, so there is no generator to
+run. The script reports that and exits `0`, before deleting anything. Every
+environment meant to enforce the gate installs the dev dependencies.
+
 `tests/Unit/OpenApi/OpenApiDocumentTest.php` makes the same guarantee from the
 test suite, where a reviewer sees it: it generates from `src/` and asserts the
 document has paths, has schemas, and covers a representative endpoint and a
@@ -96,7 +105,8 @@ hooks:
 ```
 
 Both hooks are wired, so `composer install` and `composer update` each
-regenerate the document and each fail on an incomplete one. That matters for CI:
+regenerate the document and each fail on an incomplete one — with dev
+dependencies installed, which is the only way the generator is present at all. That matters for CI:
 `.github/workflows/tests.yaml` installs with `composer update`, so without the
 `post-update-cmd` hook the gate would never run there and could be reverted
 without breaking anything.
@@ -149,7 +159,9 @@ coupling, because an unread docblock is inert by definition.
 - Verified 2026-09-07 against git HEAD — `util/generate-open-api.php` scans
   `[__FILE__, __DIR__ . '/../src']`, writes `../target/api-docs.json`, and exits
   `1` on a `Throwable` or on a document with zero paths, zero schemas, or no
-  `Info` block, before writing the document or reporting success.
+  `Info` block, before writing the document or reporting success; it deletes the
+  previous document before generating, and exits `0` without generating when
+  `OpenApi\Generator` is not autoloadable.
 - Verified 2026-09-07 against git HEAD — no `@OA\` docblock annotation remains
   in `src/`; every annotated file imports `OpenApi\Attributes as OA`.
 - Verified 2026-09-07 by generation — the document produced from the attributes

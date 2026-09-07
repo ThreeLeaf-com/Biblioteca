@@ -50,8 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parameter is a placeholder, so a generated client still called the right URL —
   the harm was to the document, not to the request.) `LibraryController::index()`
   tagged itself `Biblioteca` while the class declares `Biblioteca/Library`, so
-  swagger-php dropped the declared tag and its description and synthesised a bare
-  one. The first correction merges the two path entries, leaving 27 paths and 42
+  swagger-php dropped the declared tag and its description and synthesised a
+  placeholder whose description is just its own name. The first correction merges the two path entries, leaving 27 paths and 42
   schemas.
   ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
 
