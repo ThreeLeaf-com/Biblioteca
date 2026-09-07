@@ -4,7 +4,7 @@ title: Database Schema
 description: The b_-prefixed tables created by the package migration, their keys, unique constraints, and foreign-key cascade behaviour.
 resource: database/migrations/2024_10_07_000000_create_bibliotecha_tables.php
 tags: [data, schema, migrations]
-timestamp: 2026-09-06T00:00:00Z
+timestamp: 2026-09-08T00:00:00Z
 ---
 
 # Database Schema
@@ -60,10 +60,23 @@ Foreign keys use `onDelete('cascade')` throughout, with one exception:
 `b_books.publisher_id` uses `onDelete('set null')`, because `publisher_id` is
 nullable and a book outlives its publisher.
 
-Cascading means deleting one author removes that author's books, and with them
-every chapter, paragraph, sentence, note, figure, index entry, table-of-contents
-entry, and pivot row beneath. Callers should treat an `Author` delete as a
-large, irreversible operation.
+Cascading means deleting one author removes that author's books **and series**,
+and with them every chapter, paragraph, sentence, note, figure, index entry,
+table-of-contents entry, and pivot row beneath. Callers should treat an `Author`
+delete as a large, irreversible operation.
+
+This behaviour is covered by
+[`ForeignKeyConstraintTest`](../../../../tests/Feature/Database/ForeignKeyConstraintTest.php),
+which runs against a test database that enforces foreign keys — see
+[Testing Strategy](/testing/strategy.md).
+
+None of it happens unless the database enforces the constraints. SQLite's engine
+default is off. Laravel's shipped `config/database.php` sets
+`foreign_key_constraints` to `true`, but the SQLite connector skips the pragma
+when the key is **absent** from the connection array, so a hand-built connection
+array, or `DB_FOREIGN_KEYS=false`, gets orphans rather than cascades. Testbench
+defaults the key to `false` — the opposite of Laravel — which is why this
+package's own feature tests were unenforced before issue #21.
 
 `b_annotations` declares **no** foreign key. It cannot: `reference_id` is
 polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
@@ -112,13 +125,25 @@ the series. See [Domain Model](/data/models/domain-model.md).
 `down()` drops all eighteen tables, but **not in reverse dependency order**. At
 least three pairs are inverted: `b_sentences` is dropped before `b_notes`, which
 references it; `b_publishers` before `b_books`; and `b_books` before
-`b_bibliographies`. Rollback succeeds on engines that do not enforce foreign
-keys during a drop — SQLite as configured in CI, and MySQL or MariaDB with
-`FOREIGN_KEY_CHECKS` off — and can fail on an engine that does enforce them.
-Verify a rollback on the target engine before relying on it.
+`b_bibliographies`. Rollback still succeeds on SQLite with foreign keys
+enforced: `DROP TABLE` performs an implicit `DELETE FROM`, and every inverted
+pair here is `CASCADE` or `SET NULL`, so the implicit delete satisfies the
+constraint rather than violating it. MySQL, MariaDB, and PostgreSQL reject
+dropping a referenced parent whatever the rows hold, unless
+`FOREIGN_KEY_CHECKS` is off. Verify a rollback on the target engine before
+relying on it.
 
 # Citations
 
+- Verified 2026-09-08 by execution — `ForeignKeyConstraintTest` deletes through
+  the query builder, not Eloquent, and the database removes the book's
+  chapters, paragraphs, and sentences, removes an author's books, series,
+  `b_series_books`, `b_book_tags`, and `b_book_genres` rows, sets
+  `b_books.publisher_id` to null when the publisher goes, and leaves a deleted
+  sentence's annotations in place.
+- Verified 2026-09-08 by execution — `migrate:rollback` on the foreign-key
+  enforcing test connection completes without error against the migrated
+  schema.
 - Verified 2026-09-04 against git HEAD — table list, `primary()` declarations,
   `unique()` constraints, and `onDelete()` modes read from
   `database/migrations/2024_10_07_000000_create_bibliotecha_tables.php`.

@@ -188,11 +188,11 @@ class SeriesServiceTest extends TestCase
      * The listener stays registered for the rest of the test, and it fires on every matching
      * insert from the nth onwards.
      *
-     * A missing foreign key is not usable as the failure trigger. SQLite treats
-     * `PRAGMA foreign_keys` as a no-op inside a transaction, and `RefreshDatabase` opens one
-     * before the test starts, so the constraint is not enforced. A query listener is
-     * driver-independent. It also fires after the statement has executed, so real rows exist
-     * for the rollback to undo rather than the test asserting against an empty transaction.
+     * A missing foreign key is not used as the failure trigger. Foreign keys are enforced in
+     * the test database (see ForeignKeyConstraintTest), but a constraint violation aborts the
+     * insert, so no rows exist for the rollback to undo and the test would assert against an
+     * empty transaction. A query listener is driver-independent and fires after the statement
+     * has executed, so the rollback has real rows to remove.
      *
      * @param string $table       The table whose inserts are counted.
      * @param int    $insertCount The 1-based insert to start failing on.
