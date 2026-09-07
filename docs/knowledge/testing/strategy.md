@@ -1,7 +1,7 @@
 ---
 type: Testing Strategy
 title: Testing Strategy
-description: The PHPUnit suites, the compatibility matrix run in CI, how the coverage badge is produced, how to verify tests by mutation, and why foreign keys are not enforced in feature tests.
+description: The PHPUnit suites, the compatibility matrix run in CI, how the coverage badge is produced, how to verify tests by mutation, and how foreign keys are enforced in feature tests.
 resource: phpunit.xml
 tags: [testing, phpunit, ci, coverage, mutation, transactions]
 timestamp: 2026-09-06T00:00:00Z
@@ -120,18 +120,29 @@ Eloquent model events, so no cheaper seam exists. Anchor the match on the insert
 target — `b_series` is a prefix of `b_series_books`, so a substring test matches
 the wrong table.
 
-## Known defect: foreign keys are not enforced in feature tests
+## Foreign keys are enforced in feature tests
 
-Tracked as [#27](https://github.com/ThreeLeaf-com/Biblioteca/issues/27). **Remove
-this section when that issue closes.**
+The `testing` connection in
+[`Tests\Feature\TestCase`](../../../tests/Feature/TestCase.php) sets
+`foreign_key_constraints => true`. Laravel issues `PRAGMA foreign_keys=ON` when
+it opens the connection, which is before `RefreshDatabase` starts its
+transaction. That ordering is the whole of the setting: SQLite treats the pragma
+as a no-op inside a transaction, so a `PRAGMA foreign_keys=ON` statement in
+`setUp()` cannot work — `RefreshDatabase` has already opened one by then.
 
-[`Tests\Feature\TestCase::setUp()`](../../../tests/Feature/TestCase.php) issues
-`PRAGMA foreign_keys=ON`, but `RefreshDatabase` has already opened a transaction
-by then, and SQLite treats that pragma as a no-op inside a transaction.
-Referential integrity is therefore **not enforced** in any feature test.
+The setting is not self-announcing. Lose it and every other test keeps passing,
+while the database silently accepts rows that reference identifiers which do not
+exist.
+[`ForeignKeyConstraintTest`](../../../tests/Feature/Database/ForeignKeyConstraintTest.php)
+therefore pins it directly: it asserts `PRAGMA foreign_keys` reports `1` at a
+non-zero transaction level, that an unknown foreign key raises
+`QueryException`, and that the cascade and `set null` behaviour in
+[Database Schema](/data/models/database-schema.md) is what the database does.
 
-Until that is fixed, a test cannot use an unknown foreign key as its failure
-trigger: the write succeeds and the test passes regardless.
+A test may therefore use an unknown foreign key as its failure trigger. Prefer a
+collaborator seam or a query listener when the test asserts on a rollback: a
+constraint violation aborts the insert, so no rows exist for the rollback to
+undo, and the test asserts against an empty transaction.
 
 # Citations
 
@@ -143,9 +154,11 @@ trigger: the write succeeds and the test passes regardless.
 - Verified 2026-09-06 by execution — `PHPUnit\Framework\AssertionFailedError`
   and `Illuminate\Database\QueryException` both report `true` for
   `is_subclass_of(..., 'RuntimeException')`.
-- Verified 2026-09-06 by execution — a probe test using `RefreshDatabase`
-  reports `PRAGMA foreign_keys` as `0` with `DB::transactionLevel()` as `1`
-  after `Tests\Feature\TestCase::setUp()` has run.
+- Verified 2026-09-08 by execution — with `foreign_key_constraints` removed from
+  the `testing` connection, all five tests in `ForeignKeyConstraintTest` fail:
+  the pragma reads `0`, the unknown foreign key is accepted, and no cascade
+  runs. Restoring the setting returns the full suite to
+  `OK (266 tests, 868 assertions)`.
 - Verified 2026-09-04 against git HEAD — suite names, directories, and the
   `<source><include>./src</include></source>` block read from `phpunit.xml`.
 - Verified 2026-09-04 against git HEAD — the matrix in

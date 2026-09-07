@@ -65,6 +65,13 @@ every chapter, paragraph, sentence, note, figure, index entry, table-of-contents
 entry, and pivot row beneath. Callers should treat an `Author` delete as a
 large, irreversible operation.
 
+This behaviour is covered by
+[`ForeignKeyConstraintTest`](../../../../tests/Feature/Database/ForeignKeyConstraintTest.php),
+which runs against a test database that enforces foreign keys — see
+[Testing Strategy](/testing/strategy.md). SQLite does not enforce foreign keys
+unless `PRAGMA foreign_keys=ON` is issued on the connection, so an application
+on SQLite that leaves the default in place gets orphans rather than cascades.
+
 `b_annotations` declares **no** foreign key. It cannot: `reference_id` is
 polymorphic and may point at either `b_paragraphs` or `b_sentences`. Annotation
 rows are therefore not cascaded away when their target is deleted, and an
