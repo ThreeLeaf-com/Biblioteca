@@ -3,19 +3,21 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Tag;
 
 /**
  * The {@link Tag} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Tag
- *
- * @OA\Schema(
- *     schema="TagRequest",
- *     required={"name"},
- *     @OA\Property(property="name", type="string", example="Fiction", description="Name of the tag"),
- * )
  */
+#[OA\Schema(
+    schema: 'TagRequest',
+    required: ['name'],
+    properties: [
+        new OA\Property(property: 'name', type: 'string', example: 'Fiction', description: 'Name of the tag'),
+    ],
+)]
 class TagRequest extends FormRequest
 {
     /**

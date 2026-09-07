@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -18,20 +19,25 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read HasMany<Book> $books  The books associated with this tag.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Tag",
- *     description="A tag model",
- *     @OA\Property(property="tag_id", type="string", description="Primary key of the tag in UUID format"),
- *     @OA\Property(property="name", type="string", description="Name of the tag"),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Book"),
- *         description="The books associated with this tag"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Tag',
+    description: 'A tag model',
+    properties: [
+        new OA\Property(
+            property: 'tag_id',
+            type: 'string',
+            description: 'Primary key of the tag in UUID format',
+        ),
+        new OA\Property(property: 'name', type: 'string', description: 'Name of the tag'),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Book'),
+            description: 'The books associated with this tag',
+        ),
+    ],
+)]
 class Tag extends Model
 {
     use HasUuids;

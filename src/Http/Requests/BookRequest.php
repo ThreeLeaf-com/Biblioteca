@@ -3,6 +3,7 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 
@@ -10,22 +11,69 @@ use ThreeLeaf\Biblioteca\Models\Book;
  * The {@link Book} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Book
- *
- * @OA\Schema(
- *     schema="BookRequest",
- *     required={"title", "author_id", "publisher_id"},
- *     @OA\Property(property="title", type="string", example="The Great Adventure", description="Title of the book"),
- *     @OA\Property(property="author_id", type="integer", example=1, description="ID of the author of the book"),
- *     @OA\Property(property="publisher_id", type="integer", example=2, description="ID of the publisher of the book"),
- *     @OA\Property(property="published_date", type="string", format="date", example="2023-10-07", description="Published date of the book"),
- *     @OA\Property(property="edition", type="string", example="First", description="Edition of the book"),
- *     @OA\Property(property="locale", type="string", example="en", description="Locale of the book"),
- *     @OA\Property(property="suggested_citation", type="string", example="Doe, J. (2023). The Great Adventure.", description="Suggested citation for the book"),
- *     @OA\Property(property="cover_image_url", type="string", example="http://example.com/cover.jpg", description="URL of the book's cover image"),
- *     @OA\Property(property="summary", type="string", example="An intriguing tale of mystery and discovery.", description="Summary of the book"),
- *     @OA\Property(property="number_in_series", type="integer", example=1, description="Number of the book in its series"),
- * )
  */
+#[OA\Schema(
+    schema: 'BookRequest',
+    required: ['title', 'author_id', 'publisher_id'],
+    properties: [
+        new OA\Property(
+            property: 'title',
+            type: 'string',
+            example: 'The Great Adventure',
+            description: 'Title of the book',
+        ),
+        new OA\Property(
+            property: 'author_id',
+            type: 'integer',
+            example: 1,
+            description: 'ID of the author of the book',
+        ),
+        new OA\Property(
+            property: 'publisher_id',
+            type: 'integer',
+            example: 2,
+            description: 'ID of the publisher of the book',
+        ),
+        new OA\Property(
+            property: 'published_date',
+            type: 'string',
+            format: 'date',
+            example: '2023-10-07',
+            description: 'Published date of the book',
+        ),
+        new OA\Property(
+            property: 'edition',
+            type: 'string',
+            example: 'First',
+            description: 'Edition of the book',
+        ),
+        new OA\Property(property: 'locale', type: 'string', example: 'en', description: 'Locale of the book'),
+        new OA\Property(
+            property: 'suggested_citation',
+            type: 'string',
+            example: 'Doe, J. (2023). The Great Adventure.',
+            description: 'Suggested citation for the book',
+        ),
+        new OA\Property(
+            property: 'cover_image_url',
+            type: 'string',
+            example: 'http://example.com/cover.jpg',
+            description: 'URL of the book\'s cover image',
+        ),
+        new OA\Property(
+            property: 'summary',
+            type: 'string',
+            example: 'An intriguing tale of mystery and discovery.',
+            description: 'Summary of the book',
+        ),
+        new OA\Property(
+            property: 'number_in_series',
+            type: 'integer',
+            example: 1,
+            description: 'Number of the book in its series',
+        ),
+    ],
+)]
 class BookRequest extends FormRequest
 {
     /**

@@ -5,6 +5,39 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-09-07
+
+### Fixed
+
+- **The OpenAPI document is generated again.** swagger-php 6.7.1 reads docblock
+  `@OA\*` annotations only when `doctrine/annotations` is installed, and it is
+  not a dependency of this package. Every annotation in the package — 653 lines
+  across 54 files — was inert, and `composer install` wrote
+  `{"openapi":"3.0.0"}` with no paths and no schemas. A consumer generating a
+  client from the specification got an empty document.
+
+  The annotations are now PHP attributes (`#[OA\...]`), which swagger-php reads
+  with no extra dependency and which is the direction the library has taken —
+  its roadmap deprecates annotations in v7 and removes them in v8.
+  `doctrine/annotations` was not adopted: Composer reports it as abandoned. The
+  migration is behaviour-preserving; the generated document is identical to the
+  one the annotations produced, at 28 paths and 42 schemas.
+
+  This is a source-level change only. No model, route, request, or response
+  behaviour changes, and nothing a consumer calls has a different shape. Host
+  code that scans this package's source for `@OA\*` docblocks — there is no
+  documented reason to — will no longer find any.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
+- **An empty OpenAPI document fails the build.** `util/generate-open-api.php`
+  caught its own exceptions, printed them, and exited `0`, so the build reported
+  success on a document with nothing in it. It now exits `1` on a `Throwable`
+  and on a document with zero paths or zero schemas, and reports the schema
+  count alongside the path count.
+  `tests/Unit/OpenApi/OpenApiDocumentTest.php` makes the same assertion in CI,
+  which runs `composer update` and so never invokes the generator.
+  ([#20](https://github.com/ThreeLeaf-com/Biblioteca/issues/20))
+
 ## [3.0.0] - 2026-09-06
 
 ### Changed

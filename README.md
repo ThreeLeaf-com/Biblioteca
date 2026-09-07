@@ -17,7 +17,7 @@ complex data, including authors, books, chapters, paragraphs, sentences, notes, 
 - **Multi-level Data Organization**: Supports nested structures, such as books containing chapters, chapters containing paragraphs, and so on.
 - **Supports CRUD Operations**: Easily create, read, update, and delete entities such as books, authors, and notes.
 - **Relational Data Management**: Models are related in a structured way, allowing you to retrieve associated data, such as the author of a book or the chapters in a book.
-- **OpenAPI Documentation Integration**: Prepares your data models for API usage with comprehensive OpenAPI (Swagger) annotations.
+- **OpenAPI Documentation Integration**: Prepares your data models for API usage with comprehensive OpenAPI (Swagger) attributes.
 
 ## Models Included
 

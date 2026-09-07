@@ -2,17 +2,18 @@
 
 namespace ThreeLeaf\Biblioteca\Enums;
 
+use OpenApi\Attributes as OA;
+
 /**
  * Enum representing different contexts for a {@link Note}.
- *
- * @OA\Schema(
- *     schema="Context",
- *     type="string",
- *     description="Enumeration of possible contexts for a note.",
- *     enum={"PAGE", "CHAPTER", "BOOK"},
- *     example="PAGE"
- * )
  */
+#[OA\Schema(
+    schema: 'Context',
+    type: 'string',
+    description: 'Enumeration of possible contexts for a note.',
+    enum: ['PAGE', 'CHAPTER', 'BOOK'],
+    example: 'PAGE',
+)]
 enum Context: string
 {
     /**

@@ -4,55 +4,57 @@ namespace ThreeLeaf\Biblioteca\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Author;
 
 /**
  * The {@link Author} {@link JsonResource} class used to shape API output.
  *
  * @mixin Author
- *
- * @OA\Schema(
- *     title="AuthorResource",
- *     description="Author resource representation",
- *     @OA\Property(
- *         property="author_id",
- *         type="string",
- *         description="Unique identifier for the author",
- *         example="123e4567-e89b-12d3-a456-426614174000"
- *     ),
- *     @OA\Property(
- *         property="first_name",
- *         type="string",
- *         description="First name of the author",
- *         example="John"
- *     ),
- *     @OA\Property(
- *         property="last_name",
- *         type="string",
- *         description="Last name of the author",
- *         example="Doe"
- *     ),
- *     @OA\Property(
- *         property="biography",
- *         type="string",
- *         description="Short biography of the author",
- *         example="John Doe is an accomplished author known for his contributions to modern literature."
- *     ),
- *     @OA\Property(
- *         property="author_image_url",
- *         type="string",
- *         format="url",
- *         description="URL to the author's profile image",
- *         example="https://example.com/images/authors/johndoe.jpg"
- *     ),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(type="string", description="Unique identifier for a book"),
- *         description="Array of book IDs associated with the author"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'AuthorResource',
+    description: 'Author resource representation',
+    properties: [
+        new OA\Property(
+            property: 'author_id',
+            type: 'string',
+            description: 'Unique identifier for the author',
+            example: '123e4567-e89b-12d3-a456-426614174000',
+        ),
+        new OA\Property(
+            property: 'first_name',
+            type: 'string',
+            description: 'First name of the author',
+            example: 'John',
+        ),
+        new OA\Property(
+            property: 'last_name',
+            type: 'string',
+            description: 'Last name of the author',
+            example: 'Doe',
+        ),
+        new OA\Property(
+            property: 'biography',
+            type: 'string',
+            description: 'Short biography of the author',
+            example: 'John Doe is an accomplished author known for his contributions to modern literature.',
+        ),
+        new OA\Property(
+            property: 'author_image_url',
+            type: 'string',
+            format: 'url',
+            description: 'URL to the author\'s profile image',
+            example: 'https://example.com/images/authors/johndoe.jpg',
+        ),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(type: 'string', description: 'Unique identifier for a book'),
+            description: 'Array of book IDs associated with the author',
+        ),
+    ],
+)]
 class AuthorResource extends JsonResource
 {
     /**

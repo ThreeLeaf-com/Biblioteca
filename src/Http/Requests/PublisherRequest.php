@@ -4,21 +4,38 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 
 /**
  * The {@link Publisher} {@link FormRequest} class used to validate incoming requests.
  *
  * @mixin Publisher
- *
- * @OA\Schema(
- *     schema="PublisherRequest",
- *     required={"name"},
- *     @OA\Property(property="name", type="string", example="ThreeLeaf Publishing", description="Name of the publisher"),
- *     @OA\Property(property="address", type="string", example="123 Publishing Lane, New York, NY", description="Address of the publisher"),
- *     @OA\Property(property="website", type="string", example="https://threeleaf.com", description="Website of the publisher"),
- * )
  */
+#[OA\Schema(
+    schema: 'PublisherRequest',
+    required: ['name'],
+    properties: [
+        new OA\Property(
+            property: 'name',
+            type: 'string',
+            example: 'ThreeLeaf Publishing',
+            description: 'Name of the publisher',
+        ),
+        new OA\Property(
+            property: 'address',
+            type: 'string',
+            example: '123 Publishing Lane, New York, NY',
+            description: 'Address of the publisher',
+        ),
+        new OA\Property(
+            property: 'website',
+            type: 'string',
+            example: 'https://threeleaf.com',
+            description: 'Website of the publisher',
+        ),
+    ],
+)]
 class PublisherRequest extends FormRequest
 {
     /**

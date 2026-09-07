@@ -4,6 +4,7 @@ namespace ThreeLeaf\Biblioteca\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Models\Annotation;
 use ThreeLeaf\Biblioteca\Models\Paragraph;
 
@@ -14,23 +15,44 @@ use ThreeLeaf\Biblioteca\Models\Paragraph;
  * its key attributes like content and reference information.
  *
  * @mixin Annotation
- *
- * @OA\Schema(
- *     schema="AnnotationResource",
- *     @OA\Property(property="annotation_id", type="string", example="b1234567-89ab-cdef-0123-456789abcdef", description="UUID of the annotation"),
- *     @OA\Property(property="reference_id", type="string", example="f7f9d3e0-434b-11ed-b878-0242ac120002", description="UUID of the associated paragraph or sentence"),
- *     @OA\Property(property="reference_type", type="string", example="b_sentences", description="The morph alias of the referenced entity"),
- *     @OA\Property(property="content", type="string", example="This is an annotation explaining the text.", description="Content of the annotation"),
- *     @OA\Property(
- *         property="reference",
- *         oneOf={
- *             @OA\Schema(ref="#/components/schemas/ParagraphResource"),
- *             @OA\Schema(ref="#/components/schemas/SentenceResource")
- *         },
- *         description="The reference to the paragraph or sentence associated with this annotation"
- *     ),
- * )
  */
+#[OA\Schema(
+    schema: 'AnnotationResource',
+    properties: [
+        new OA\Property(
+            property: 'annotation_id',
+            type: 'string',
+            example: 'b1234567-89ab-cdef-0123-456789abcdef',
+            description: 'UUID of the annotation',
+        ),
+        new OA\Property(
+            property: 'reference_id',
+            type: 'string',
+            example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
+            description: 'UUID of the associated paragraph or sentence',
+        ),
+        new OA\Property(
+            property: 'reference_type',
+            type: 'string',
+            example: 'b_sentences',
+            description: 'The morph alias of the referenced entity',
+        ),
+        new OA\Property(
+            property: 'content',
+            type: 'string',
+            example: 'This is an annotation explaining the text.',
+            description: 'Content of the annotation',
+        ),
+        new OA\Property(
+            property: 'reference',
+            oneOf: [
+                new OA\Schema(ref: '#/components/schemas/ParagraphResource'),
+                new OA\Schema(ref: '#/components/schemas/SentenceResource'),
+            ],
+            description: 'The reference to the paragraph or sentence associated with this annotation',
+        ),
+    ],
+)]
 class AnnotationResource extends JsonResource
 {
     /**

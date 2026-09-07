@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 
 /**
@@ -19,21 +20,30 @@ use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
  * @property-read Book $book        The book associated with the index entry.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Index",
- *     description="An index entry model",
- *     @OA\Property(property="index_id", type="string", description="Primary key of the index entry in UUID format"),
- *     @OA\Property(property="book_id", type="string", description="UUID of the associated book"),
- *     @OA\Property(property="term", type="string", description="Indexed term"),
- *     @OA\Property(property="page_number", type="integer", description="Page number where the term is located"),
- *     @OA\Property(
- *         property="book",
- *         ref="#/components/schemas/Book",
- *         description="The book associated with the index entry"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Index',
+    description: 'An index entry model',
+    properties: [
+        new OA\Property(
+            property: 'index_id',
+            type: 'string',
+            description: 'Primary key of the index entry in UUID format',
+        ),
+        new OA\Property(property: 'book_id', type: 'string', description: 'UUID of the associated book'),
+        new OA\Property(property: 'term', type: 'string', description: 'Indexed term'),
+        new OA\Property(
+            property: 'page_number',
+            type: 'integer',
+            description: 'Page number where the term is located',
+        ),
+        new OA\Property(
+            property: 'book',
+            ref: '#/components/schemas/Book',
+            description: 'The book associated with the index entry',
+        ),
+    ],
+)]
 class Index extends Model
 {
     use HasUuids;

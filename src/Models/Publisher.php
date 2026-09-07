@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
@@ -20,28 +21,33 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read HasMany<Book> $books         The books associated with the publisher.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Publisher",
- *     description="A publisher model",
- *     required={"name"},
- *     @OA\Property(property="publisher_id", type="string", description="Primary key of the publisher in UUID format"),
- *     @OA\Property(
- *         property="name",
- *         type="string",
- *         description="Name of the publisher",
- *         uniqueItems=true
- *     ),
- *     @OA\Property(property="address", type="string", description="Address of the publisher"),
- *     @OA\Property(property="website", type="string", description="Website of the publisher"),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Book"),
- *         description="The books associated with the publisher"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Publisher',
+    description: 'A publisher model',
+    required: ['name'],
+    properties: [
+        new OA\Property(
+            property: 'publisher_id',
+            type: 'string',
+            description: 'Primary key of the publisher in UUID format',
+        ),
+        new OA\Property(
+            property: 'name',
+            type: 'string',
+            description: 'Name of the publisher',
+            uniqueItems: true,
+        ),
+        new OA\Property(property: 'address', type: 'string', description: 'Address of the publisher'),
+        new OA\Property(property: 'website', type: 'string', description: 'Website of the publisher'),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Book'),
+            description: 'The books associated with the publisher',
+        ),
+    ],
+)]
 class Publisher extends Model
 {
     use HasUuids;

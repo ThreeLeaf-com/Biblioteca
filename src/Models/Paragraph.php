@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
@@ -24,27 +25,36 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read MorphMany<Annotation> $annotations       The annotations associated with the paragraph.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Paragraph",
- *     description="A paragraph model",
- *     @OA\Property(property="paragraph_id", type="string", description="Primary key of the paragraph in UUID format"),
- *     @OA\Property(property="chapter_id", type="string", description="UUID of the associated chapter"),
- *     @OA\Property(property="paragraph_number", type="integer", description="Number of the paragraph in the chapter"),
- *     @OA\Property(property="content", type="string", description="Content of the paragraph"),
- *     @OA\Property(
- *         property="chapter",
- *         ref="#/components/schemas/Chapter",
- *         description="The chapter associated with the paragraph"
- *     ),
- *     @OA\Property(
- *         property="sentences",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Sentence"),
- *         description="The sentences associated with the paragraph"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Paragraph',
+    description: 'A paragraph model',
+    properties: [
+        new OA\Property(
+            property: 'paragraph_id',
+            type: 'string',
+            description: 'Primary key of the paragraph in UUID format',
+        ),
+        new OA\Property(property: 'chapter_id', type: 'string', description: 'UUID of the associated chapter'),
+        new OA\Property(
+            property: 'paragraph_number',
+            type: 'integer',
+            description: 'Number of the paragraph in the chapter',
+        ),
+        new OA\Property(property: 'content', type: 'string', description: 'Content of the paragraph'),
+        new OA\Property(
+            property: 'chapter',
+            ref: '#/components/schemas/Chapter',
+            description: 'The chapter associated with the paragraph',
+        ),
+        new OA\Property(
+            property: 'sentences',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/Sentence'),
+            description: 'The sentences associated with the paragraph',
+        ),
+    ],
+)]
 class Paragraph extends Model
 {
     use HasUuids;

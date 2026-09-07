@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Utils\UuidUtil;
 
@@ -25,29 +26,30 @@ use ThreeLeaf\Biblioteca\Utils\UuidUtil;
  * @property-read HasMany<SeriesBook> $books        The books associated with this series.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Series",
- *     description="A series model",
- *     required={"title", "author_id"},
- *     @OA\Property(property="series_id", type="string", description="The series unique ID"),
- *     @OA\Property(property="title", type="string", description="The title of the series"),
- *     @OA\Property(property="subtitle", type="string", description="The subtitle of the series"),
- *     @OA\Property(property="description", type="string", description="The series desccription"),
- *     @OA\Property(property="author_id", type="string", description="The author or editor unique ID"),
- *     @OA\Property(
- *         property="author",
- *         ref="#/components/schemas/Author",
- *         description="The author or editor associated with the series"
- *     ),
- *     @OA\Property(
- *         property="books",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/SeriesBook"),
- *         description="The books associated with this series"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Series',
+    description: 'A series model',
+    required: ['title', 'author_id'],
+    properties: [
+        new OA\Property(property: 'series_id', type: 'string', description: 'The series unique ID'),
+        new OA\Property(property: 'title', type: 'string', description: 'The title of the series'),
+        new OA\Property(property: 'subtitle', type: 'string', description: 'The subtitle of the series'),
+        new OA\Property(property: 'description', type: 'string', description: 'The series desccription'),
+        new OA\Property(property: 'author_id', type: 'string', description: 'The author or editor unique ID'),
+        new OA\Property(
+            property: 'author',
+            ref: '#/components/schemas/Author',
+            description: 'The author or editor associated with the series',
+        ),
+        new OA\Property(
+            property: 'books',
+            type: 'array',
+            items: new OA\Items(ref: '#/components/schemas/SeriesBook'),
+            description: 'The books associated with this series',
+        ),
+    ],
+)]
 class Series extends Model
 {
     use HasUuids;

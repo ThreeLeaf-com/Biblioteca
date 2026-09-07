@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 use ThreeLeaf\Biblioteca\Constants\BibliotecaConstants;
 use ThreeLeaf\Biblioteca\Enums\Context;
 use ThreeLeaf\Biblioteca\Enums\NoteType;
@@ -23,23 +24,40 @@ use ThreeLeaf\Biblioteca\Enums\NoteType;
  * @property-read Sentence $sentence    The sentence associated with the note.
  *
  * @mixin Builder
- *
- * @OA\Schema(
- *     title="Note",
- *     description="A note model",
- *     @OA\Property(property="note_id", type="string", description="Primary key of the note in UUID format"),
- *     @OA\Property(property="sentence_id", type="string", description="UUID of the associated sentence"),
- *     @OA\Property(property="content", type="string", description="Content of the note"),
- *     @OA\Property(property="note_label", type="string", description="Alphanumeric label of the note"),
- *     @OA\Property(property="note_type", ref="#/components/schemas/NoteType", description="Type of the note"),
- *     @OA\Property(property="context", ref="#/components/schemas/Context", description="Context in which the note appears"),
- *     @OA\Property(
- *         property="sentence",
- *         ref="#/components/schemas/Sentence",
- *         description="The sentence associated with the note"
- *     )
- * )
  */
+#[OA\Schema(
+    title: 'Note',
+    description: 'A note model',
+    properties: [
+        new OA\Property(
+            property: 'note_id',
+            type: 'string',
+            description: 'Primary key of the note in UUID format',
+        ),
+        new OA\Property(
+            property: 'sentence_id',
+            type: 'string',
+            description: 'UUID of the associated sentence',
+        ),
+        new OA\Property(property: 'content', type: 'string', description: 'Content of the note'),
+        new OA\Property(property: 'note_label', type: 'string', description: 'Alphanumeric label of the note'),
+        new OA\Property(
+            property: 'note_type',
+            ref: '#/components/schemas/NoteType',
+            description: 'Type of the note',
+        ),
+        new OA\Property(
+            property: 'context',
+            ref: '#/components/schemas/Context',
+            description: 'Context in which the note appears',
+        ),
+        new OA\Property(
+            property: 'sentence',
+            ref: '#/components/schemas/Sentence',
+            description: 'The sentence associated with the note',
+        ),
+    ],
+)]
 class Note extends Model
 {
     use HasUuids;

@@ -45,12 +45,17 @@ Every class carries a docblock. Beyond that:
 - Traits document their contract, including any property the using class is
   expected to declare — `HasCompositeKey` documents `$primaryKeys`.
 
-## OpenAPI annotations
+## OpenAPI attributes
 
-Models, form requests, resources, controllers, and enums carry `@OA\*`
-annotations alongside their PHPDoc. Controller tags are namespaced
-`Biblioteca/<Entity>`. These annotations are load-bearing, not decorative: they
-are the input to [OpenAPI Generation](/features/openapi-generation.md).
+Models, form requests, resources, controllers, and enums carry `#[OA\...]`
+attributes below their PHPDoc, imported as `use OpenApi\Attributes as OA;`.
+Controller tags are namespaced `Biblioteca/<Entity>`. These attributes are
+load-bearing, not decorative: they are the input to
+[OpenAPI Generation](/features/openapi-generation.md).
+
+Do **not** write the docblock `@OA\*` form. swagger-php reads it only when
+`doctrine/annotations` is installed, which this package does not do, so a
+docblock annotation is silently ignored.
 
 ## Migration comments
 
