@@ -4,7 +4,7 @@ title: Testing Strategy
 description: The PHPUnit suites, the compatibility matrix run in CI, how the coverage badge is produced, how to verify tests by mutation, and how foreign keys are enforced in feature tests.
 resource: phpunit.xml
 tags: [testing, phpunit, ci, coverage, mutation, transactions]
-timestamp: 2026-09-06T00:00:00Z
+timestamp: 2026-09-08T00:00:00Z
 ---
 
 # Testing Strategy
@@ -125,24 +125,27 @@ the wrong table.
 The `testing` connection in
 [`Tests\Feature\TestCase`](../../../tests/Feature/TestCase.php) sets
 `foreign_key_constraints => true`. Laravel issues `PRAGMA foreign_keys=ON` when
-it opens the connection, which is before `RefreshDatabase` starts its
-transaction. That ordering is the whole of the setting: SQLite treats the pragma
-as a no-op inside a transaction, so a `PRAGMA foreign_keys=ON` statement in
-`setUp()` cannot work — `RefreshDatabase` has already opened one by then.
+it opens the connection. The order is what makes the setting work: the pragma
+must be issued when the connection opens, because SQLite ignores it inside a
+transaction and `RefreshDatabase` opens one before `setUp()` runs. A
+`PRAGMA foreign_keys=ON` statement in `setUp()` is therefore a no-op, and the
+package carried one until issue #21.
 
-The setting is not self-announcing. Lose it and every other test keeps passing,
-while the database silently accepts rows that reference identifiers which do not
-exist.
+The setting gives no signal when it is missing. If it is removed, all other
+tests continue to pass, and the database accepts rows that point to identifiers
+that do not exist.
 [`ForeignKeyConstraintTest`](../../../tests/Feature/Database/ForeignKeyConstraintTest.php)
-therefore pins it directly: it asserts `PRAGMA foreign_keys` reports `1` at a
-non-zero transaction level, that an unknown foreign key raises
-`QueryException`, and that the cascade and `set null` behaviour in
-[Database Schema](/data/models/database-schema.md) is what the database does.
+therefore pins it directly. It asserts that `PRAGMA foreign_keys` reports `1` at
+a non-zero transaction level, that an unknown foreign key raises
+`QueryException` naming the constraint, and that the cascade and `set null`
+behaviour in [Database Schema](/data/models/database-schema.md) is what the
+database does. It also pins the one deliberate exception: `b_annotations`
+declares no foreign key, so a deleted sentence leaves its annotations behind.
 
-A test may therefore use an unknown foreign key as its failure trigger. Prefer a
-collaborator seam or a query listener when the test asserts on a rollback: a
-constraint violation aborts the insert, so no rows exist for the rollback to
-undo, and the test asserts against an empty transaction.
+If a test asserts on a rollback, do not use an unknown foreign key as the
+trigger. The violation aborts the insert, so no rows exist for the rollback to
+undo and the test asserts against an empty transaction. Use a collaborator seam
+or a query listener instead.
 
 # Citations
 
@@ -155,10 +158,17 @@ undo, and the test asserts against an empty transaction.
   and `Illuminate\Database\QueryException` both report `true` for
   `is_subclass_of(..., 'RuntimeException')`.
 - Verified 2026-09-08 by execution — with `foreign_key_constraints` removed from
-  the `testing` connection, all five tests in `ForeignKeyConstraintTest` fail:
-  the pragma reads `0`, the unknown foreign key is accepted, and no cascade
-  runs. Restoring the setting returns the full suite to
-  `OK (266 tests, 868 assertions)`.
+  the `testing` connection, five of the six tests in `ForeignKeyConstraintTest`
+  fail: the pragma reads `0`, the unknown foreign key is accepted, no cascade
+  runs, and the publisher id is not nulled. The sixth pins the absence of a
+  constraint on `b_annotations` and passes either way, which is why the other
+  five carry the enforcement claim. Restoring the setting returns the full suite
+  to `OK (267 tests, 876 assertions)`.
+- Verified 2026-09-08 against vendor source —
+  `Illuminate\Database\Connectors\SQLiteConnector::configureForeignKeyConstraints()`
+  returns early when `foreign_key_constraints` is absent from the connection
+  array; `laravel/framework`'s `config/database.php` defaults it to `true` and
+  `orchestra/testbench-core`'s `LoadConfiguration` defaults it to `false`.
 - Verified 2026-09-04 against git HEAD — suite names, directories, and the
   `<source><include>./src</include></source>` block read from `phpunit.xml`.
 - Verified 2026-09-04 against git HEAD — the matrix in
