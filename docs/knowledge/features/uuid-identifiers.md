@@ -4,7 +4,7 @@ title: UUID Identifiers
 description: The package's UUID primary-key scheme, including the deterministic X.500 keys the core models derive from their own content.
 resource: src/Utils/UuidUtil.php
 tags: [feature, uuid, identifiers]
-timestamp: 2026-09-04T00:00:00Z
+timestamp: 2026-10-24T00:00:00Z
 ---
 
 # UUID Identifiers
@@ -51,7 +51,9 @@ For `Author` that is `(first_name, last_name)`; for `Paragraph` it is
 
 The remaining eight entity models — `Annotation`, `Bibliography`, `Figure`,
 `Genre`, `Index`, `Note`, `TableOfContents`, `Tag` — carry no such accessor and
-rely on Laravel's `HasUuids` concern to supply the key on insert. (The seven
+rely on Laravel's `HasUuids` concern to supply the key on insert. `HasUuids`
+generates the key through `Str`, which needs `ramsey/uuid`; this package
+requires it directly, because `illuminate/support` only suggests it. (The seven
 models above declare `HasUuids` as well; their accessor is what actually supplies
 their key.)
 
@@ -101,6 +103,14 @@ Only `generateX500Uuid()` has callers inside `src/`. The other three are
 provided for host applications that need a stable id derived from a hostname, a
 URL, or an OID.
 
+`symfony/uid` is a direct runtime requirement of this package, and so is
+`ramsey/uuid`. Do not rely on `laravel/framework` to install them: a consumer
+that requires only `illuminate/database` and `illuminate/support` does not get
+them any other way. `tests/Unit/ComposerRequirementsTest.php` reads
+`composer.json` to keep both requirements in place. The test suite always has
+`laravel/framework` installed through `orchestra/testbench`, so it cannot see a
+missing requirement any other way.
+
 The class documents [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562)
 for UUIDs and [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035) for
 hostname format.
@@ -137,3 +147,12 @@ See [Domain Model](/data/models/domain-model.md).
   `FILTER_VALIDATE_DOMAIN` with `FILTER_FLAG_HOSTNAME`, `generateUrlUuid()` uses
   `FILTER_VALIDATE_URL`, `generateOidUuid()` uses `preg_match('/^\d+(\.\d+)*$/')`,
   and `generateX500Uuid()` performs no validation and no normalization.
+- Verified 2026-10-24 in a clean Composer project that requires only
+  `illuminate/database`, `illuminate/support`, and this package — without the
+  `symfony/uid` requirement, `UuidUtil::generateDnsUuid()` fails with
+  `Class "Symfony\Component\Uid\Uuid" not found`; with it, the call succeeds
+  on illuminate 13 with symfony/uid 8.1.9 and on illuminate 12.70.1 with
+  symfony/uid 7.2.8.
+- Verified 2026-10-24 in the same clean project on illuminate 13.38.0 — without
+  `ramsey/uuid`, `Str::uuid7()` fails with `Class "Ramsey\Uuid\Uuid" not found`;
+  with it (4.9.4), the call succeeds.
