@@ -8,10 +8,10 @@ use PHPUnit\Framework\TestCase;
 /**
  * Test that `composer.json` declares the runtime packages that the package source imports.
  *
- * Issue #41: `UuidUtil` imports `Symfony\Component\Uid\Uuid`, but `symfony/uid` was not
- * in `require`. The test suite could not see it, because `orchestra/testbench` installs
- * `laravel/framework`, which requires `symfony/uid`. A consumer without
- * `laravel/framework` got "class not found". This test reads the manifest, not the
+ * `UuidUtil` imports `Symfony\Component\Uid\Uuid`, so `symfony/uid` must be in `require`.
+ * The test suite alone cannot see a missing requirement, because `orchestra/testbench` installs
+ * `laravel/framework`, which requires `symfony/uid`, while a consumer without
+ * `laravel/framework` gets "class not found". This test reads the manifest, not the
  * installed vendor tree, so a dev dependency cannot hide a missing runtime requirement.
  */
 class ComposerRequirementsTest extends TestCase

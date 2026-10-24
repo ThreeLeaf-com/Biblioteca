@@ -1,10 +1,10 @@
 ---
 type: Testing Strategy
 title: Testing Strategy
-description: The PHPUnit suites, the compatibility matrix run in CI, how the coverage badge is produced, how to verify tests by mutation, and how foreign keys are enforced in feature tests.
+description: The PHPUnit suites, how Laravel compatibility is checked, the runtime-dependency guard, how the coverage badge is produced, how to verify tests by mutation, and how foreign keys are enforced in feature tests.
 resource: phpunit.xml
 tags: [testing, phpunit, ci, coverage, mutation, transactions]
-timestamp: 2026-09-08T00:00:00Z
+timestamp: 2026-10-24T00:00:00Z
 ---
 
 # Testing Strategy
@@ -13,10 +13,10 @@ timestamp: 2026-09-08T00:00:00Z
 
 [`phpunit.xml`](../../../phpunit.xml) declares two suites:
 
-| Suite     | Directory       | Covers                                                           |
-| --------- | --------------- | ---------------------------------------------------------------- |
+| Suite     | Directory       | Covers                                                              |
+| --------- | --------------- | ------------------------------------------------------------------- |
 | `Unit`    | `tests/Unit`    | Traits, utilities, and the generated OpenAPI document — no database |
-| `Feature` | `tests/Feature` | Models, repositories, services, controllers, requests, resources |
+| `Feature` | `tests/Feature` | Models, repositories, services, controllers, requests, resources    |
 
 Coverage is measured over `./src` only. Reports are written to
 `target/coverage` as Clover XML and HTML; `target/` is git-ignored.
@@ -33,24 +33,29 @@ kernel.
 
 ## Compatibility matrix
 
-[`.github/workflows/tests.yaml`](../../../.github/workflows/tests.yaml) runs on
-push and pull request against `main`, over a two-cell matrix with
-`fail-fast: false`:
+There is no CI test workflow. Tests run locally: the weekly Dependabot sweep runs
+each Dependabot pull request's tests on a local machine before it merges it.
+The `^12.0 || ^13.0` constraint in [`composer.json`](../../../composer.json) is
+checked by hand. To prove one Laravel major, rewrite the `illuminate/database`
+and `illuminate/support` constraints with `composer require --no-update`, run
+`composer update -W`, and run the suite. Tests run on SQLite, so `pdo_sqlite`
+must be installed.
 
-| PHP   | Laravel |
-| ----- | ------- |
-| `8.2` | `^12.0` |
-| `8.4` | `^13.0` |
+## Runtime dependencies the suite cannot see
 
-Each cell rewrites the `illuminate/database` and `illuminate/support`
-constraints with `composer require --no-update`, then runs
-`composer update --prefer-dist --no-progress -W`. This proves both supported
-Laravel majors resolve and pass, which is what the `^12.0 || ^13.0` constraint
-in [`composer.json`](../../../composer.json) claims. Tests run on SQLite —
-`pdo_sqlite` is the database extension installed in the workflow.
+`orchestra/testbench` installs `laravel/framework`, so every package that the
+framework requires is present when the suite runs. A runtime import that only
+`laravel/framework` supplies therefore passes every test, and still fails for a
+consumer that requires only `illuminate/database` and `illuminate/support`.
+[`ComposerRequirementsTest`](../../../tests/Unit/ComposerRequirementsTest.php)
+reads `composer.json` directly to keep `symfony/uid` in `require`.
 
-Because `fail-fast` is off, a break in one Laravel major does not hide the
-result for the other.
+The guard covers `symfony/uid` only. The HTTP layer — controllers, requests,
+and resources — also imports `Illuminate\Http`, `Illuminate\Foundation`,
+`Illuminate\Routing`, `Illuminate\Validation`, and `symfony/http-foundation`.
+`require` does not declare those packages, so the HTTP layer works only in a
+host that installs `laravel/framework`. The models, repositories, and
+`UuidUtil` do not need it.
 
 ## Coverage badge
 
@@ -171,10 +176,10 @@ or a query listener instead.
   `orchestra/testbench-core`'s `LoadConfiguration` defaults it to `false`.
 - Verified 2026-09-04 against git HEAD — suite names, directories, and the
   `<source><include>./src</include></source>` block read from `phpunit.xml`.
-- Verified 2026-09-04 against git HEAD — the matrix in
-  `.github/workflows/tests.yaml` is PHP 8.2 with Laravel `^12.0` and PHP 8.4
-  with Laravel `^13.0`, `fail-fast: false`, extensions
-  `mbstring, pdo_sqlite, zip, curl`.
+- Verified 2026-10-24 against git history — `.github/workflows/tests.yaml` was
+  removed; `.github/` holds only `dependabot.yml`.
+- Verified 2026-10-24 against the resolved dependencies — `composer why
+symfony/uid` lists `laravel/framework`, which `orchestra/testbench` installs.
 - Verified 2026-09-04 against git HEAD — `composer.json` `require-dev` includes
   `orchestra/testbench`.
 - Verified 2026-09-04 against git HEAD —

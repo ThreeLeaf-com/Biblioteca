@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Symfony\Component\Uid\Uuid`, but `composer.json` did not require
   `symfony/uid`, and `illuminate/support` only suggests it. A consumer that
   installed this package with `illuminate/database` and `illuminate/support`
-  but without `laravel/framework` got `Class "Symfony\Component\Uid\Uuid" not
-  found` on the first `UuidUtil` call. The test suite did not catch it, because
+  but without `laravel/framework` got
+  `Class "Symfony\Component\Uid\Uuid" not found` on the first `UuidUtil` call. The test suite did not catch it, because
   `orchestra/testbench` installs `laravel/framework`, which requires
   `symfony/uid`.
 
