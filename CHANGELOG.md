@@ -5,6 +5,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2026-10-24
+
+### Fixed
+
+- **`symfony/uid` and `ramsey/uuid` are now declared runtime dependencies.**
+  `UuidUtil` imports `Symfony\Component\Uid\Uuid`, and the models that use
+  `HasUuids` generate their keys through `Str`, which needs `ramsey/uuid`.
+  `composer.json` required neither, and `illuminate/support` only suggests
+  them. A consumer that installed this package with `illuminate/database` and
+  `illuminate/support` but without `laravel/framework` got a
+  `Class "Symfony\Component\Uid\Uuid" not found` error on the first
+  `UuidUtil` call, and a `Class "Ramsey\Uuid\Uuid" not found` error on the
+  first insert into a model such as `Tag`. The test suite did not catch it,
+  because `orchestra/testbench` installs `laravel/framework`, which requires
+  both packages.
+
+  The package now requires `symfony/uid` `^7.2 || ^8.0` and `ramsey/uuid`
+  `^4.7`. Each range covers what Laravel 12 and Laravel 13 require
+  (`symfony/uid` `^7.2` and `^7.4 || ^8.0`; `ramsey/uuid` `^4.7` for both), so
+  a Laravel application already has a matching version and nothing changes for
+  it. A consumer without `laravel/framework` gets both packages installed. A
+  consumer that worked around the defect by requiring them directly can keep
+  or remove those requirements.
+  ([#41](https://github.com/ThreeLeaf-com/Biblioteca/issues/41))
+
 ## [3.0.1] - 2026-09-07
 
 ### Fixed

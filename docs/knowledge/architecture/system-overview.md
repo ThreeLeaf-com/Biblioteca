@@ -4,7 +4,7 @@ title: System Overview
 description: What the Biblioteca package provides, what the host application must supply, and how the two connect.
 resource: src/Providers/BibliotecaServiceProvider.php
 tags: [architecture, laravel, package]
-timestamp: 2026-09-06T00:00:00Z
+timestamp: 2026-10-24T00:00:00Z
 ---
 
 # System Overview
@@ -73,8 +73,17 @@ The `register()` method binds nothing.
 ## Framework support
 
 [`composer.json`](../../../composer.json) requires PHP `>=8.2` and
-`illuminate/database` and `illuminate/support` at `^12.0 || ^13.0`. CI proves
-both Laravel majors — see [Testing Strategy](/testing/strategy.md).
+`illuminate/database` and `illuminate/support` at `^12.0 || ^13.0`. There is no
+CI; see [Testing Strategy](/testing/strategy.md) for how both Laravel majors are
+checked.
+
+It also requires two packages that `illuminate/support` only suggests:
+`symfony/uid` at `^7.2 || ^8.0`, because `UuidUtil` imports
+`Symfony\Component\Uid\Uuid`, and `ramsey/uuid` at `^4.7`, because the
+`HasUuids` models generate their keys through `Str::uuid7()`. Each range
+covers what Laravel 12 and Laravel 13 require, so it never forces a Laravel
+application to change its installed version. See
+[UUID Identifiers](/features/uuid-identifiers.md).
 
 ## Table namespace
 
@@ -92,5 +101,8 @@ See [Database Schema](/data/models/database-schema.md).
   method; `register()` has an empty body.
 - Verified 2026-09-04 against git HEAD — `composer.json` `require` block and
   `extra.laravel.providers` entry.
+- Verified 2026-10-24 against Packagist metadata — laravel/framework 12.x
+  requires `symfony/uid` `^7.2` and 13.x requires `^7.4 || ^8.0`; both
+  require `ramsey/uuid` `^4.7`.
 - Verified 2026-09-04 against git HEAD — the header comment of `routes/api.php`
   states the file is an example only.
