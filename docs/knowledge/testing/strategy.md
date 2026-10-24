@@ -3,7 +3,7 @@ type: Testing Strategy
 title: Testing Strategy
 description: The PHPUnit suites, how Laravel compatibility is checked, the runtime-dependency guard, how the coverage badge is produced, how to verify tests by mutation, and how foreign keys are enforced in feature tests.
 resource: phpunit.xml
-tags: [testing, phpunit, ci, coverage, mutation, transactions]
+tags: [testing, phpunit, compatibility, coverage, mutation, transactions]
 timestamp: 2026-10-24T00:00:00Z
 ---
 
@@ -48,14 +48,17 @@ framework requires is present when the suite runs. A runtime import that only
 `laravel/framework` supplies therefore passes every test, and still fails for a
 consumer that requires only `illuminate/database` and `illuminate/support`.
 [`ComposerRequirementsTest`](../../../tests/Unit/ComposerRequirementsTest.php)
-reads `composer.json` directly to keep `symfony/uid` in `require`.
+reads `composer.json` directly to keep `symfony/uid` and `ramsey/uuid` in
+`require`, and uses `composer/semver` to check that each constraint admits the
+versions Laravel 12 and Laravel 13 require.
 
-The guard covers `symfony/uid` only. The HTTP layer — controllers, requests,
+The guard covers those two packages only. The HTTP layer — controllers, requests,
 and resources — also imports `Illuminate\Http`, `Illuminate\Foundation`,
 `Illuminate\Routing`, `Illuminate\Validation`, and `symfony/http-foundation`.
 `require` does not declare those packages, so the HTTP layer works only in a
 host that installs `laravel/framework`. The models, repositories, and
-`UuidUtil` do not need it.
+`UuidUtil` do not need it: their only packages outside `illuminate/database` and
+`illuminate/support` are the two the guard checks.
 
 ## Coverage badge
 

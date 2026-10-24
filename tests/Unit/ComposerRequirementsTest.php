@@ -2,15 +2,18 @@
 
 namespace Tests\Unit;
 
+use Composer\Semver\Semver;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test that `composer.json` declares the runtime packages that the package source imports.
+ * Test that `composer.json` declares the runtime packages that the package needs but that
+ * `illuminate/database` and `illuminate/support` only suggest.
  *
- * `UuidUtil` imports `Symfony\Component\Uid\Uuid`, so `symfony/uid` must be in `require`.
- * The test suite alone cannot see a missing requirement, because `orchestra/testbench` installs
- * `laravel/framework`, which requires `symfony/uid`, while a consumer without
+ * `UuidUtil` uses `symfony/uid`, and the models' `HasUuids` keys use `ramsey/uuid` through
+ * `Str`. The test suite alone cannot see a missing requirement, because `orchestra/testbench`
+ * installs `laravel/framework`, which requires both packages, while a consumer without
  * `laravel/framework` gets "class not found". This test reads the manifest, not the
  * installed vendor tree, so a dev dependency cannot hide a missing runtime requirement.
  */
@@ -29,29 +32,54 @@ class ComposerRequirementsTest extends TestCase
         return $manifest['require'] ?? [];
     }
 
-    /** Test that `symfony/uid`, which `UuidUtil` imports, is a runtime requirement. */
-    #[Test]
-    public function symfonyUidIsRequiredAtRuntime(): void
+    /**
+     * The runtime packages to check, with the versions their constraint must admit and reject.
+     *
+     * The admitted versions are the lowest that Laravel 12 and Laravel 13 each require, so a
+     * narrower range would force a Laravel application to upgrade the package.
+     *
+     * @return array<string, array{string, list<string>, list<string>}> Package name, versions
+     *     the constraint must admit, and versions it must reject, keyed by package name.
+     */
+    public static function runtimePackages(): array
     {
-        $source = file_get_contents(__DIR__ . '/../../src/Utils/UuidUtil.php');
-        $this->assertStringContainsString('use Symfony\Component\Uid\Uuid;', $source);
+        return [
+            'symfony/uid' => ['symfony/uid', ['7.2.0', '7.4.0', '8.0.0'], ['7.1.99', '9.0.0']],
+            'ramsey/uuid' => ['ramsey/uuid', ['4.7.0'], ['4.6.99', '5.0.0']],
+        ];
+    }
 
-        $this->assertArrayHasKey('symfony/uid', self::runtimeRequirements());
+    /** Test that the source still uses each namespace this test guards. */
+    #[Test]
+    public function guardedNamespacesAreStillUsed(): void
+    {
+        $uuidUtil = file_get_contents(__DIR__ . '/../../src/Utils/UuidUtil.php');
+        $this->assertMatchesRegularExpression('/Symfony\\\\Component\\\\Uid\\\\/', $uuidUtil);
+
+        $tag = file_get_contents(__DIR__ . '/../../src/Models/Tag.php');
+        $this->assertMatchesRegularExpression('/\buse HasUuids;/', $tag);
     }
 
     /**
-     * Test that the `symfony/uid` constraint admits the majors that Laravel 12 and 13 install.
+     * Test that a package is a runtime requirement whose constraint admits the supported versions.
      *
-     * Laravel 12 requires `^7.2` and Laravel 13 requires `^7.4 || ^8.0`. A narrower range
-     * would force a Laravel 12 application on symfony 7.2 or 7.3 to upgrade.
+     * @param string       $package  The Composer package name.
+     * @param list<string> $admitted Versions the constraint must accept.
+     * @param list<string> $rejected Versions the constraint must refuse.
      */
     #[Test]
-    public function symfonyUidConstraintCoversSupportedLaravelMajors(): void
+    #[DataProvider('runtimePackages')]
+    public function packageIsRequiredAtRuntime(string $package, array $admitted, array $rejected): void
     {
-        $constraint = self::runtimeRequirements()['symfony/uid'] ?? '';
+        $requirements = self::runtimeRequirements();
+        $this->assertArrayHasKey($package, $requirements, "$package must be in composer.json require.");
 
-        $alternatives = array_map('trim', explode('||', $constraint));
-        $this->assertContains('^7.2', $alternatives);
-        $this->assertContains('^8.0', $alternatives);
+        $constraint = $requirements[$package];
+        foreach ($admitted as $version) {
+            $this->assertTrue(Semver::satisfies($version, $constraint), "$package $constraint must admit $version.");
+        }
+        foreach ($rejected as $version) {
+            $this->assertFalse(Semver::satisfies($version, $constraint), "$package $constraint must reject $version.");
+        }
     }
 }

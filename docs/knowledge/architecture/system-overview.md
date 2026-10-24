@@ -77,11 +77,12 @@ The `register()` method binds nothing.
 CI; see [Testing Strategy](/testing/strategy.md) for how both Laravel majors are
 checked.
 
-It also requires `symfony/uid` at `^7.2 || ^8.0`, because `UuidUtil` imports
-`Symfony\Component\Uid\Uuid` and `illuminate/support` only suggests that
-package. The range is the union of what Laravel 12 (`^7.2`) and Laravel 13
-(`^7.4 || ^8.0`) require, so it never forces a Laravel application to change
-its installed version. See [UUID Identifiers](/features/uuid-identifiers.md).
+It also requires two packages that `illuminate/support` only suggests:
+`symfony/uid` at `^7.2 || ^8.0`, because `UuidUtil` imports
+`Symfony\Component\Uid\Uuid`, and `ramsey/uuid` at `^4.7`, because the
+`HasUuids` models generate their keys through `Str::uuid7()` or
+`Str::orderedUuid()`. Each range covers what Laravel 12 and Laravel 13 require,
+so it never forces a Laravel application to change its installed version. See [UUID Identifiers](/features/uuid-identifiers.md).
 
 ## Table namespace
 
@@ -100,6 +101,7 @@ See [Database Schema](/data/models/database-schema.md).
 - Verified 2026-09-04 against git HEAD — `composer.json` `require` block and
   `extra.laravel.providers` entry.
 - Verified 2026-10-24 against Packagist metadata — laravel/framework 12.x
-  requires `symfony/uid` `^7.2` and 13.x requires `^7.4 || ^8.0`.
+  requires `symfony/uid` `^7.2` and 13.x requires `^7.4 || ^8.0`; both
+  require `ramsey/uuid` `^4.7`.
 - Verified 2026-09-04 against git HEAD — the header comment of `routes/api.php`
   states the file is an example only.

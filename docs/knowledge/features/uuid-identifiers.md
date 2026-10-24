@@ -51,7 +51,9 @@ For `Author` that is `(first_name, last_name)`; for `Paragraph` it is
 
 The remaining eight entity models — `Annotation`, `Bibliography`, `Figure`,
 `Genre`, `Index`, `Note`, `TableOfContents`, `Tag` — carry no such accessor and
-rely on Laravel's `HasUuids` concern to supply the key on insert. (The seven
+rely on Laravel's `HasUuids` concern to supply the key on insert. `HasUuids`
+generates the key through `Str`, which needs `ramsey/uuid`; this package
+requires it directly, because `illuminate/support` only suggests it. (The seven
 models above declare `HasUuids` as well; their accessor is what actually supplies
 their key.)
 
@@ -101,11 +103,11 @@ Only `generateX500Uuid()` has callers inside `src/`. The other three are
 provided for host applications that need a stable id derived from a hostname, a
 URL, or an OID.
 
-`symfony/uid` is a direct runtime requirement of this package. Do not rely on
-`laravel/framework` to install it: a consumer that requires only
-`illuminate/database` and `illuminate/support` does not get it any other way.
-`tests/Unit/ComposerRequirementsTest.php` reads `composer.json` to keep the
-requirement in place, because the test suite itself always has
+`symfony/uid` is a direct runtime requirement of this package, and so is
+`ramsey/uuid`. Do not rely on `laravel/framework` to install them: a consumer
+that requires only `illuminate/database` and `illuminate/support` does not get
+them any other way. `tests/Unit/ComposerRequirementsTest.php` reads
+`composer.json` to keep both requirements in place, because the test suite itself always has
 `laravel/framework` installed through `orchestra/testbench` and so cannot see a
 missing requirement.
 
@@ -151,3 +153,6 @@ See [Domain Model](/data/models/domain-model.md).
   `Class "Symfony\Component\Uid\Uuid" not found`; with it, the call succeeds
   on illuminate 13 with symfony/uid 8.1.9 and on illuminate 12.70.1 with
   symfony/uid 7.2.8.
+- Verified 2026-10-24 in the same clean project on illuminate 13.38.0 — without
+  `ramsey/uuid`, `Str::uuid7()` fails with `Class "Ramsey\Uuid\Uuid" not found`;
+  with it (4.9.4), the call succeeds.
