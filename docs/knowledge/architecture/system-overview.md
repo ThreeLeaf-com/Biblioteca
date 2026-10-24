@@ -80,9 +80,10 @@ checked.
 It also requires two packages that `illuminate/support` only suggests:
 `symfony/uid` at `^7.2 || ^8.0`, because `UuidUtil` imports
 `Symfony\Component\Uid\Uuid`, and `ramsey/uuid` at `^4.7`, because the
-`HasUuids` models generate their keys through `Str::uuid7()` or
-`Str::orderedUuid()`. Each range covers what Laravel 12 and Laravel 13 require,
-so it never forces a Laravel application to change its installed version. See [UUID Identifiers](/features/uuid-identifiers.md).
+`HasUuids` models generate their keys through `Str::uuid7()`. Each range
+covers what Laravel 12 and Laravel 13 require, so it never forces a Laravel
+application to change its installed version. See
+[UUID Identifiers](/features/uuid-identifiers.md).
 
 ## Table namespace
 

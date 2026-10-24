@@ -35,8 +35,9 @@ class ComposerRequirementsTest extends TestCase
     /**
      * The runtime packages to check, with the versions their constraint must admit and reject.
      *
-     * The admitted versions are the lowest that Laravel 12 and Laravel 13 each require, so a
-     * narrower range would force a Laravel application to upgrade the package.
+     * The admitted versions include the lowest that Laravel 12 and Laravel 13 each require and
+     * versions near the top of each allowed major, so neither a raised floor nor a pin to one
+     * minor version passes: either would force a Laravel application to change the package.
      *
      * @return array<string, array{string, list<string>, list<string>}> Package name, versions
      *     the constraint must admit, and versions it must reject, keyed by package name.
@@ -44,8 +45,8 @@ class ComposerRequirementsTest extends TestCase
     public static function runtimePackages(): array
     {
         return [
-            'symfony/uid' => ['symfony/uid', ['7.2.0', '7.4.0', '8.0.0'], ['7.1.99', '9.0.0']],
-            'ramsey/uuid' => ['ramsey/uuid', ['4.7.0'], ['4.6.99', '5.0.0']],
+            'symfony/uid' => ['symfony/uid', ['7.2.0', '7.4.0', '7.99.0', '8.0.0', '8.99.0'], ['7.1.99', '9.0.0']],
+            'ramsey/uuid' => ['ramsey/uuid', ['4.7.0', '4.9.4', '4.99.0'], ['4.6.99', '5.0.0']],
         ];
     }
 

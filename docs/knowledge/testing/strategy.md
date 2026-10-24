@@ -57,8 +57,12 @@ and resources — also imports `Illuminate\Http`, `Illuminate\Foundation`,
 `Illuminate\Routing`, `Illuminate\Validation`, and `symfony/http-foundation`.
 `require` does not declare those packages, so the HTTP layer works only in a
 host that installs `laravel/framework`. The models, repositories, and
-`UuidUtil` do not need it: their only packages outside `illuminate/database` and
-`illuminate/support` are the two the guard checks.
+`UuidUtil` do not need it: the only packages outside `illuminate/database` and
+`illuminate/support` that they load at runtime are the two the guard checks.
+The models also import `OpenApi\Attributes` from `zircote/swagger-php`, which
+is a development dependency only. PHP loads an attribute class only when code
+instantiates the attribute through reflection, and nothing in `src/` does, so
+those imports need no runtime package.
 
 ## Coverage badge
 

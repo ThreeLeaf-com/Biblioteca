@@ -107,9 +107,9 @@ URL, or an OID.
 `ramsey/uuid`. Do not rely on `laravel/framework` to install them: a consumer
 that requires only `illuminate/database` and `illuminate/support` does not get
 them any other way. `tests/Unit/ComposerRequirementsTest.php` reads
-`composer.json` to keep both requirements in place, because the test suite itself always has
-`laravel/framework` installed through `orchestra/testbench` and so cannot see a
-missing requirement.
+`composer.json` to keep both requirements in place. The test suite always has
+`laravel/framework` installed through `orchestra/testbench`, so it cannot see a
+missing requirement any other way.
 
 The class documents [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562)
 for UUIDs and [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035) for
