@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2026-11-07
+
+### Fixed
+
+- **`POST /api/series` now links the books named in `book_ids`.**
+  `SeriesController::store()` called `Series::create()` directly instead of
+  `SeriesService::create()`, so `SeriesRequest` validated `book_ids` and the
+  controller then dropped them. A series created through the API had no books.
+  `store()` now uses the service, as `update()` already did. The books are
+  linked in the order given, and the `201` response includes the `author` and
+  `books` relations. A consumer that overrode `store()` to work around the
+  defect can remove the override.
+
+### Changed
+
+- **Development:** `util/generate-open-api.php` and `OpenApiDocumentTest` import
+  `OpenApi\Utils\SourceFinder`. `zircote/swagger-php` 7 removed
+  `OpenApi\SourceFinder`; the `Utils` class exists in 6.18 and in 7.
+
 ## [3.0.2] - 2026-10-24
 
 ### Fixed

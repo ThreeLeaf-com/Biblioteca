@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Author;
+use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -58,6 +59,37 @@ class SeriesControllerTest extends TestCase
 
         $response->assertJson($expectedData);
         $this->assertDatabaseHas(Series::TABLE_NAME, $data);
+    }
+
+    /**
+     * {@link SeriesController::store()} links the books named in `book_ids`, in order.
+     *
+     * Issue #46: `store()` called `Series::create()` directly, so the validated
+     * `book_ids` were dropped and the new series had no books.
+     *
+     * @see {@link SeriesService::create()}
+     */
+    #[Test]
+    public function storeSeriesWithBookIds(): void
+    {
+        $author = Author::factory()->create();
+        $books = Book::factory()->count(2)->create();
+        $bookIds = [$books[1]->book_id, $books[0]->book_id];
+        $data = [
+            'title' => $this->faker->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => $bookIds,
+        ];
+
+        $response = $this->postJson(route('series.store'), $data);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.books.0.book_id', $bookIds[0])
+            ->assertJsonPath('data.books.1.book_id', $bookIds[1]);
+
+        $series = Series::findOrFail($response->json('data.series_id'));
+        $this->assertSame($bookIds, $series->books()->pluck(Book::TABLE_NAME . '.book_id')->all());
+        $this->assertSame([1, 2], $series->books()->pluck('number')->map(fn($number) => (int)$number)->all());
     }
 
     /**

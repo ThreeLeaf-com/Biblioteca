@@ -78,7 +78,7 @@ class SeriesController extends Controller
     public function store(SeriesRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
-        $series = Series::create($validatedData);
+        $series = $this->seriesService->create($validatedData);
 
         return (new SeriesResource($series))
             ->response()
