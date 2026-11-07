@@ -102,8 +102,8 @@ class SeriesServiceTest extends TestCase
     /**
      * {@link SeriesService::create()} discards the whole series when attaching a book fails.
      *
-     * The series row and both pivot rows are written before the injected failure fires, so
-     * without the surrounding transaction a half-built series survives.
+     * The series row and the pivot rows (one multi-row insert) are written before the injected
+     * failure fires, so without the surrounding transaction a half-built series survives.
      */
     #[Test]
     public function createRollsBackWhenAttachingABookFails()
@@ -117,7 +117,7 @@ class SeriesServiceTest extends TestCase
             'book_ids' => $books->pluck('book_id')->toArray(),
         ];
 
-        $this->failOnInsertInto(SeriesBook::TABLE_NAME, 2);
+        $this->failOnInsertInto(SeriesBook::TABLE_NAME, 1);
         $injectedFailure = null;
 
         try {

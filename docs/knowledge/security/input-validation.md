@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-09-06T00:00:00Z
+timestamp: 2026-11-07T00:00:00Z
 ---
 
 # Input Validation
@@ -24,7 +24,13 @@ resolve their path identifier with `findOrFail()` rather than passing it
 straight to `detach()`, so an unknown one is a 404 rather than a silent no-op.
 
 Validation is all-or-nothing per request: a batch containing one unknown
-identifier attaches none of it. See [REST Endpoints](/api/rest-endpoints.md).
+identifier attaches none of it.
+
+`SeriesRequest` also caps its `book_ids` array at 1,000 entries
+(`SeriesRequest::MAX_BOOK_IDS`) and rejects a repeated entry with `distinct`.
+Each entry costs an `exists` query, and the books are linked inside a
+transaction, so the cap bounds the work one request can cause. The other array
+inputs (`tag_ids`, `genre_ids`) have no size cap. See [REST Endpoints](/api/rest-endpoints.md).
 
 ## What the rules cover
 
@@ -70,7 +76,7 @@ driven by stored data, so the column is constrained in two layers.
 `alias => class` map: `b_paragraphs => Paragraph`, `b_sentences => Sentence`.
 `BibliotecaServiceProvider::boot()` registers exactly that map with
 `Relation::morphMap()`, so the allow-list and the morph map cannot drift apart.
-A value is accepted when it *denotes* one of the two models:
+A value is accepted when it _denotes_ one of the two models:
 
 - resolved through the application's morph map first, so a host that has aliased
   either model keeps working (Eloquent writes `getMorphClass()`, which is the
@@ -85,10 +91,10 @@ A value is accepted when it *denotes* one of the two models:
 - compared case-insensitively, since PHP resolves class names that way;
 - satisfied by a subclass, so a host may annotate its own `Paragraph` subclass.
 
-A morph map can *alias* a permitted model. It cannot widen the set: an alias
+A morph map can _alias_ a permitted model. It cannot widen the set: an alias
 pointing at any other class is rejected exactly as the class name would be.
 
-What is *stored* is `Relation::getMorphAlias()` of the resolved model — the alias
+What is _stored_ is `Relation::getMorphAlias()` of the resolved model — the alias
 under the package's map, or the host's own alias where the host has registered
 one, or the class name where nothing aliases it. `MorphOneOrMany` constrains on
 `getMorphClass()`, the same lookup, with a case-sensitive comparison on most
@@ -106,7 +112,7 @@ discriminator by overriding `getMorphClass()`, which the map cannot see.
 
 The map is registered with `Relation::morphMap()`, never
 `Relation::enforceMorphMap()`. The latter also sets `requireMorphMap()`, a
-process-global flag that would make every unmapped morph in the *host*
+process-global flag that would make every unmapped morph in the _host_
 application throw — a package must not impose that on the application that
 installs it. The trade-off is that the package cannot detect a host claiming
 `b_paragraphs` or `b_sentences` for one of its own models, which would silently
@@ -122,11 +128,11 @@ table the resolved class names.
 **At the model boundary**, the same check applies to ordinary model writes and
 to the model's own read paths:
 
-| Path                                                           | Guard                                       |
-| -------------------------------------------------------------- | ------------------------------------------- |
-| `Annotation::create()`, `fill()`, `$a->reference_type = …`      | `setReferenceTypeAttribute()`               |
-| `$annotation->reference` (lazy)                                | `Annotation::getActualClassNameForMorph()`  |
-| `Annotation::with('reference')`, `->load()` (eager)            | `ReferenceMorphTo::createModelByType()`     |
+| Path                                                       | Guard                                      |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| `Annotation::create()`, `fill()`, `$a->reference_type = …` | `setReferenceTypeAttribute()`              |
+| `$annotation->reference` (lazy)                            | `Annotation::getActualClassNameForMorph()` |
+| `Annotation::with('reference')`, `->load()` (eager)        | `ReferenceMorphTo::createModelByType()`    |
 
 All three raise `InvalidReferenceTypeException`.
 
@@ -208,7 +214,7 @@ Nor does validation cover:
 - Verified 2026-09-05 by execution — `Annotation::insert()` stores an
   impermissible reference type, confirming the documented write gap.
 - Verified 2026-09-05 by execution — with `Relation::morphMap(['paragraph' =>
-  Paragraph::class])` registered, `$paragraph->annotations()->create()` stores
+Paragraph::class])` registered, `$paragraph->annotations()->create()` stores
   `'paragraph'`, both read paths resolve it back to `Paragraph`, and
   `POST /annotations` with `'paragraph'` returns 201 and is returned by
   `$paragraph->annotations()`.

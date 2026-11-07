@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   linked in the order given, and the `201` response includes the `author` and
   `books` relations. A consumer that overrode `store()` to work around the
   defect can remove the override.
+
+  `book_ids` on `POST /api/series` and `PUT /api/series/{series_id}` now also
+  rejects a repeated ID (`distinct`) and an array longer than 1,000 entries
+  (`SeriesRequest::MAX_BOOK_IDS`) with a 422. A repeated ID was silently linked
+  once before. The books are linked with one insert instead of three queries
+  per book. The OpenAPI document lists 422, not 400, for validation errors on
+  these two routes, and `zircote/swagger-php` is now a direct development
+  requirement (`^6.18 || ^7.0`).
   ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
 
 ### Changed

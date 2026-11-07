@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 use Tests\Feature\TestCase;
+use ThreeLeaf\Biblioteca\Http\Requests\SeriesRequest;
 use ThreeLeaf\Biblioteca\Http\Resources\SeriesResource;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
@@ -57,7 +58,9 @@ class SeriesControllerTest extends TestCase
         $series = Series::latest()->first();
         $expectedData = (new SeriesResource($series))->response()->getData(true);
 
-        $response->assertJson($expectedData);
+        $response->assertJson($expectedData)
+            ->assertJsonPath('data.author.author_id', $author->author_id)
+            ->assertJsonCount(0, 'data.books');
         $this->assertDatabaseHas(Series::TABLE_NAME, $data);
     }
 
@@ -84,12 +87,79 @@ class SeriesControllerTest extends TestCase
         $response = $this->postJson(route('series.store'), $data);
 
         $response->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.author.author_id', $author->author_id)
             ->assertJsonPath('data.books.0.book_id', $bookIds[0])
             ->assertJsonPath('data.books.1.book_id', $bookIds[1]);
 
         $series = Series::findOrFail($response->json('data.series_id'));
         $this->assertSame($bookIds, $series->books()->pluck(Book::TABLE_NAME . '.book_id')->all());
         $this->assertSame([1, 2], $series->books()->pluck('number')->map(fn($number) => (int)$number)->all());
+    }
+
+    /**
+     * {@link SeriesController::store()} rejects a `book_ids` entry that names no book, and creates nothing.
+     *
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithUnknownBookIdIsRejected(): void
+    {
+        $author = Author::factory()->create();
+        $book = Book::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $this->faker->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => [$book->book_id, $this->faker->uuid()],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('book_ids.1');
+        $this->assertDatabaseCount(Series::TABLE_NAME, 0);
+    }
+
+    /**
+     * {@link SeriesController::store()} rejects a repeated `book_ids` entry, which would otherwise be linked once.
+     *
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithRepeatedBookIdIsRejected(): void
+    {
+        $author = Author::factory()->create();
+        $books = Book::factory()->count(2)->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $this->faker->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => [$books[0]->book_id, $books[1]->book_id, $books[0]->book_id],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['book_ids.0', 'book_ids.2']);
+        $this->assertDatabaseCount(Series::TABLE_NAME, 0);
+    }
+
+    /**
+     * {@link SeriesController::store()} rejects more than {@link SeriesRequest::MAX_BOOK_IDS} book IDs.
+     *
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithTooManyBookIdsIsRejected(): void
+    {
+        $author = Author::factory()->create();
+        $bookIds = array_map(fn() => $this->faker->uuid(), range(0, SeriesRequest::MAX_BOOK_IDS));
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $this->faker->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => $bookIds,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors('book_ids');
+        $this->assertDatabaseCount(Series::TABLE_NAME, 0);
     }
 
     /**

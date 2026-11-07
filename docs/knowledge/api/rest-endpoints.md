@@ -37,14 +37,14 @@ misleading.
 `series` has no plural form, so its index and its show route share the `series`
 segment: `GET series` and `GET series/{series_id}`.
 
-`series.store` and `series.update` accept an optional `book_ids` array. Both
-routes pass the validated data to
+`series.store` and `series.update` accept an optional `book_ids` array of at
+most 1,000 distinct book IDs (`SeriesRequest::MAX_BOOK_IDS`). A repeated ID, an
+unknown ID, or a longer array is a 422. Both routes pass the validated data to
 [`SeriesService`](../../../src/Services/SeriesService.php), which writes the
 series and links the books in one transaction. The books get the numbers 1, 2,
 3 … in the order of the array. The response includes the `author` and `books`
 relations. On `series.update`, a non-empty `book_ids` replaces the current
-books; an empty or absent `book_ids` leaves them unchanged. Before 3.0.3,
-`series.store` called `Series::create()` directly and dropped `book_ids`.
+books; an empty or absent `book_ids` leaves them unchanged.
 
 ## Non-resource routes
 
