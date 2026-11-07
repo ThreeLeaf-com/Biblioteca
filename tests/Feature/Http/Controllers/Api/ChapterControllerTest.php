@@ -9,6 +9,7 @@ use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Http\Resources\ChapterResource;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
+use ThreeLeaf\Biblioteca\Services\ChapterService;
 use PHPUnit\Framework\Attributes\Test;
 
 /** Test {@link ChapterController}. */
@@ -344,8 +345,9 @@ class ChapterControllerTest extends TestCase
     }
 
     /**
-     * {@link ChapterController::store()} assigns the next free number when chapter_number is omitted.
-     * @see {@link ChapterRequest::rules()}
+     * {@link ChapterController::store()} assigns one more than the book's highest chapter_number, or 1 for a
+     * book with no chapters, when chapter_number is omitted.
+     * @see {@link ChapterService::assignChapterNumber()}
      */
     #[Test]
     public function storeChapterWithoutNumberIsAutoNumbered(): void

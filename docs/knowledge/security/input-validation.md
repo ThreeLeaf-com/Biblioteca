@@ -79,7 +79,8 @@ constraint appear:
   that keeps its own key fails as a duplicate of itself.
 
   On `chapters.store`, a request without `chapter_number` skips the rule, and
-  `ChapterService` assigns the next free number. On `chapters.update`, a request
+  `ChapterService` assigns one more than the book's highest number (1 for a
+  book with no chapters). On `chapters.update`, a request
   without `chapter_number` keeps the stored number. When it also moves the
   chapter to another `book_id`, the rule runs on `book_id` with the stored
   number, so a clash in the target book is a 422 on `book_id`.
