@@ -4,7 +4,7 @@ title: OpenAPI Generation
 description: How target/api-docs.json is produced from source attributes, why attributes rather than docblock annotations, and when it runs.
 resource: util/generate-open-api.php
 tags: [feature, openapi, swagger, composer, attributes]
-timestamp: 2026-09-07T00:00:00Z
+timestamp: 2026-11-07T00:00:00Z
 ---
 
 # OpenAPI Generation
@@ -53,7 +53,7 @@ so the document now has **27 paths and 42 schemas**.
 
 [`util/generate-open-api.php`](../../../util/generate-open-api.php) scans two
 paths — its own file and [`src/`](../../../src) — with `OpenApi\Generator` and
-`OpenApi\SourceFinder`, then writes the JSON to `target/api-docs.json`,
+`OpenApi\Utils\SourceFinder`, then writes the JSON to `target/api-docs.json`,
 creating `target/` at mode `0755` if it is missing. It prints the scanned paths
 and the number of paths and schemas found.
 
@@ -169,6 +169,10 @@ coupling, because an unread docblock is inert by definition.
   `doctrine/annotations` installed: 28 paths, 42 schemas. After the
   `AnnotationController` path correction the document has 27 paths and 42
   schemas.
+- Verified 2026-11-07 against swagger-php 7.3.0 — `OpenApi\SourceFinder` no
+  longer exists; `OpenApi\Utils\SourceFinder` exists in 6.18.0 and 7.x, so the
+  generator and `OpenApiDocumentTest` import it from `Utils`. The document still
+  has 27 paths and 42 schemas.
 - Verified 2026-09-07 against swagger-php 6.7.1 —
   `OpenApi\Analysers\DocBlockParser::isEnabled()` returns
   `class_exists('Doctrine\Common\Annotations\DocParser')`, and `ROADMAP.md`

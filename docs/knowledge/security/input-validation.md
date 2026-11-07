@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-09-06T00:00:00Z
+timestamp: 2026-11-07T00:00:00Z
 ---
 
 # Input Validation
@@ -25,6 +25,14 @@ straight to `detach()`, so an unknown one is a 404 rather than a silent no-op.
 
 Validation is all-or-nothing per request: a batch containing one unknown
 identifier attaches none of it. See [REST Endpoints](/api/rest-endpoints.md).
+
+`SeriesRequest` also caps its `book_ids` array at 1,000 entries
+(`SeriesRequest::MAX_BOOK_IDS`) and rejects a repeated entry with
+`distinct:ignore_case`, because the `uuid` rule accepts upper case and `exists`
+matches without regard to case on MySQL, MariaDB and PostgreSQL. Each entry
+costs an `exists` query, and the books are linked inside a transaction, so the
+cap bounds the work one request can cause. The other array inputs (`tag_ids`,
+`genre_ids`) have no size cap.
 
 ## What the rules cover
 
