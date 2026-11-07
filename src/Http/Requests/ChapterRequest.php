@@ -3,7 +3,9 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
+use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsScalarInput;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Chapter;
 
@@ -56,6 +58,8 @@ use ThreeLeaf\Biblioteca\Models\Chapter;
 )]
 class ChapterRequest extends FormRequest
 {
+    use ReadsScalarInput;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -74,8 +78,15 @@ class ChapterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'book_id' => ['required', 'exists:' . Book::TABLE_NAME . ',book_id', 'uuid'],
-            'chapter_number' => ['sometimes', 'integer', 'min:1'],
+            'book_id' => ['bail', 'required', 'uuid', 'exists:' . Book::TABLE_NAME . ',book_id'],
+            'chapter_number' => [
+                'sometimes',
+                'integer',
+                'min:1',
+                Rule::unique(Chapter::TABLE_NAME)
+                    ->where('book_id', $this->scalarInput('book_id'))
+                    ->ignore($this->route('chapter_id'), 'chapter_id'),
+            ],
             'title' => ['string', 'max:255'],
             'summary' => ['nullable', 'string'],
             'chapter_image_url' => ['nullable', 'url'],

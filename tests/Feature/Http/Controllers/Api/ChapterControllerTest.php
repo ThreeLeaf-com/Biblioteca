@@ -119,4 +119,101 @@ class ChapterControllerTest extends TestCase
             'chapter_id' => $chapter->chapter_id,
         ]);
     }
+
+    /**
+     * {@link ChapterController::store()} rejects a chapter number that the book already uses.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function storeDuplicateChapterNumberIsRejected(): void
+    {
+        $existing = Chapter::factory()->create();
+
+        $response = $this->postJson(route('chapters.store'), [
+            'book_id' => $existing->book_id,
+            'chapter_number' => $existing->chapter_number,
+            'title' => 'Another Chapter',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['chapter_number']);
+        $this->assertSame(1, Chapter::where('book_id', $existing->book_id)->count());
+    }
+
+    /**
+     * {@link ChapterController::store()} accepts a chapter number that only another book uses.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function storeChapterNumberUsedByOtherBook(): void
+    {
+        $existing = Chapter::factory()->create();
+        $book = Book::factory()->create();
+
+        $response = $this->postJson(route('chapters.store'), [
+            'book_id' => $book->book_id,
+            'chapter_number' => $existing->chapter_number,
+            'title' => 'Same Number, Other Book',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+    }
+
+    /**
+     * {@link ChapterController::update()} rejects a chapter number that another chapter of the book uses.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterToDuplicateNumberIsRejected(): void
+    {
+        $book = Book::factory()->create();
+        $first = Chapter::factory()->create(['book_id' => $book->book_id, 'chapter_number' => 1]);
+        $second = Chapter::factory()->create(['book_id' => $book->book_id, 'chapter_number' => 2]);
+
+        $response = $this->putJson(route('chapters.update', $second->chapter_id), [
+            'book_id' => $book->book_id,
+            'chapter_number' => $first->chapter_number,
+            'title' => 'Renumbered',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['chapter_number']);
+    }
+
+    /**
+     * {@link ChapterController::update()} accepts a chapter that keeps its own number.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterKeepingItsOwnNumber(): void
+    {
+        $chapter = Chapter::factory()->create();
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $chapter->book_id,
+            'chapter_number' => $chapter->chapter_number,
+            'title' => 'Retitled',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.title', 'Retitled');
+    }
+
+    /**
+     * {@link ChapterController::store()} answers 422, not 500, when a key input is an array.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function storeChapterWithArrayBookIdIsRejected(): void
+    {
+        $existing = Chapter::factory()->create();
+
+        $response = $this->postJson(route('chapters.store'), [
+            'book_id' => [$existing->book_id, [$existing->book_id]],
+            'chapter_number' => $existing->chapter_number,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['book_id']);
+    }
 }

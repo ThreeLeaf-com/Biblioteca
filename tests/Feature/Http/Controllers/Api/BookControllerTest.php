@@ -375,4 +375,106 @@ class BookControllerTest extends TestCase
                 ->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
+
+    /**
+     * {@link BookController::store()} rejects a book whose title, author and publisher match an existing book.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function storeDuplicateBookIsRejected(): void
+    {
+        $existing = Book::factory()->create();
+        $data = [
+            'title' => $existing->title,
+            'author_id' => $existing->author_id,
+            'publisher_id' => $existing->publisher_id,
+        ];
+
+        $response = $this->postJson(route('books.store'), $data);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['title']);
+        $this->assertSame(1, Book::where($data)->count());
+    }
+
+    /**
+     * {@link BookController::store()} accepts a book title that is already used with another publisher.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function storeBookWithSameTitleAndAuthorButOtherPublisher(): void
+    {
+        $existing = Book::factory()->create();
+        $publisher = Publisher::factory()->create();
+
+        $response = $this->postJson(route('books.store'), [
+            'title' => $existing->title,
+            'author_id' => $existing->author_id,
+            'publisher_id' => $publisher->publisher_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+    }
+
+    /**
+     * {@link BookController::update()} rejects a change that makes a book duplicate another book.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function updateBookToDuplicateIsRejected(): void
+    {
+        $existing = Book::factory()->create();
+        $book = Book::factory()->create([
+            'author_id' => $existing->author_id,
+            'publisher_id' => $existing->publisher_id,
+        ]);
+
+        $response = $this->putJson(route('books.update', $book), [
+            'title' => $existing->title,
+            'author_id' => $existing->author_id,
+            'publisher_id' => $existing->publisher_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['title']);
+    }
+
+    /**
+     * {@link BookController::update()} accepts a book that keeps its own title, author and publisher.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function updateBookKeepingItsOwnKey(): void
+    {
+        $book = Book::factory()->create();
+
+        $response = $this->putJson(route('books.update', $book), [
+            'title' => $book->title,
+            'author_id' => $book->author_id,
+            'publisher_id' => $book->publisher_id,
+            'edition' => 'Second',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.edition', 'Second');
+    }
+
+    /**
+     * {@link BookController::store()} answers 422, not 500, when a key input is an array.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function storeBookWithArrayAuthorIdIsRejected(): void
+    {
+        $existing = Book::factory()->create();
+
+        $response = $this->postJson(route('books.store'), [
+            'title' => $existing->title,
+            'author_id' => [$existing->author_id, [$existing->author_id]],
+            'publisher_id' => $existing->publisher_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['author_id']);
+    }
 }

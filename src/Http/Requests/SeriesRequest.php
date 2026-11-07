@@ -3,7 +3,9 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
+use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsScalarInput;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
@@ -53,6 +55,8 @@ use ThreeLeaf\Biblioteca\Models\Series;
 )]
 class SeriesRequest extends FormRequest
 {
+    use ReadsScalarInput;
+
     /** The largest number of books one request may link to a series. */
     public const MAX_BOOK_IDS = 1000;
 
@@ -74,10 +78,17 @@ class SeriesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(Series::TABLE_NAME)
+                    ->where('author_id', $this->scalarInput('author_id'))
+                    ->ignore($this->route('series_id'), 'series_id'),
+            ],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
+            'author_id' => ['bail', 'required', 'uuid', 'exists:' . Author::TABLE_NAME . ',author_id'],
             'book_ids' => ['nullable', 'array', 'max:' . self::MAX_BOOK_IDS],
             'book_ids.*' => ['bail', 'uuid', 'distinct:ignore_case', 'exists:' . Book::TABLE_NAME . ',book_id'],
         ];

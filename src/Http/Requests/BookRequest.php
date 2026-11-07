@@ -3,9 +3,12 @@
 namespace ThreeLeaf\Biblioteca\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
+use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsScalarInput;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
+use ThreeLeaf\Biblioteca\Models\Publisher;
 
 /**
  * The {@link Book} {@link FormRequest} class used to validate incoming requests.
@@ -24,14 +27,16 @@ use ThreeLeaf\Biblioteca\Models\Book;
         ),
         new OA\Property(
             property: 'author_id',
-            type: 'integer',
-            example: 1,
+            type: 'string',
+            format: 'uuid',
+            example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
             description: 'ID of the author of the book',
         ),
         new OA\Property(
             property: 'publisher_id',
-            type: 'integer',
-            example: 2,
+            type: 'string',
+            format: 'uuid',
+            example: 'a1b2c3d4-434b-11ed-b878-0242ac120002',
             description: 'ID of the publisher of the book',
         ),
         new OA\Property(
@@ -76,6 +81,8 @@ use ThreeLeaf\Biblioteca\Models\Book;
 )]
 class BookRequest extends FormRequest
 {
+    use ReadsScalarInput;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -94,9 +101,17 @@ class BookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id'],
-            'publisher_id' => ['required', 'exists:b_publishers,publisher_id'],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(Book::TABLE_NAME)
+                    ->where('author_id', $this->scalarInput('author_id'))
+                    ->where('publisher_id', $this->scalarInput('publisher_id'))
+                    ->ignore($this->route('book_id'), 'book_id'),
+            ],
+            'author_id' => ['bail', 'required', 'uuid', 'exists:' . Author::TABLE_NAME . ',author_id'],
+            'publisher_id' => ['bail', 'required', 'uuid', 'exists:' . Publisher::TABLE_NAME . ',publisher_id'],
             'published_date' => ['nullable', 'date'],
             'edition' => ['nullable', 'string', 'max:100'],
             'locale' => ['nullable', 'string', 'max:10'],

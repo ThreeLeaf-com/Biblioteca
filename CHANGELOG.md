@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2026-11-07
+
+### Fixed
+
+- **A duplicate book, series or chapter is now a 422, not a 500.**
+  `BookRequest`, `SeriesRequest` and `ChapterRequest` now validate the
+  composite unique keys of their tables: book `title` + `author_id` +
+  `publisher_id`, series `title` + `author_id`, and chapter `book_id` +
+  `chapter_number`. The error is on `title` (books, series) or
+  `chapter_number` (chapters). An update that keeps the record's own key is
+  accepted; the rule ignores the record named by the `book_id`, `series_id`
+  or `chapter_id` route parameter. Before, the duplicate reached the database
+  and the `QueryException` answered 500.
+  ([#47](https://github.com/ThreeLeaf-com/Biblioteca/issues/47))
+- **A non-UUID `author_id`, `publisher_id` or `book_id` is a 422, not a 500.**
+  These inputs are now checked as UUIDs before the `exists` query, so an array
+  value no longer fails with "Array to string conversion". The OpenAPI
+  `BookRequest` schema now types `author_id` and `publisher_id` as UUID
+  strings, and the chapter store and update operations list 422.
+
 ## [3.0.3] - 2026-11-07
 
 ### Fixed
