@@ -59,14 +59,39 @@ constraint appear:
   | `SeriesRequest`  | `title` + `author_id`                  | `title`          | `series_id`             |
   | `ChapterRequest` | `book_id` + `chapter_number`           | `chapter_number` | `chapter_id`            |
 
-  The scope values come from other inputs. The
-  [`ReadsScalarInput`](../../../src/Http/Requests/Concerns/ReadsScalarInput.php)
-  trait reads them as null when they are not scalars, so an array cannot turn the
-  `where` into a `whereIn`. The controllers take the key as a plain string route
+  Each request also sets a custom `.unique` message that names the whole key,
+  for example "A book with this title, author and publisher already exists."
+
+  The scope values come from other inputs, and the unique rule is built before
+  those inputs are validated. Laravel writes each scope value into a rule string
+  and parses it back, so a value with quotes and backslashes can add a `where`
+  on a column of the client's choosing, and the query then fails with a 500.
+  The
+  [`ReadsUuidInput`](../../../src/Http/Requests/Concerns/ReadsUuidInput.php)
+  trait passes a scope value only when it is a well-formed UUID string; anything
+  else becomes null, and the request fails on that input's own `uuid` rule. The
+  same trait reads the id to ignore from the route parameter, and passes it only
+  when it is a UUID. The controllers take the key as a plain string route
   parameter and call `findOrFail()` themselves, so `ignore()` must read
-  `$this->route('<entity>_id')`, not a model binding. A chapter request without
-  `chapter_number` skips the rule; `ChapterService` then assigns the next free
-  number.
+  `$this->route('<entity>_id')`, not a model binding. The route parameter names
+  in `routes/api.php` are therefore part of the contract: a host application
+  that registers `{book}` instead of `{book_id}` loses the ignore, and an update
+  that keeps its own key fails as a duplicate of itself.
+
+  On `chapters.store`, a request without `chapter_number` skips the rule, and
+  `ChapterService` assigns the next free number. On `chapters.update`, a request
+  without `chapter_number` keeps the stored number. When it also moves the
+  chapter to another `book_id`, the rule runs on `book_id` with the stored
+  number, so a clash in the target book is a 422 on `book_id`.
+
+  **Limits.** The rule and the index give the same answer because the rule is
+  a plain `=` query: on MariaDB both follow the column collation (by default
+  case- and accent-insensitive), and the SQLite test database compares bytes.
+  Validation and the write are separate steps, so two concurrent requests with
+  the same key can both pass validation, and the second write still fails at
+  the index. The same race applies to `ChapterService` auto-numbering. A host
+  application that needs a clean response in that window can render
+  `Illuminate\Database\UniqueConstraintViolationException` as a 409.
 
 > **The update-safe half of the `AuthorRequest` unique rule does not work.** `AuthorRequest`
 > writes `->ignore($this->route('author')?->author_id, 'author_id')`, but the
@@ -256,7 +281,9 @@ Nor does validation cover:
 - Verified 2026-11-07 by execution — duplicate store and update requests for
   books, series and chapters answer 422 with the error on the key field; an
   update that keeps its own key answers 200; an array `author_id` or `book_id`
-  answers 422 (feature tests in `tests/Feature/Http/Controllers/Api/`).
+  answers 422; a scope value with quotes and backslashes answers 422; moving a
+  chapter to a book that already uses its number answers 422 on `book_id`
+  (feature tests in `tests/Feature/Http/Controllers/Api/`).
 - Verified 2026-09-04 against git HEAD — `AuthorRequest::rules()` uses
   `Rule::unique(Author::TABLE_NAME)->where('first_name', ...)->ignore(...)`.
 - Verified 2026-09-04 against git HEAD — `Book` declares `protected $fillable`;

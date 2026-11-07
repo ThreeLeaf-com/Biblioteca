@@ -5,15 +5,13 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
-use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsScalarInput;
+use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsUuidInput;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Publisher;
 
 /**
  * The {@link Book} {@link FormRequest} class used to validate incoming requests.
- *
- * @mixin Book
  */
 #[OA\Schema(
     schema: 'BookRequest',
@@ -81,7 +79,7 @@ use ThreeLeaf\Biblioteca\Models\Publisher;
 )]
 class BookRequest extends FormRequest
 {
-    use ReadsScalarInput;
+    use ReadsUuidInput;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -106,9 +104,9 @@ class BookRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique(Book::TABLE_NAME)
-                    ->where('author_id', $this->scalarInput('author_id'))
-                    ->where('publisher_id', $this->scalarInput('publisher_id'))
-                    ->ignore($this->route('book_id'), 'book_id'),
+                    ->where('author_id', $this->uuidInput('author_id'))
+                    ->where('publisher_id', $this->uuidInput('publisher_id'))
+                    ->ignore($this->uuidRouteParameter('book_id'), 'book_id'),
             ],
             'author_id' => ['bail', 'required', 'uuid', 'exists:' . Author::TABLE_NAME . ',author_id'],
             'publisher_id' => ['bail', 'required', 'uuid', 'exists:' . Publisher::TABLE_NAME . ',publisher_id'],
@@ -119,6 +117,19 @@ class BookRequest extends FormRequest
             'cover_image_url' => ['nullable', 'url'],
             'summary' => ['nullable', 'string'],
             'number_in_series' => ['nullable', 'integer'],
+        ];
+    }
+
+    /**
+     * Get the custom validation messages for the composite unique key.
+     *
+     * @return array<string, string> The messages, keyed by attribute and rule.
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public function messages(): array
+    {
+        return [
+            'title.unique' => 'A book with this title, author and publisher already exists.',
         ];
     }
 }

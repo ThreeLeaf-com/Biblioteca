@@ -51,7 +51,9 @@ A `store` or `update` that would duplicate a composite unique key is a 422, not
 a database error: a book with the same `title`, `author_id` and `publisher_id`,
 a series with the same `title` and `author_id` (error on `title`), or a chapter
 with the same `book_id` and `chapter_number` (error on `chapter_number`). An
-`update` that keeps the record's own key is accepted. See
+`update` that keeps the record's own key is accepted. A `chapters.update` that
+moves a chapter to another book without `chapter_number` keeps the stored
+number, and a clash in the target book is a 422 on `book_id`. See
 [Input Validation](/security/input-validation.md).
 
 ## Non-resource routes

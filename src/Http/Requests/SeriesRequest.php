@@ -5,15 +5,13 @@ namespace ThreeLeaf\Biblioteca\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
-use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsScalarInput;
+use ThreeLeaf\Biblioteca\Http\Requests\Concerns\ReadsUuidInput;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
 use ThreeLeaf\Biblioteca\Models\Series;
 
 /**
  * The {@link Series} {@link FormRequest} class used to validate incoming requests.
- *
- * @mixin Series
  */
 #[OA\Schema(
     schema: 'SeriesRequest',
@@ -40,6 +38,7 @@ use ThreeLeaf\Biblioteca\Models\Series;
         new OA\Property(
             property: 'author_id',
             type: 'string',
+            format: 'uuid',
             example: 'f7f9d3e0-434b-11ed-b878-0242ac120002',
             description: 'The unique ID of the associated author or editor',
         ),
@@ -55,7 +54,7 @@ use ThreeLeaf\Biblioteca\Models\Series;
 )]
 class SeriesRequest extends FormRequest
 {
-    use ReadsScalarInput;
+    use ReadsUuidInput;
 
     /** The largest number of books one request may link to a series. */
     public const MAX_BOOK_IDS = 1000;
@@ -83,14 +82,27 @@ class SeriesRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique(Series::TABLE_NAME)
-                    ->where('author_id', $this->scalarInput('author_id'))
-                    ->ignore($this->route('series_id'), 'series_id'),
+                    ->where('author_id', $this->uuidInput('author_id'))
+                    ->ignore($this->uuidRouteParameter('series_id'), 'series_id'),
             ],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'author_id' => ['bail', 'required', 'uuid', 'exists:' . Author::TABLE_NAME . ',author_id'],
             'book_ids' => ['nullable', 'array', 'max:' . self::MAX_BOOK_IDS],
             'book_ids.*' => ['bail', 'uuid', 'distinct:ignore_case', 'exists:' . Book::TABLE_NAME . ',book_id'],
+        ];
+    }
+
+    /**
+     * Get the custom validation messages for the composite unique key.
+     *
+     * @return array<string, string> The messages, keyed by attribute and rule.
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public function messages(): array
+    {
+        return [
+            'title.unique' => 'This author already has a series with this title.',
         ];
     }
 }

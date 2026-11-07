@@ -260,7 +260,7 @@ class SeriesControllerTest extends TestCase
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
-            ->assertJsonValidationErrors(['title']);
+            ->assertJsonValidationErrors(['title' => 'This author already has a series with this title.']);
         $this->assertSame(1, Series::where('title', $existing->title)->count());
     }
 
@@ -299,6 +299,7 @@ class SeriesControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['title']);
+        $this->assertDatabaseHas(Series::TABLE_NAME, ['series_id' => $series->series_id, 'title' => $series->title]);
     }
 
     /**
@@ -331,7 +332,28 @@ class SeriesControllerTest extends TestCase
 
         $response = $this->postJson(route('series.store'), [
             'title' => $existing->title,
-            'author_id' => [$existing->author_id, [$existing->author_id]],
+            'author_id' => [[$existing->author_id, $existing->series_id]],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['author_id'])
+            ->assertJsonMissingValidationErrors(['title']);
+    }
+
+    /**
+     * {@link SeriesController::store()} answers 422, not 500, when a key input carries quotes and
+     * backslashes that would otherwise add a column to the unique rule's scope.
+     * The added column is qualified, because SQLite reads an unknown quoted column name as a string.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithCraftedAuthorIdIsRejected(): void
+    {
+        $existing = Series::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $existing->title,
+            'author_id' => '\\",nope.zzz,"1',
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)

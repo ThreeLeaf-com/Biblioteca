@@ -393,7 +393,7 @@ class BookControllerTest extends TestCase
         $response = $this->postJson(route('books.store'), $data);
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
-            ->assertJsonValidationErrors(['title']);
+            ->assertJsonValidationErrors(['title' => 'A book with this title, author and publisher already exists.']);
         $this->assertSame(1, Book::where($data)->count());
     }
 
@@ -411,6 +411,25 @@ class BookControllerTest extends TestCase
             'title' => $existing->title,
             'author_id' => $existing->author_id,
             'publisher_id' => $publisher->publisher_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+    }
+
+    /**
+     * {@link BookController::store()} accepts a book title that another author already uses with the same publisher.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function storeBookWithSameTitleAndPublisherButOtherAuthor(): void
+    {
+        $existing = Book::factory()->create();
+        $author = Author::factory()->create();
+
+        $response = $this->postJson(route('books.store'), [
+            'title' => $existing->title,
+            'author_id' => $author->author_id,
+            'publisher_id' => $existing->publisher_id,
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_CREATED);
@@ -437,6 +456,7 @@ class BookControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['title']);
+        $this->assertDatabaseHas(Book::TABLE_NAME, ['book_id' => $book->book_id, 'title' => $book->title]);
     }
 
     /**
@@ -470,7 +490,29 @@ class BookControllerTest extends TestCase
 
         $response = $this->postJson(route('books.store'), [
             'title' => $existing->title,
-            'author_id' => [$existing->author_id, [$existing->author_id]],
+            'author_id' => [[$existing->author_id, $existing->publisher_id]],
+            'publisher_id' => $existing->publisher_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['author_id'])
+            ->assertJsonMissingValidationErrors(['title']);
+    }
+
+    /**
+     * {@link BookController::store()} answers 422, not 500, when a key input carries quotes and
+     * backslashes that would otherwise add a column to the unique rule's scope.
+     * The added column is qualified, because SQLite reads an unknown quoted column name as a string.
+     * @see {@link BookRequest::rules()}
+     */
+    #[Test]
+    public function storeBookWithCraftedAuthorIdIsRejected(): void
+    {
+        $existing = Book::factory()->create();
+
+        $response = $this->postJson(route('books.store'), [
+            'title' => $existing->title,
+            'author_id' => '\\",nope.zzz,"1',
             'publisher_id' => $existing->publisher_id,
         ]);
 

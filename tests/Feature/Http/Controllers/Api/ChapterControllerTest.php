@@ -136,7 +136,7 @@ class ChapterControllerTest extends TestCase
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
-            ->assertJsonValidationErrors(['chapter_number']);
+            ->assertJsonValidationErrors(['chapter_number' => 'This book already has a chapter with this number.']);
         $this->assertSame(1, Chapter::where('book_id', $existing->book_id)->count());
     }
 
@@ -178,6 +178,7 @@ class ChapterControllerTest extends TestCase
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['chapter_number']);
+        $this->assertDatabaseHas(Chapter::TABLE_NAME, ['chapter_id' => $second->chapter_id, 'chapter_number' => 2]);
     }
 
     /**
@@ -209,8 +210,72 @@ class ChapterControllerTest extends TestCase
         $existing = Chapter::factory()->create();
 
         $response = $this->postJson(route('chapters.store'), [
-            'book_id' => [$existing->book_id, [$existing->book_id]],
+            'book_id' => [[$existing->book_id, $existing->chapter_id]],
             'chapter_number' => $existing->chapter_number,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['book_id'])
+            ->assertJsonMissingValidationErrors(['chapter_number']);
+    }
+
+    /**
+     * {@link ChapterController::update()} rejects a move to another book that already uses the chapter's
+     * stored number, when the request omits chapter_number.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterMovedToBookWithSameNumberIsRejected(): void
+    {
+        $target = Chapter::factory()->create(['chapter_number' => 3]);
+        $chapter = Chapter::factory()->create(['chapter_number' => 3]);
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $target->book_id,
+            'title' => 'Moved',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors([
+                'book_id' => 'The target book already has a chapter with this chapter\'s number.',
+            ]);
+    }
+
+    /**
+     * {@link ChapterController::update()} accepts a move to another book where the chapter's stored
+     * number is free, when the request omits chapter_number.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterMovedToBookWithFreeNumber(): void
+    {
+        $target = Chapter::factory()->create(['chapter_number' => 1]);
+        $chapter = Chapter::factory()->create(['chapter_number' => 2]);
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $target->book_id,
+            'title' => 'Moved',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.book_id', $target->book_id)
+            ->assertJsonPath('data.chapter_number', 2);
+    }
+
+    /**
+     * {@link ChapterController::store()} answers 422, not 500, when a key input carries quotes and
+     * backslashes that would otherwise add a column to the unique rule's scope.
+     * The added column is qualified, because SQLite reads an unknown quoted column name as a string.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function storeChapterWithCraftedBookIdIsRejected(): void
+    {
+        $existing = Chapter::factory()->create();
+
+        $response = $this->postJson(route('chapters.store'), [
+            'book_id' => '\\",nope.zzz,"1',
+            'chapter_number' => 1,
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
