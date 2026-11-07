@@ -244,4 +244,119 @@ class SeriesControllerTest extends TestCase
             'series_id' => $series->series_id,
         ]);
     }
+
+    /**
+     * {@link SeriesController::store()} rejects a series whose title and author match an existing series.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeDuplicateSeriesIsRejected(): void
+    {
+        $existing = Series::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $existing->title,
+            'author_id' => $existing->author_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['title' => 'This author already has a series with this title.']);
+        $this->assertSame(1, Series::where('title', $existing->title)->count());
+    }
+
+    /**
+     * {@link SeriesController::store()} accepts a series title that another author already uses.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithSameTitleForOtherAuthor(): void
+    {
+        $existing = Series::factory()->create();
+        $author = Author::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $existing->title,
+            'author_id' => $author->author_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_CREATED);
+    }
+
+    /**
+     * {@link SeriesController::update()} rejects a change that makes a series duplicate another series.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function updateSeriesToDuplicateIsRejected(): void
+    {
+        $existing = Series::factory()->create();
+        $series = Series::factory()->create(['author_id' => $existing->author_id]);
+
+        $response = $this->putJson(route('series.update', $series->series_id), [
+            'title' => $existing->title,
+            'author_id' => $existing->author_id,
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['title']);
+        $this->assertDatabaseHas(Series::TABLE_NAME, ['series_id' => $series->series_id, 'title' => $series->title]);
+    }
+
+    /**
+     * {@link SeriesController::update()} accepts a series that keeps its own title and author.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function updateSeriesKeepingItsOwnKey(): void
+    {
+        $series = Series::factory()->create();
+
+        $response = $this->putJson(route('series.update', $series->series_id), [
+            'title' => $series->title,
+            'author_id' => $series->author_id,
+            'subtitle' => 'New Subtitle',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.subtitle', 'New Subtitle');
+    }
+
+    /**
+     * {@link SeriesController::store()} answers 422, not 500, when a key input is an array.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithArrayAuthorIdIsRejected(): void
+    {
+        $existing = Series::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $existing->title,
+            'author_id' => [[$existing->author_id, $existing->series_id]],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['author_id'])
+            ->assertJsonMissingValidationErrors(['title']);
+    }
+
+    /**
+     * {@link SeriesController::store()} answers 422, not 500, when a key input carries quotes and
+     * backslashes that would otherwise add a column to the unique rule's scope.
+     * The added column is qualified, because SQLite reads an unknown quoted column name as a string.
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithCraftedAuthorIdIsRejected(): void
+    {
+        $existing = Series::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $existing->title,
+            'author_id' => '\\",nope.zzz,"1',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['author_id']);
+    }
 }
