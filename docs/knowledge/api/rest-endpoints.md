@@ -39,7 +39,8 @@ segment: `GET series` and `GET series/{series_id}`.
 
 `series.store` and `series.update` accept an optional `book_ids` array of at
 most 1,000 distinct book IDs (`SeriesRequest::MAX_BOOK_IDS`). A repeated ID
-(compared without regard to case), an unknown ID, or a longer array is a 422. Both routes pass the validated data to
+(compared without regard to case), an unknown ID, or a longer array is a 422.
+Both routes pass the validated data to
 [`SeriesService`](../../../src/Services/SeriesService.php), which writes the
 series and links the books in one transaction. The books get the numbers 1, 2,
 3 … in the order of the array. The response includes the `author` and `books`
