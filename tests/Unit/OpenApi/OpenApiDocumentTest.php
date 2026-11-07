@@ -4,7 +4,7 @@ namespace Tests\Unit\OpenApi;
 
 use OpenApi\Annotations\OpenApi;
 use OpenApi\Generator;
-use OpenApi\SourceFinder;
+use OpenApi\Utils\SourceFinder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
