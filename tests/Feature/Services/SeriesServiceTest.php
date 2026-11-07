@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\Feature\TestCase;
 use ThreeLeaf\Biblioteca\Models\Author;
 use ThreeLeaf\Biblioteca\Models\Book;
+use ThreeLeaf\Biblioteca\Models\Publisher;
 use ThreeLeaf\Biblioteca\Models\Series;
 use ThreeLeaf\Biblioteca\Models\SeriesBook;
 use ThreeLeaf\Biblioteca\Services\SeriesService;
@@ -50,6 +51,54 @@ class SeriesServiceTest extends TestCase
         $series = $seriesService->create($seriesData);
 
         $this->assertEquals($books->count(), $series->books->count());
+    }
+
+    /**
+     * {@link SeriesService::create()} links a repeated book ID once, at its first position,
+     * also when the copies differ only in letter case.
+     */
+    #[Test]
+    public function createLinksARepeatedBookIdOnce()
+    {
+        $author = Author::factory()->create();
+        $books = Book::factory()->count(2)->create();
+        $first = $books[0]->book_id;
+        $second = $books[1]->book_id;
+
+        $series = (new SeriesService())->create([
+            'title' => fake()->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => [$first, $second, $first, strtoupper($first)],
+        ]);
+
+        $this->assertSame([$first, $second], $series->books->pluck('book_id')->all());
+        $this->assertSame([1, 2], $series->books->pluck('pivot.number')->map(fn($number) => (int)$number)->all());
+    }
+
+    /** {@link SeriesService::create()} links more books than fit in one batched insert, in order. */
+    #[Test]
+    public function createLinksBooksAcrossSeveralInserts()
+    {
+        $author = Author::factory()->create();
+        $publisher = Publisher::factory()->create();
+        /* Created directly: BookFactory makes a publisher per book, and 160 faker company names collide. */
+        $bookIds = collect(range(1, 160))
+            ->map(fn($index) => Book::create([
+                'title' => "Book $index",
+                'author_id' => $author->author_id,
+                'publisher_id' => $publisher->publisher_id,
+            ])->book_id)
+            ->shuffle()
+            ->all();
+
+        $series = (new SeriesService())->create([
+            'title' => fake()->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => $bookIds,
+        ]);
+
+        $this->assertSame($bookIds, $series->books->pluck('book_id')->all());
+        $this->assertSame(range(1, 160), $series->books->pluck('pivot.number')->map(fn($number) => (int)$number)->all());
     }
 
     /** {@link SeriesService::create()} without book IDs. */
@@ -102,8 +151,8 @@ class SeriesServiceTest extends TestCase
     /**
      * {@link SeriesService::create()} discards the whole series when attaching a book fails.
      *
-     * The series row and both pivot rows are written before the injected failure fires, so
-     * without the surrounding transaction a half-built series survives.
+     * The series row and the pivot rows (one multi-row insert) are written before the injected
+     * failure fires, so without the surrounding transaction a half-built series survives.
      */
     #[Test]
     public function createRollsBackWhenAttachingABookFails()
@@ -117,7 +166,7 @@ class SeriesServiceTest extends TestCase
             'book_ids' => $books->pluck('book_id')->toArray(),
         ];
 
-        $this->failOnInsertInto(SeriesBook::TABLE_NAME, 2);
+        $this->failOnInsertInto(SeriesBook::TABLE_NAME, 1);
         $injectedFailure = null;
 
         try {

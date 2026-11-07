@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2026-11-07
+
+### Fixed
+
+- **`POST /api/series` now links the books named in `book_ids`.**
+  `SeriesController::store()` called `Series::create()` directly instead of
+  `SeriesService::create()`, so `SeriesRequest` validated `book_ids` and the
+  controller then dropped them. A series created through the API had no books.
+  `store()` now uses the service, as `update()` already did. The books are
+  linked in the order given, and the `201` response includes the `author` and
+  `books` relations. A consumer that overrode `store()` to work around the
+  defect can remove the override.
+  ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
+
+### Changed
+
+- **Behaviour change: `book_ids` on `POST /api/series` and
+  `PUT /api/series/{series_id}` is stricter.** A repeated ID (compared without
+  regard to case) and an array longer than 1,000 entries
+  (`SeriesRequest::MAX_BOOK_IDS`) are now a 422. Before, a repeated ID was
+  silently linked once, and there was no size limit. The books are linked with
+  batched inserts instead of three queries per book. The OpenAPI document lists
+  422, not 400, for validation errors on these two routes.
+  ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
+- **Development:** `zircote/swagger-php` is now a direct development
+  requirement (`^6.18 || ^7.0`). `util/generate-open-api.php` and
+  `OpenApiDocumentTest` import `OpenApi\Utils\SourceFinder`. swagger-php 7
+  removed `OpenApi\SourceFinder`; the `Utils` class exists in 6.18 and in 7.
+  ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
+
 ## [3.0.2] - 2026-10-24
 
 ### Fixed

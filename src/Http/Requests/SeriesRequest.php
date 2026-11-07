@@ -44,6 +44,8 @@ use ThreeLeaf\Biblioteca\Models\Series;
         new OA\Property(
             property: 'book_ids',
             type: 'array',
+            maxItems: SeriesRequest::MAX_BOOK_IDS,
+            uniqueItems: true,
             items: new OA\Items(type: 'string', format: 'uuid'),
             description: 'The ordered array of book unique IDs to include in the series',
         ),
@@ -51,6 +53,9 @@ use ThreeLeaf\Biblioteca\Models\Series;
 )]
 class SeriesRequest extends FormRequest
 {
+    /** The largest number of books one request may link to a series. */
+    public const MAX_BOOK_IDS = 1000;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -73,8 +78,8 @@ class SeriesRequest extends FormRequest
             'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
-            'book_ids' => ['nullable', 'array'],
-            'book_ids.*' => ['uuid', 'exists:' . Book::TABLE_NAME . ',book_id'],
+            'book_ids' => ['nullable', 'array', 'max:' . self::MAX_BOOK_IDS],
+            'book_ids.*' => ['bail', 'uuid', 'distinct:ignore_case', 'exists:' . Book::TABLE_NAME . ',book_id'],
         ];
     }
 }
