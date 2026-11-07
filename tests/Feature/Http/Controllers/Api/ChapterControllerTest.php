@@ -317,12 +317,13 @@ class ChapterControllerTest extends TestCase
         ]);
 
         $response->assertStatus(HttpCodes::HTTP_OK)
-            ->assertJsonPath('data.chapter_number', 5);
+            ->assertJsonPath('data.chapter_number', 5)
+            ->assertJsonPath('data.title', 'Retitled');
     }
 
     /**
-     * {@link ChapterController::update()} accepts a move to another book that uses the chapter's stored
-     * number, when the request sends a new chapter_number that is free.
+     * {@link ChapterController::update()} accepts a move to another book that already uses the chapter's
+     * current number, when the request sends a new chapter_number that is free in that book.
      * @see {@link ChapterRequest::rules()}
      */
     #[Test]
@@ -340,5 +341,23 @@ class ChapterControllerTest extends TestCase
         $response->assertStatus(HttpCodes::HTTP_OK)
             ->assertJsonPath('data.book_id', $target->book_id)
             ->assertJsonPath('data.chapter_number', 4);
+    }
+
+    /**
+     * {@link ChapterController::store()} assigns the next free number when chapter_number is omitted.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function storeChapterWithoutNumberIsAutoNumbered(): void
+    {
+        $existing = Chapter::factory()->create(['chapter_number' => 3]);
+        $emptyBook = Book::factory()->create();
+
+        $this->postJson(route('chapters.store'), ['book_id' => $existing->book_id, 'title' => 'Next'])
+            ->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.chapter_number', 4);
+        $this->postJson(route('chapters.store'), ['book_id' => $emptyBook->book_id, 'title' => 'First'])
+            ->assertStatus(HttpCodes::HTTP_CREATED)
+            ->assertJsonPath('data.chapter_number', 1);
     }
 }
