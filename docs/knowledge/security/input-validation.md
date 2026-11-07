@@ -4,7 +4,7 @@ title: Input Validation
 description: How Laravel form requests constrain incoming data, and the limits of that protection.
 resource: src/Http/Requests
 tags: [security, validation, laravel]
-timestamp: 2026-11-07T00:00:00Z
+timestamp: 2026-11-07T19:30:00Z
 ---
 
 # Input Validation
@@ -43,13 +43,58 @@ constraint appear:
 - **Format** — `url` for image and cover URLs, `date` for publication dates,
   `integer` for ordering columns.
 - **Referential existence** — foreign keys are checked with `exists:`, for
-  example `['required', 'exists:' . Author::TABLE_NAME . ',author_id']` in
-  [`BookRequest`](../../../src/Http/Requests/BookRequest.php). This stops a
-  write that would otherwise fail at the database constraint.
-- **Uniqueness** — [`AuthorRequest`](../../../src/Http/Requests/AuthorRequest.php)
-  uses `Rule::unique()` scoped to `first_name`.
+  example `['bail', 'required', 'uuid', 'exists:' . Author::TABLE_NAME . ',author_id']`
+  in [`BookRequest`](../../../src/Http/Requests/BookRequest.php). This stops a
+  write that would otherwise fail at the database constraint. The `uuid` rule
+  runs first, with `bail`, so a non-string value (an array, for example) is a
+  422 and never reaches the `exists` query, which would fail with a 500.
+- **Uniqueness** — each composite unique key in the migration has a matching
+  `Rule::unique()->where(...)->ignore(...)` rule, so a duplicate is a 422 and
+  not a database error:
 
-> **The update-safe half of that unique rule does not work.** `AuthorRequest`
+  | Request          | Unique key                             | Error on         | Ignores route parameter |
+  | ---------------- | -------------------------------------- | ---------------- | ----------------------- |
+  | `AuthorRequest`  | `first_name` + `last_name`             | `last_name`      | see the warning below   |
+  | `BookRequest`    | `title` + `author_id` + `publisher_id` | `title`          | `book_id`               |
+  | `SeriesRequest`  | `title` + `author_id`                  | `title`          | `series_id`             |
+  | `ChapterRequest` | `book_id` + `chapter_number`           | `chapter_number` | `chapter_id`            |
+
+  Each request also sets a custom `.unique` message that names the whole key,
+  for example "A book with this title, author and publisher already exists."
+
+  The scope values come from other inputs, and the unique rule is built before
+  those inputs are validated. Laravel writes each scope value into a rule string
+  and parses it back, so a value with quotes and backslashes can add a `where`
+  on a column of the client's choosing, and the query then fails with a 500.
+  The
+  [`ReadsUuidInput`](../../../src/Http/Requests/Concerns/ReadsUuidInput.php)
+  trait passes a scope value only when it is a well-formed UUID string; anything
+  else becomes null, and the request fails on that input's own `uuid` rule. The
+  same trait reads the id to ignore from the route parameter, and passes it only
+  when it is a UUID. The controllers take the key as a plain string route
+  parameter and call `findOrFail()` themselves, so `ignore()` must read
+  `$this->route('<entity>_id')`, not a model binding. The route parameter names
+  in `routes/api.php` are therefore part of the contract: a host application
+  that registers `{book}` instead of `{book_id}` loses the ignore, and an update
+  that keeps its own key fails as a duplicate of itself.
+
+  On `chapters.store`, a request without `chapter_number` skips the rule, and
+  `ChapterService` assigns one more than the book's highest number (1 for a
+  book with no chapters). On `chapters.update`, a request
+  without `chapter_number` keeps the stored number. When it also moves the
+  chapter to another `book_id`, the rule runs on `book_id` with the stored
+  number, so a clash in the target book is a 422 on `book_id`.
+
+  **Limits.** The rule and the index give the same answer because the rule is
+  a plain `=` query: on MariaDB both follow the column collation (by default
+  case- and accent-insensitive), and the SQLite test database compares bytes.
+  Validation and the write are separate steps, so two concurrent requests with
+  the same key can both pass validation, and the second write still fails at
+  the index. The same race applies to `ChapterService` auto-numbering. A host
+  application that needs a clean response in that window can render
+  `Illuminate\Database\UniqueConstraintViolationException` as a 409.
+
+> **The update-safe half of the `AuthorRequest` unique rule does not work.** `AuthorRequest`
 > writes `->ignore($this->route('author')?->author_id, 'author_id')`, but the
 > route parameter is `author_id`, not `author`, and `AuthorController::update()`
 > takes a `string $author_id` and calls `findOrFail()` itself — there is no
@@ -232,8 +277,14 @@ Nor does validation cover:
 - Verified 2026-09-05 by execution — against the pre-2.3.0 controller, five
   tests covering malformed, non-UUID, unknown and partially valid identifiers
   all fail; against 2.3.0 they pass.
-- Verified 2026-09-04 against git HEAD — `BookRequest::rules()` uses
-  `'exists:' . Author::TABLE_NAME . ',author_id'`.
+- Verified 2026-11-07 against git HEAD — `BookRequest::rules()` uses
+  `'exists:' . Author::TABLE_NAME . ',author_id'` after `bail` and `uuid`.
+- Verified 2026-11-07 by execution — duplicate store and update requests for
+  books, series and chapters answer 422 with the error on the key field; an
+  update that keeps its own key answers 200; an array `author_id` or `book_id`
+  answers 422; a scope value with quotes and backslashes answers 422; moving a
+  chapter to a book that already uses its number answers 422 on `book_id`
+  (feature tests in `tests/Feature/Http/Controllers/Api/`).
 - Verified 2026-09-04 against git HEAD — `AuthorRequest::rules()` uses
   `Rule::unique(Author::TABLE_NAME)->where('first_name', ...)->ignore(...)`.
 - Verified 2026-09-04 against git HEAD — `Book` declares `protected $fillable`;
