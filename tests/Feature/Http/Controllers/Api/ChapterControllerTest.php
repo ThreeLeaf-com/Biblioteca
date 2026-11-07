@@ -281,4 +281,64 @@ class ChapterControllerTest extends TestCase
         $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['book_id']);
     }
+
+    /**
+     * {@link ChapterController::update()} rejects a chapter_number that is sent empty.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterWithEmptyChapterNumberIsRejected(): void
+    {
+        $chapter = Chapter::factory()->create();
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $chapter->book_id,
+            'chapter_number' => null,
+            'title' => 'Retitled',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['chapter_number']);
+    }
+
+    /**
+     * {@link ChapterController::update()} accepts an update that omits chapter_number and keeps the
+     * chapter in its own book.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterOmittingNumberInSameBook(): void
+    {
+        $chapter = Chapter::factory()->create(['chapter_number' => 5]);
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $chapter->book_id,
+            'title' => 'Retitled',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.chapter_number', 5);
+    }
+
+    /**
+     * {@link ChapterController::update()} accepts a move to another book that uses the chapter's stored
+     * number, when the request sends a new chapter_number that is free.
+     * @see {@link ChapterRequest::rules()}
+     */
+    #[Test]
+    public function updateChapterMovedWithNewNumber(): void
+    {
+        $target = Chapter::factory()->create(['chapter_number' => 3]);
+        $chapter = Chapter::factory()->create(['chapter_number' => 3]);
+
+        $response = $this->putJson(route('chapters.update', $chapter->chapter_id), [
+            'book_id' => $target->book_id,
+            'chapter_number' => 4,
+            'title' => 'Moved',
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_OK)
+            ->assertJsonPath('data.book_id', $target->book_id)
+            ->assertJsonPath('data.chapter_number', 4);
+    }
 }

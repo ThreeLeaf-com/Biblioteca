@@ -88,6 +88,7 @@ class ChapterRequest extends FormRequest
             'chapter_number' => [
                 'bail',
                 'sometimes',
+                'filled',
                 'integer',
                 'min:1',
                 Rule::unique(Chapter::TABLE_NAME)
