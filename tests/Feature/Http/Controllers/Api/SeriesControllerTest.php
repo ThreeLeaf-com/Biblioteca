@@ -141,6 +141,30 @@ class SeriesControllerTest extends TestCase
     }
 
     /**
+     * {@link SeriesController::store()} rejects the same book ID repeated in a different letter case.
+     *
+     * Some databases match UUIDs without regard to case, so both copies would name one book.
+     *
+     * @see {@link SeriesRequest::rules()}
+     */
+    #[Test]
+    public function storeSeriesWithCaseVariantBookIdIsRejected(): void
+    {
+        $author = Author::factory()->create();
+        $book = Book::factory()->create();
+
+        $response = $this->postJson(route('series.store'), [
+            'title' => $this->faker->sentence(),
+            'author_id' => $author->author_id,
+            'book_ids' => [$book->book_id, strtoupper($book->book_id)],
+        ]);
+
+        $response->assertStatus(HttpCodes::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonValidationErrors(['book_ids.0', 'book_ids.1']);
+        $this->assertDatabaseCount(Series::TABLE_NAME, 0);
+    }
+
+    /**
      * {@link SeriesController::store()} rejects more than {@link SeriesRequest::MAX_BOOK_IDS} book IDs.
      *
      * @see {@link SeriesRequest::rules()}

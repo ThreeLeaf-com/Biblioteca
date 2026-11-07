@@ -79,7 +79,7 @@ class SeriesRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'author_id' => ['required', 'exists:' . Author::TABLE_NAME . ',author_id', 'uuid'],
             'book_ids' => ['nullable', 'array', 'max:' . self::MAX_BOOK_IDS],
-            'book_ids.*' => ['bail', 'uuid', 'distinct', 'exists:' . Book::TABLE_NAME . ',book_id'],
+            'book_ids.*' => ['bail', 'uuid', 'distinct:ignore_case', 'exists:' . Book::TABLE_NAME . ',book_id'],
         ];
     }
 }
