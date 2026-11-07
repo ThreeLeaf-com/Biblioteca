@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Test that the package's `#[OA\...]` attributes still produce an OpenAPI document.
  *
- * Issue #20: swagger-php 6.7.1 reads docblock annotations only through
+ * Background: swagger-php 6.7.1 reads docblock annotations only through
  * `doctrine/annotations`, which is not installed, so every `@OA\` docblock in the
  * package was inert and the generated document held nothing but `openapi: 3.0.0`.
  * The generator exited 0 either way, so nothing failed. These tests are the guard:
@@ -102,7 +102,7 @@ class OpenApiDocumentTest extends TestCase
      * `AnnotationController::update()` published `/api/annotations/{id}` while every other
      * annotation operation published `/api/annotations/{annotation_id}` — so the two halves
      * of one resource are documented as unrelated. Nothing caught it for as long as the
-     * document was empty. See issue #20.
+     * document was empty.
      */
     #[Test]
     public function pathParametersAreNamedAfterTheEntityKey()

@@ -17,12 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   linked in the order given, and the `201` response includes the `author` and
   `books` relations. A consumer that overrode `store()` to work around the
   defect can remove the override.
+  ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
 
 ### Changed
 
 - **Development:** `util/generate-open-api.php` and `OpenApiDocumentTest` import
   `OpenApi\Utils\SourceFinder`. `zircote/swagger-php` 7 removed
   `OpenApi\SourceFinder`; the `Utils` class exists in 6.18 and in 7.
+  ([#46](https://github.com/ThreeLeaf-com/Biblioteca/issues/46))
 
 ## [3.0.2] - 2026-10-24
 

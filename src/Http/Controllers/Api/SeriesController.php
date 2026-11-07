@@ -18,6 +18,11 @@ use ThreeLeaf\Biblioteca\Services\SeriesService;
 #[OA\Tag(name: 'Biblioteca/Series', description: 'API Endpoints for managing Series in Biblioteca')]
 class SeriesController extends Controller
 {
+    /**
+     * Create the controller.
+     *
+     * @param SeriesService $seriesService Creates and updates series together with their linked books.
+     */
     public function __construct(
         private readonly SeriesService $seriesService,
     )

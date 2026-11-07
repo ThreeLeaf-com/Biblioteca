@@ -52,8 +52,8 @@ try {
 
     /* An empty document means the attributes were not read at all, and a document with no
      * `Info` block is not a valid specification. Both are build failures, not successes with
-     * nothing to say: see issue #20, where swagger-php silently stopped reading the docblock
-     * annotations and every build kept passing on `{"openapi":"3.0.0"}`.
+     * nothing to say: swagger-php once silently stopped reading the docblock annotations, and
+     * every build kept passing on `{"openapi":"3.0.0"}`.
      *
      * This runs before the document is written and before anything reports success, so a
      * failing run leaves no artifact at all rather than a plausible-looking one behind a

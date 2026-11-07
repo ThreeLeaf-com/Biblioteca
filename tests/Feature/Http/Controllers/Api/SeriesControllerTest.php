@@ -64,8 +64,8 @@ class SeriesControllerTest extends TestCase
     /**
      * {@link SeriesController::store()} links the books named in `book_ids`, in order.
      *
-     * Issue #46: `store()` called `Series::create()` directly, so the validated
-     * `book_ids` were dropped and the new series had no books.
+     * Regression guard: when `store()` called `Series::create()` directly, the
+     * validated `book_ids` were dropped and the new series had no books.
      *
      * @see {@link SeriesService::create()}
      */
