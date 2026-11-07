@@ -1,7 +1,7 @@
 {
     "name": "threeleaf/biblioteca",
     "description": "A Laravel Eloquent Model for managing a library of books.",
-    "version": "3.0.2",
+    "version": "3.0.3",
     "type": "library",
     "license": "GPL-3.0+",
     "authors": [
@@ -33,6 +33,7 @@
         "phpunit/phpunit": "^11.0 || ^12.0",
         "orchestra/testbench": "^10.0 || ^11.0",
         "darkaonline/l5-swagger": "^9.0 || ^11.0",
+        "zircote/swagger-php": "^6.18 || ^7.0",
         "composer/semver": "^3.0"
     },
     "extra": {

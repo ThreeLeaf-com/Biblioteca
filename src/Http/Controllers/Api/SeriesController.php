@@ -18,6 +18,11 @@ use ThreeLeaf\Biblioteca\Services\SeriesService;
 #[OA\Tag(name: 'Biblioteca/Series', description: 'API Endpoints for managing Series in Biblioteca')]
 class SeriesController extends Controller
 {
+    /**
+     * Create the controller.
+     *
+     * @param SeriesService $seriesService Creates and updates series together with their linked books.
+     */
     public function __construct(
         private readonly SeriesService $seriesService,
     )
@@ -72,13 +77,13 @@ class SeriesController extends Controller
                 description: 'Series created successfully',
                 content: new OA\JsonContent(ref: '#/components/schemas/SeriesResource'),
             ),
-            new OA\Response(response: 400, description: 'Bad Request'),
+            new OA\Response(response: 422, description: 'Validation failed'),
         ],
     )]
     public function store(SeriesRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
-        $series = Series::create($validatedData);
+        $series = $this->seriesService->create($validatedData);
 
         return (new SeriesResource($series))
             ->response()
@@ -153,6 +158,7 @@ class SeriesController extends Controller
                 content: new OA\JsonContent(ref: '#/components/schemas/SeriesResource'),
             ),
             new OA\Response(response: 404, description: 'Series not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
         ],
     )]
     public function update(SeriesRequest $request, string $series_id): SeriesResource
