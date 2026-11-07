@@ -86,6 +86,7 @@ class ChapterController extends Controller
                 description: 'Chapter created successfully',
                 content: new OA\JsonContent(ref: '#/components/schemas/ChapterResource'),
             ),
+            new OA\Response(response: 422, description: 'Validation failed'),
         ],
     )]
     public function store(ChapterRequest $request): JsonResponse
@@ -166,6 +167,7 @@ class ChapterController extends Controller
                 content: new OA\JsonContent(ref: '#/components/schemas/ChapterResource'),
             ),
             new OA\Response(response: 404, description: 'Chapter not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
         ],
     )]
     public function update(ChapterRequest $request, string $chapter_id): JsonResource
